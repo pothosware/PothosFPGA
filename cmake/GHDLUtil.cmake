@@ -32,15 +32,22 @@ endif ()
 ## LIBRARIES - a list of libraries to link against
 ##
 ## WORKING_DIRECTORY - output directory or CMAKE_CURRENT_BINARY_DIR
+##
+## STD - langage standard of VHDL (default "02" for VHDL2002)
 ########################################################################
 function(GHDL_ELABORATE)
 
     include(CMakeParseArguments)
-    CMAKE_PARSE_ARGUMENTS(GHDL_ELABORATE "" "TARGET;WORKING_DIRECTORY" "SOURCES;LIBRARIES" ${ARGN})
+    CMAKE_PARSE_ARGUMENTS(GHDL_ELABORATE "" "TARGET;WORKING_DIRECTORY;STD" "SOURCES;LIBRARIES" ${ARGN})
 
     #determine working directory
     if (NOT GHDL_ELABORATE_WORKING_DIRECTORY)
         set(GHDL_ELABORATE_WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    endif ()
+
+    #determine standard
+    if (NOT GHDL_ELABORATE_STD)
+        set(GHDL_ELABORATE_STD "02")
     endif ()
 
     #turn sources into an absolute path
@@ -66,14 +73,23 @@ function(GHDL_ELABORATE)
     add_custom_command(
         OUTPUT ${outfiles}
         DEPENDS ${GHDL_ELABORATE_SOURCES}
-        COMMAND ${GHDL_EXECUTABLE} -a ${GHDL_ELABORATE_SOURCES}
+        COMMAND ${GHDL_EXECUTABLE} -a --std=${GHDL_ELABORATE_STD} ${GHDL_ELABORATE_SOURCES}
         WORKING_DIRECTORY ${GHDL_ELABORATE_WORKING_DIRECTORY}
     )
 
     #generate linker arguments
+    unset(elabdeps)
     unset(elabargs)
     foreach(lib ${GHDL_ELABORATE_LIBRARIES})
-        #TODO this changes when lib is a in-tree target...
+        get_target_property(liblocation ${lib} LOCATION_${CMAKE_BUILD_TYPE})
+        #is this an in-tree library?
+        #save dependency list and library path
+        if (liblocation)
+            list(APPEND elabdeps ${lib})
+            get_filename_component(libpath ${liblocation} PATH)
+            list(APPEND elabargs "-Wl,-L${libpath}")
+        endif ()
+        #add the library to the linker
         list(APPEND elabargs "-Wl,-l${lib}")
     endforeach(lib)
 
@@ -83,7 +99,7 @@ function(GHDL_ELABORATE)
     set(elaborated_output ${CMAKE_CURRENT_BINARY_DIR}/${GHDL_ELABORATE_TARGET})
     add_custom_command(
         OUTPUT ${elaborated_output}
-        DEPENDS ${outfiles}
+        DEPENDS ${outfiles} ${elabdeps}
         COMMAND ${GHDL_EXECUTABLE}
         ARGS ${elabargs}
         WORKING_DIRECTORY ${GHDL_ELABORATE_WORKING_DIRECTORY}
