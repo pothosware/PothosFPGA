@@ -39,8 +39,8 @@ function(GHDL_ELABORATE)
     CMAKE_PARSE_ARGUMENTS(GHDL_ELABORATE "" "TARGET;WORKING_DIRECTORY" "SOURCES;LIBRARIES" ${ARGN})
 
     #determine working directory
-    if (NOT GHDL_WORKING_DIRECTORY)
-        set(GHDL_WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
+    if (NOT GHDL_ELABORATE_WORKING_DIRECTORY)
+        set(GHDL_ELABORATE_WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     endif ()
 
     #turn sources into an absolute path
@@ -67,16 +67,26 @@ function(GHDL_ELABORATE)
         OUTPUT ${outfiles}
         DEPENDS ${GHDL_ELABORATE_SOURCES}
         COMMAND ${GHDL_EXECUTABLE} -a ${GHDL_ELABORATE_SOURCES}
-        WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
+        WORKING_DIRECTORY ${GHDL_ELABORATE_WORKING_DIRECTORY}
     )
 
+    #generate linker arguments
+    unset(elabargs)
+    foreach(lib ${GHDL_ELABORATE_LIBRARIES})
+        #TODO this changes when lib is a in-tree target...
+        list(APPEND elabargs "-Wl,-l${lib}")
+    endforeach(lib)
+
     #elaborate - creates simulation exe
+    list(INSERT elabargs 0 "-e")
+    list(APPEND elabargs "${GHDL_ELABORATE_TARGET}")
     set(elaborated_output ${CMAKE_CURRENT_BINARY_DIR}/${GHDL_ELABORATE_TARGET})
     add_custom_command(
         OUTPUT ${elaborated_output}
         DEPENDS ${outfiles}
-        COMMAND ${GHDL_EXECUTABLE} -e ${GHDL_ELABORATE_TARGET}
-        WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
+        COMMAND ${GHDL_EXECUTABLE}
+        ARGS ${elabargs}
+        WORKING_DIRECTORY ${GHDL_ELABORATE_WORKING_DIRECTORY}
     )
 
     #build target for output executable

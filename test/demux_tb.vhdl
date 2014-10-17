@@ -22,6 +22,7 @@
              sel <="11";
              wait for 2 ns;
              --more input combinations can be given here.
+             --assert false report "end of test" severity failure;
      END PROCESS tb;
 
   END;

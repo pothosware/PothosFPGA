@@ -11,6 +11,7 @@ endif ()
 GHDL_ELABORATE(
     TARGET testbench
     SOURCES
-        ${CMAKE_CURRENT_SOURCE_DIR}/demux.vhdl
-        ${CMAKE_CURRENT_SOURCE_DIR}/demux_tb.vhdl
+        demux.vhdl
+        demux_tb.vhdl
+    LIBRARIES m
 )
