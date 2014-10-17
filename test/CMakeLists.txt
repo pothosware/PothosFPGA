@@ -10,6 +10,8 @@ endif ()
 
 add_library(myfuncs myfuncs.c)
 
+add_subdirectory(External)
+
 GHDL_ELABORATE(
     TARGET testbench
     SOURCES
@@ -21,6 +23,9 @@ GHDL_ELABORATE(
 GHDL_ELABORATE(
     TARGET mytest_tb
     SOURCES
+        External/ExternalPkg.vhdl
+        External/ExternalOutput.vhdl
+        External/ExternalInput.vhdl
         mytest_tb.vhdl
-    LIBRARIES myfuncs
+    LIBRARIES myfuncs PothosFPGA
 )
