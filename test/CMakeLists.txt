@@ -16,7 +16,7 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(PothosFPGA SHARED
     PothosFPGA.cpp
-    SimulationServer.cpp
+    SimulationHarness.cpp
 )
 target_link_libraries(PothosFPGA ${Pothos_LIBRARIES})
 
@@ -26,6 +26,7 @@ target_link_libraries(PothosFPGA ${Pothos_LIBRARIES})
 GHDL_ELABORATE(
     TARGET mytest_tb
     SOURCES
+        SimulationHarnessPkg.vhdl
         ExternalSource.vhdl
         ExternalSink.vhdl
         mytest_tb.vhdl
