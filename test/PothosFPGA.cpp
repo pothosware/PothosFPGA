@@ -25,11 +25,10 @@ EXPORT_TO_VHDL bool PothosFPGA_outputHasData(const int handle)
     return true;
 }
 
-EXPORT_TO_VHDL bool PothosFPGA_outputPopData(const int handle)
+EXPORT_TO_VHDL void PothosFPGA_outputPopData(const int handle)
 {
     //std::cout << "PothosFPGA_outputPopData " << handle << std::endl;
     sourceIndex++;
-    return true;
 }
 
 EXPORT_TO_VHDL int PothosFPGA_outputFrontData(const int handle)
@@ -53,9 +52,8 @@ EXPORT_TO_VHDL bool PothosFPGA_inputHasSpace(const int handle)
     return true;
 }
 
-EXPORT_TO_VHDL bool PothosFPGA_inputPushData(const int handle, const int data)
+EXPORT_TO_VHDL void PothosFPGA_inputPushData(const int handle, const int data)
 {
     //std::cout << "PothosFPGA_inputPushData " << handle << std::endl;
     std::cout << "PothosFPGA_inputPushData got " << data << std::endl;
-    return true;
 }

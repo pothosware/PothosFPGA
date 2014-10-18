@@ -9,8 +9,8 @@ package ExternalSinkFunctions is
     function inputHasSpace (handle : integer) return boolean;
     attribute foreign of inputHasSpace : function is "VHPIDIRECT PothosFPGA_inputHasSpace";
 
-    function inputPushData (handle : integer; data : integer) return boolean;
-    attribute foreign of inputPushData : function is "VHPIDIRECT PothosFPGA_inputPushData";
+    procedure inputPushData (handle : integer; data : integer);
+    attribute foreign of inputPushData : procedure is "VHPIDIRECT PothosFPGA_inputPushData";
 end ExternalSinkFunctions;
 
 package body ExternalSinkFunctions is
@@ -20,8 +20,8 @@ package body ExternalSinkFunctions is
     function inputHasSpace (handle : integer) return boolean is begin
     end function inputHasSpace;
 
-    function inputPushData (handle : integer; data : integer) return boolean is begin
-    end function inputPushData;
+    procedure inputPushData (handle : integer; data : integer) is begin
+    end procedure inputPushData;
 end ExternalSinkFunctions;
 
 library work;
@@ -54,7 +54,6 @@ architecture sim of ExternalSink is begin
 
     process (clk)
         variable handle : integer := setupInput(PORT_NUMBER);
-        variable pushOk : boolean;
         variable thisReady : boolean := false;
     begin
 
@@ -67,7 +66,7 @@ architecture sim of ExternalSink is begin
 
         if (rising_edge(clk)) then
             if (in_valid = '1' and thisReady) then
-                pushOk := inputPushData(handle, to_integer(unsigned(in_data)));
+                inputPushData(handle, to_integer(unsigned(in_data)));
             end if;
         end if;
 

@@ -9,8 +9,8 @@ package ExternalSourceFunctions is
     function outputHasData (handle : integer) return boolean;
     attribute foreign of outputHasData : function is "VHPIDIRECT PothosFPGA_outputHasData";
 
-    function outputPopData (handle : integer) return boolean;
-    attribute foreign of outputPopData : function is "VHPIDIRECT PothosFPGA_outputPopData";
+    procedure outputPopData (handle : integer);
+    attribute foreign of outputPopData : procedure is "VHPIDIRECT PothosFPGA_outputPopData";
 
     function outputFrontData (handle : integer) return integer;
     attribute foreign of outputFrontData : function is "VHPIDIRECT PothosFPGA_outputFrontData";
@@ -23,8 +23,8 @@ package body ExternalSourceFunctions is
     function outputHasData (handle : integer) return boolean is begin
     end function outputHasData;
 
-    function outputPopData (handle : integer) return boolean is begin
-    end function outputPopData;
+    procedure outputPopData (handle : integer) is begin
+    end procedure outputPopData;
 
     function outputFrontData (handle : integer) return integer is begin
     end function outputFrontData;
@@ -61,7 +61,6 @@ architecture sim of ExternalSource is begin
     process (clk)
         variable handle : integer := setupOutput(PORT_NUMBER);
         variable preData : std_logic_vector((DATA_WIDTH)-1 downto 0);
-        variable popOk : boolean;
         variable thisValid : boolean := false;
     begin
 
@@ -75,7 +74,7 @@ architecture sim of ExternalSource is begin
 
         if (rising_edge(clk)) then
             if (out_ready = '1' and thisValid) then
-                popOk := outputPopData(handle);
+                outputPopData(handle);
             end if;
         end if;
 
