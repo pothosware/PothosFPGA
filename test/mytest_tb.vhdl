@@ -9,7 +9,6 @@ library ieee;
     --use ieee.std_logic_textio.all;
     use std.textio.all;
 library work;
-use work.ExternalPkg.all;
 
 entity mytest_tb is
 end entity mytest_tb;
@@ -28,7 +27,7 @@ begin
     clk <= not clk after 10 ns;
     rst <= '0' after 3 ns;
 
-    extOut0: ExternalOutput
+    extOut0: entity work.ExternalOutput
     generic map (
         PORT_NUMBER => 0,
         DATA_WIDTH => 32
@@ -41,7 +40,7 @@ begin
         out_ready => ready
     );
 
-    extIn0: ExternalInput
+    extIn0: entity work.ExternalInput
     generic map (
         PORT_NUMBER => 0,
         DATA_WIDTH => 32

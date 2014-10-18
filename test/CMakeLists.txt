@@ -8,14 +8,13 @@ if (NOT GHDL_EXECUTABLE)
     return()
 endif ()
 
-add_subdirectory(External)
+add_library(PothosFPGA SHARED PothosFPGA.cpp)
 
 GHDL_ELABORATE(
     TARGET mytest_tb
     SOURCES
-        External/ExternalPkg.vhdl
-        External/ExternalOutput.vhdl
-        External/ExternalInput.vhdl
+        ExternalOutput.vhdl
+        ExternalInput.vhdl
         mytest_tb.vhdl
     LIBRARIES PothosFPGA
 )

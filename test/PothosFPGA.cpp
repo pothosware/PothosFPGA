@@ -1,4 +1,5 @@
 #include <iostream>
+#include <cstdlib>
 
 static int sourceIndex = 1;
 
@@ -14,7 +15,8 @@ extern "C" int PothosFPGA_setupOutput(const int portIndex)
 extern "C" bool PothosFPGA_outputHasData(const int handle)
 {
     //std::cout << "PothosFPGA_outputHasData " << handle << std::endl;
-    return sourceIndex < 5;
+    if (sourceIndex > 5) exit(0);
+    return true;
 }
 
 extern "C" bool PothosFPGA_outputPopData(const int handle)
