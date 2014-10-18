@@ -3,13 +3,31 @@
 ------------------------------------------------------------------------
 
 package ExternalOutputFunctions is
-    function setupOutput (v : natural) return integer;
+    function setupOutput (portNum : integer) return integer;
     attribute foreign of setupOutput : function is "VHPIDIRECT PothosFPGA_setupOutput";
+
+    function outputHasData (handle : integer) return boolean;
+    attribute foreign of outputHasData : function is "VHPIDIRECT PothosFPGA_outputHasData";
+
+    function outputPopData (handle : integer) return boolean;
+    attribute foreign of outputPopData : function is "VHPIDIRECT PothosFPGA_outputPopData";
+
+    function outputFrontData (handle : integer) return integer;
+    attribute foreign of outputFrontData : function is "VHPIDIRECT PothosFPGA_outputFrontData";
 end ExternalOutputFunctions;
 
 package body ExternalOutputFunctions is
-    function setupOutput (v : natural) return integer is begin
+    function setupOutput (portNum : integer) return integer is begin
     end function setupOutput;
+
+    function outputHasData (handle : integer) return boolean is begin
+    end function outputHasData;
+
+    function outputPopData (handle : integer) return boolean is begin
+    end function outputPopData;
+
+    function outputFrontData (handle : integer) return integer is begin
+    end function outputFrontData;
 end ExternalOutputFunctions;
 
 library work;
@@ -17,6 +35,7 @@ use work.ExternalOutputFunctions.all;
 
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 entity ExternalOutput is
     generic(
@@ -37,22 +56,29 @@ entity ExternalOutput is
     );
 end entity ExternalOutput;
 
-architecture sim of ExternalOutput is
+architecture sim of ExternalOutput is begin
 
-
-begin
-
-    process(clk)
-    variable setupResult : integer := setupOutput(PORT_NUMBER);
+    process (clk)
+        variable handle : integer := setupOutput(PORT_NUMBER);
+        variable preData : std_logic_vector((DATA_WIDTH)-1 downto 0);
+        variable popOk : boolean;
+        variable thisValid : boolean := false;
     begin
-        if(rising_edge(clk)) then
-            if(rst = '0') then  --reset is checked only at the rising edge of clock.
-                --
-            else
-                --
+
+        thisValid := outputHasData(handle);
+        if (thisValid) then
+            out_valid <= '1';
+            out_data <= std_logic_vector(to_unsigned(outputFrontData(handle), DATA_WIDTH));
+        else
+            out_valid <= '0';
+        end if;
+
+        if (rising_edge(clk)) then
+            if (out_ready = '1' and thisValid) then
+                popOk := outputPopData(handle);
             end if;
         end if;
-    end process;
 
+    end process;
 
 end architecture sim;
