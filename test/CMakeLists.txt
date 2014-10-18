@@ -8,17 +8,7 @@ if (NOT GHDL_EXECUTABLE)
     return()
 endif ()
 
-add_library(myfuncs myfuncs.c)
-
 add_subdirectory(External)
-
-GHDL_ELABORATE(
-    TARGET testbench
-    SOURCES
-        demux.vhdl
-        demux_tb.vhdl
-    LIBRARIES m
-)
 
 GHDL_ELABORATE(
     TARGET mytest_tb
@@ -27,5 +17,5 @@ GHDL_ELABORATE(
         External/ExternalOutput.vhdl
         External/ExternalInput.vhdl
         mytest_tb.vhdl
-    LIBRARIES myfuncs PothosFPGA
+    LIBRARIES PothosFPGA
 )
