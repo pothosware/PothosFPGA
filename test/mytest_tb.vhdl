@@ -27,7 +27,7 @@ begin
     clk <= not clk after 10 ns;
     rst <= '0' after 3 ns;
 
-    extOut0: entity work.ExternalOutput
+    source0: entity work.ExternalSource
     generic map (
         PORT_NUMBER => 0,
         DATA_WIDTH => 32
@@ -40,7 +40,7 @@ begin
         out_ready => ready
     );
 
-    extIn0: entity work.ExternalInput
+    sink0: entity work.ExternalSink
     generic map (
         PORT_NUMBER => 0,
         DATA_WIDTH => 32

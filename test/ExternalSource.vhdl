@@ -2,7 +2,7 @@
 -- External output implementation
 ------------------------------------------------------------------------
 
-package ExternalOutputFunctions is
+package ExternalSourceFunctions is
     function setupOutput (portNum : integer) return integer;
     attribute foreign of setupOutput : function is "VHPIDIRECT PothosFPGA_setupOutput";
 
@@ -14,9 +14,9 @@ package ExternalOutputFunctions is
 
     function outputFrontData (handle : integer) return integer;
     attribute foreign of outputFrontData : function is "VHPIDIRECT PothosFPGA_outputFrontData";
-end ExternalOutputFunctions;
+end ExternalSourceFunctions;
 
-package body ExternalOutputFunctions is
+package body ExternalSourceFunctions is
     function setupOutput (portNum : integer) return integer is begin
     end function setupOutput;
 
@@ -28,16 +28,16 @@ package body ExternalOutputFunctions is
 
     function outputFrontData (handle : integer) return integer is begin
     end function outputFrontData;
-end ExternalOutputFunctions;
+end ExternalSourceFunctions;
 
 library work;
-use work.ExternalOutputFunctions.all;
+use work.ExternalSourceFunctions.all;
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity ExternalOutput is
+entity ExternalSource is
     generic(
         -- the external interface port identification number
         PORT_NUMBER : natural;
@@ -54,9 +54,9 @@ entity ExternalOutput is
         out_valid : out std_logic;
         out_ready : in std_logic
     );
-end entity ExternalOutput;
+end entity ExternalSource;
 
-architecture sim of ExternalOutput is begin
+architecture sim of ExternalSource is begin
 
     process (clk)
         variable handle : integer := setupOutput(PORT_NUMBER);

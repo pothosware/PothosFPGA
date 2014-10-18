@@ -2,7 +2,7 @@
 -- External input implementation
 ------------------------------------------------------------------------
 
-package ExternalInputFunctions is
+package ExternalSinkFunctions is
     function setupInput (portNum : integer) return integer;
     attribute foreign of setupInput : function is "VHPIDIRECT PothosFPGA_setupInput";
 
@@ -11,9 +11,9 @@ package ExternalInputFunctions is
 
     function inputPushData (handle : integer; data : integer) return boolean;
     attribute foreign of inputPushData : function is "VHPIDIRECT PothosFPGA_inputPushData";
-end ExternalInputFunctions;
+end ExternalSinkFunctions;
 
-package body ExternalInputFunctions is
+package body ExternalSinkFunctions is
     function setupInput (portNum : integer) return integer is begin
     end function setupInput;
 
@@ -22,16 +22,16 @@ package body ExternalInputFunctions is
 
     function inputPushData (handle : integer; data : integer) return boolean is begin
     end function inputPushData;
-end ExternalInputFunctions;
+end ExternalSinkFunctions;
 
 library work;
-use work.ExternalInputFunctions.all;
+use work.ExternalSinkFunctions.all;
 
 library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-entity ExternalInput is
+entity ExternalSink is
     generic(
         -- the external interface port identification number
         PORT_NUMBER : natural;
@@ -48,9 +48,9 @@ entity ExternalInput is
         in_valid : in std_logic;
         in_ready : out std_logic
     );
-end entity ExternalInput;
+end entity ExternalSink;
 
-architecture sim of ExternalInput is begin
+architecture sim of ExternalSink is begin
 
     process (clk)
         variable handle : integer := setupInput(PORT_NUMBER);

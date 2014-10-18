@@ -6,5 +6,7 @@ project(PothosFpgaTest)
 enable_language(CXX C)
 enable_testing()
 
+find_package(Pothos CONFIG REQUIRED)
+
 list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 add_subdirectory(test)
