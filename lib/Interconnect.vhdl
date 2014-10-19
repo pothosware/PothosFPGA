@@ -5,10 +5,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-library work;
-use work.PothosPkg.all;
-
-entity Interconnect is
+entity PothosInterconnect is
     generic(
 
         -- the number of input ports
@@ -25,8 +22,8 @@ entity Interconnect is
 
         -- high bandwidth ports for performance hints
         -- each bit represents a port by index number
-        HIGH_BW_INS : std_logic_vector(NUM_INPUTS-1 downto 0);
-        HIGH_BW_OUTS : std_logic_vector(NUM_OUTPUTS-1 downto 0)
+        HIGH_BW_INS : std_logic_vector;
+        HIGH_BW_OUTS : std_logic_vector
     );
     port(
         clk : in std_logic;
@@ -40,16 +37,21 @@ entity Interconnect is
 
         -- all ports into the interconnect
         in_data : in std_logic_vector((NUM_INPUTS*DATA_WIDTH)-1 downto 0);
+        in_meta : in std_logic_vector(NUM_INPUTS-1 downto 0);
+        in_last : in std_logic_vector(NUM_INPUTS-1 downto 0);
         in_valid : in std_logic_vector(NUM_INPUTS-1 downto 0);
         in_ready : out std_logic_vector(NUM_INPUTS-1 downto 0);
 
         -- all ports out from the interconnect
         out_data : out std_logic_vector((NUM_OUTPUTS*DATA_WIDTH)-1 downto 0);
+        out_meta : out std_logic_vector(NUM_OUTPUTS-1 downto 0);
+        out_last : out std_logic_vector(NUM_OUTPUTS-1 downto 0);
         out_valid : out std_logic_vector(NUM_OUTPUTS-1 downto 0);
         out_ready : in std_logic_vector(NUM_OUTPUTS-1 downto 0)
     );
-end entity Interconnect;
+end entity PothosInterconnect;
 
-architecture rtl of Interconnect is
+architecture rtl of PothosInterconnect is
+begin
     --TODO
 end architecture rtl;

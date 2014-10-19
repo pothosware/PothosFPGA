@@ -1,14 +1,4 @@
 ########################################################################
-# Test stuff
-########################################################################
-include(GHDLUtil)
-
-if (NOT GHDL_EXECUTABLE)
-    message(WARNING "cant find ghdl executable, skipping...")
-    return()
-endif ()
-
-########################################################################
 ## Create VHDL interface with simulation server interface
 ########################################################################
 include_directories(${Pothos_INCLUDE_DIRS})

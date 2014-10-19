@@ -35,11 +35,14 @@ endif ()
 ## WORKING_DIRECTORY - output directory or CMAKE_CURRENT_BINARY_DIR
 ##
 ## STD - langage standard of VHDL (default "02" for VHDL2002)
+##
+## ANALYZE_ONLY - set this to check the sources
+## No test bench required, elaboration will not be performed.
 ########################################################################
 function(GHDL_ELABORATE)
 
     include(CMakeParseArguments)
-    CMAKE_PARSE_ARGUMENTS(GHDL "" "TARGET;WORKING_DIRECTORY;STD" "SOURCES;LIBRARIES" ${ARGN})
+    CMAKE_PARSE_ARGUMENTS(GHDL "ANALYZE_ONLY" "TARGET;WORKING_DIRECTORY;STD" "SOURCES;LIBRARIES" ${ARGN})
 
     #determine working directory
     if (NOT GHDL_WORKING_DIRECTORY)
@@ -77,6 +80,12 @@ function(GHDL_ELABORATE)
         COMMAND ${GHDL_EXECUTABLE} -a --std=${GHDL_STD} ${GHDL_SOURCES}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
     )
+
+    #handle analyze only
+    if (GHDL_ANALYZE_ONLY)
+        add_custom_target(${GHDL_TARGET} ALL DEPENDS ${outfiles})
+        return()
+    endif ()
 
     #generate linker arguments
     unset(elabdeps)
