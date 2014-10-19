@@ -85,13 +85,13 @@ function(GHDL_ELABORATE)
         get_target_property(liblocation ${lib} LOCATION_${CMAKE_BUILD_TYPE})
         #is this an in-tree library?
         #save dependency list and library path
+        #and add the library to the linker
         if (liblocation)
             list(APPEND elabdeps ${lib})
-            get_filename_component(libpath ${liblocation} PATH)
-            list(APPEND elabargs "-Wl,-L${libpath}")
+            list(APPEND elabargs "-Wl,-l:${liblocation}")
+        else ()
+            list(APPEND elabargs "-Wl,-l${lib}")
         endif ()
-        #add the library to the linker
-        list(APPEND elabargs "-Wl,-l${lib}")
     endforeach(lib)
 
     #elaborate - creates simulation exe

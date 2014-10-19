@@ -19,7 +19,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_simple_loopback)
 {
     Poco::Path testPath(Pothos::System::getPothosDevLibraryPath());
     testPath.append("Pothos");
-    testPath.append("FPGA");
+    testPath.append("fpga");
     testPath.append("test");
 
     Poco::Process::Args args;

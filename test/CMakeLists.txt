@@ -12,7 +12,6 @@ endif ()
 ## Create VHDL interface with simulation server interface
 ########################################################################
 include_directories(${Pothos_INCLUDE_DIRS})
-include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 add_library(PothosFPGAHarness SHARED
     SimulationHarness.cpp
@@ -41,7 +40,7 @@ GHDL_ELABORATE(
 
 GHDL_INSTALL(
     TARGET SimpleLoopbackTb
-    DESTINATION lib${LIB_SUFFIX}/Pothos/FPGA/test
+    DESTINATION lib${LIB_SUFFIX}/Pothos/fpga/test
 )
 
 ########################################################################

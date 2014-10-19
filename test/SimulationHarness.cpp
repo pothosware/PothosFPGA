@@ -65,6 +65,12 @@ private:
     std::mutex _mutex;
 };
 
+static std::mutex &getSourceMutex(void)
+{
+    static Poco::SingletonHolder<std::mutex> sh;
+    return *sh.get();
+}
+
 static std::map<int, std::shared_ptr<SimulationSource>> &getSimSources(void)
 {
     static Poco::SingletonHolder<std::map<int, std::shared_ptr<SimulationSource>>> sh;
@@ -130,6 +136,12 @@ private:
     std::mutex _mutex;
 };
 
+static std::mutex &getSinkMutex(void)
+{
+    static Poco::SingletonHolder<std::mutex> sh;
+    return *sh.get();
+}
+
 static std::map<int, std::shared_ptr<SimulationSink>> &getSimSinks(void)
 {
     static Poco::SingletonHolder<std::map<int, std::shared_ptr<SimulationSink>>> sh;
@@ -174,38 +186,45 @@ EXPORT_TO_VHDL void PothosFPGA_initProxyServer(int)
 
 EXPORT_TO_VHDL int PothosFPGA_setupSource(const int portIndex)
 {
+    std::unique_lock<std::mutex> lock(getSinkMutex());
     getSimSinks()[portIndex].reset(new SimulationSink());
     return portIndex;
 }
 
 EXPORT_TO_VHDL bool PothosFPGA_sourceHasData(const int handle)
 {
+    std::unique_lock<std::mutex> lock(getSinkMutex());
     return getSimSinks().at(handle)->hasData();
 }
 
 EXPORT_TO_VHDL void PothosFPGA_sourcePopData(const int handle)
 {
+    std::unique_lock<std::mutex> lock(getSinkMutex());
     return getSimSinks().at(handle)->popData();
 }
 
 EXPORT_TO_VHDL int PothosFPGA_sourceFrontData(const int handle)
 {
+    std::unique_lock<std::mutex> lock(getSinkMutex());
     return getSimSinks().at(handle)->frontData();
 }
 
 EXPORT_TO_VHDL int PothosFPGA_setupSink(const unsigned portIndex)
 {
+    std::unique_lock<std::mutex> lock(getSourceMutex());
     getSimSources()[portIndex].reset(new SimulationSource());
     return portIndex;
 }
 
 EXPORT_TO_VHDL bool PothosFPGA_sinkHasSpace(const int handle)
 {
+    std::unique_lock<std::mutex> lock(getSourceMutex());
     return getSimSources().at(handle)->hasSpace();
 }
 
 EXPORT_TO_VHDL void PothosFPGA_sinkPushData(const int handle, const int data)
 {
+    std::unique_lock<std::mutex> lock(getSourceMutex());
     return getSimSources().at(handle)->pushData(data);
 }
 
@@ -216,16 +235,19 @@ struct SimulationHarness
 {
     static std::shared_ptr<Pothos::Block> getSourceBlock(const int which)
     {
+        std::unique_lock<std::mutex> lock(getSourceMutex());
         return getSimSources().at(which);
     }
 
     static std::shared_ptr<Pothos::Block> getSinkBlock(const int which)
     {
+        std::unique_lock<std::mutex> lock(getSinkMutex());
         return getSimSinks().at(which);
     }
 
     static std::vector<int> getSourceIndexes(void)
     {
+        std::unique_lock<std::mutex> lock(getSourceMutex());
         std::vector<int> indexes;
         for (const auto &pair : getSimSources()) indexes.push_back(pair.first);
         return indexes;
@@ -233,6 +255,7 @@ struct SimulationHarness
 
     static std::vector<int> getSinkIndexes(void)
     {
+        std::unique_lock<std::mutex> lock(getSinkMutex());
         std::vector<int> indexes;
         for (const auto &pair : getSimSinks()) indexes.push_back(pair.first);
         return indexes;
