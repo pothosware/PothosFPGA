@@ -31,16 +31,17 @@ architecture sim of ExternalSource is begin
 
     process (clk)
         variable handle : integer := setupSource(PORT_NUMBER);
-        variable preData : std_logic_vector((DATA_WIDTH)-1 downto 0);
         variable thisValid : boolean := false;
     begin
 
-        thisValid := sourceHasData(handle);
-        if (thisValid) then
-            out_valid <= '1';
-            out_data <= std_logic_vector(to_unsigned(sourceFrontData(handle), DATA_WIDTH));
-        else
-            out_valid <= '0';
+        if (falling_edge(clk)) then
+            thisValid := sourceHasData(handle);
+            if (thisValid) then
+                out_valid <= '1';
+                out_data <= std_logic_vector(to_signed(sourceFrontData(handle), DATA_WIDTH));
+            else
+                out_valid <= '0';
+            end if;
         end if;
 
         if (rising_edge(clk)) then

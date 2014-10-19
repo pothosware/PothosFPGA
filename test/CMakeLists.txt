@@ -50,6 +50,5 @@ GHDL_INSTALL(
 POTHOS_MODULE_UTIL(
     TARGET SimpleLoopbackTest
     SOURCES SimpleLoopbackTest.cpp
-    LIBRARIES PothosFPGAHarness
     DESTINATION fpga
 )

@@ -34,11 +34,13 @@ architecture sim of ExternalSink is begin
         variable thisReady : boolean := false;
     begin
 
-        thisReady := sinkHasSpace(handle);
-        if (thisReady) then
-            in_ready <= '1';
-        else
-            in_ready <= '0';
+        if (falling_edge(clk)) then
+            thisReady := sinkHasSpace(handle);
+            if (thisReady) then
+                in_ready <= '1';
+            else
+                in_ready <= '0';
+            end if;
         end if;
 
         if (rising_edge(clk)) then

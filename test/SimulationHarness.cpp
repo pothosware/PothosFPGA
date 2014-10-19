@@ -9,6 +9,7 @@
 #include <thread>
 #include <queue>
 #include <map>
+#include <iostream>
 
 /***********************************************************************
  * The simulation source moves simulation data into the topology
@@ -223,14 +224,14 @@ struct SimulationHarness
         return getSimSinks().at(which);
     }
 
-    static std::vector<int> getSources(void)
+    static std::vector<int> getSourceIndexes(void)
     {
         std::vector<int> indexes;
         for (const auto &pair : getSimSources()) indexes.push_back(pair.first);
         return indexes;
     }
 
-    static std::vector<int> getSinks(void)
+    static std::vector<int> getSinkIndexes(void)
     {
         std::vector<int> indexes;
         for (const auto &pair : getSimSinks()) indexes.push_back(pair.first);
@@ -244,6 +245,6 @@ static auto managedSimulationHarness = Pothos::ManagedClass()
     .registerClass<SimulationHarness>()
     .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSourceBlock))
     .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSinkBlock))
-    .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSources))
-    .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSinks))
+    .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSourceIndexes))
+    .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSinkIndexes))
     .commit("Pothos/FPGA/SimulationHarness");

@@ -129,7 +129,7 @@ function(GHDL_INSTALL)
     CMAKE_PARSE_ARGUMENTS(GHDL "" "TARGET;DESTINATION" "" ${ARGN})
 
     install(
-        FILES ${__${GHDL_TARGET}_elaborated_output}
+        PROGRAMS ${__${GHDL_TARGET}_elaborated_output}
         DESTINATION ${GHDL_DESTINATION}
     )
 

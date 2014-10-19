@@ -20,10 +20,6 @@ architecture test of SimpleLoopbackTb is
 
 begin
 
-    process begin
-        initProxyServer(0);
-    end process;
-
     -- Generate clock
     clk <= not clk after 10 ns;
     rst <= '0' after 3 ns;
@@ -53,5 +49,10 @@ begin
         in_valid => valid,
         in_ready => ready
     );
+
+    process begin
+        initProxyServer(0);
+        wait;
+    end process;
 
 end architecture test;

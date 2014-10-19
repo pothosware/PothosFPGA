@@ -62,13 +62,16 @@ struct MyTCPConnectionMonitor: public Poco::Runnable
         while (running)
         {
             std::this_thread::sleep_for(std::chrono::milliseconds(100));
+            /*
             if (server.currentConnections() == 0)
             {
                 std::cerr << "Proxy server: No active connections - killing server" << std::endl;
                 Poco::Process::kill(Poco::Process::id());
                 return;
             }
+            */
         }
+        std::cout << __func__ << std::endl;
     }
 
     bool running;
@@ -101,19 +104,17 @@ static void runProxyServer(const std::string &uriStr)
     Poco::Net::TCPServer tcpServer(factory, serverSocket);
 
     //start the server
-    std::cout << "Host: " << serverSocket.address().host().toString() << std::endl;
-    std::cout << "Port: " << serverSocket.address().port() << std::endl;
     serverSocket.listen();
     tcpServer.start();
+    std::cout << "Host: " << serverSocket.address().host().toString() << std::endl;
+    std::cout << "Port: " << serverSocket.address().port() << std::endl;
 
     //create a TCP connection monitor thread
     MyTCPConnectionMonitor monitor(tcpServer);
     Poco::Thread monitorThread;
     monitorThread.start(monitor);
-
-    //end the monitor thread
-    monitor.running = false;
     monitorThread.join();
+    std::cout << "exit?\n";
 }
 
 void runProxyServer(void)
