@@ -6,54 +6,41 @@
 #include <Pothos/Remote.hpp>
 #include <Pothos/Proxy.hpp>
 #include <Pothos/Framework.hpp>
-#include <Poco/Pipe.h>
-#include <Poco/PipeStream.h>
 #include <Poco/Process.h>
 #include <Poco/Path.h>
 #include <Poco/JSON/Object.h>
-#include <Poco/StringTokenizer.h>
-#include <thread>
+#include <Poco/NamedMutex.h>
 #include <iostream>
 
 POTHOS_TEST_BLOCK("/fpga/tests", test_simple_loopback)
 {
+    static const std::string serverPort = "12345";
+    static const std::string mutexName = "abcdef";
+
+    //test install directory
     Poco::Path testPath(Pothos::System::getPothosDevLibraryPath());
     testPath.append("Pothos");
     testPath.append("fpga");
     testPath.append("test");
 
+    //setup args and env vars
     Poco::Process::Args args;
     args.push_back("-r");
     args.push_back("simpleloopbacktb");
-    Poco::Pipe outPipe, errPipe;
     Poco::Process::Env envVars;
-    envVars["POTHOS_FPGA_SERVER_ADDR"] = "tcp://0.0.0.0:12345";
+    envVars["POTHOS_FPGA_SERVER_PORT"] = serverPort;
+    envVars["POTHOS_FPGA_MUTEX_NAME"] = mutexName;
+
+    //launch with named mutex barrier
+    Poco::NamedMutex mutex(mutexName);
+    mutex.lock();
     Poco::ProcessHandle ph(Poco::Process::launch(
-        "ghdl", args, testPath.toString(), nullptr, /*&outPipe, &errPipe*/nullptr, nullptr, envVars));
+        "ghdl", args, testPath.toString(), nullptr, nullptr, nullptr, envVars));
+    mutex.lock();
+    mutex.unlock();
 
-    //read port and close pipe
-    std::string port = "12345";
-    /*
-    Poco::PipeInputStream is(outPipe);
-    while (is.good() and not is.eof())
-    {
-        std::string line; std::getline(is, line);
-        if (line.empty()) continue;
-        const Poco::StringTokenizer tok(line, " ");
-        if (tok.count() >= 2 and tok[0] == "Port:")
-        {
-            port = tok[1];
-            break;
-        }
-    }
-
-    //close pipes to not overfill and backup
-    outPipe.close();
-    errPipe.close();
-    */
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
-
-    Pothos::RemoteClient client("tcp://localhost:"+port);
+    //create client environment
+    Pothos::RemoteClient client("tcp://localhost:"+serverPort);
     auto env = client.makeEnvironment("managed");
     auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
 
