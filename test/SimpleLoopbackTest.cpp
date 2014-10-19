@@ -51,12 +51,11 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_simple_loopback)
     outPipe.close();
     errPipe.close();
     */
-    std::this_thread::sleep_for(std::chrono::milliseconds(4000));
+    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     Pothos::RemoteClient client("tcp://localhost:"+port);
     auto env = client.makeEnvironment("managed");
     auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
-    std::this_thread::sleep_for(std::chrono::milliseconds(1000));
 
     auto sourceIndexes = SimulationHarness.call<std::vector<int>>("getSourceIndexes");
     POTHOS_TEST_EQUAL(sourceIndexes.size(), 1);
@@ -76,8 +75,6 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_simple_loopback)
     //create a test plan
     Poco::JSON::Object::Ptr testPlan(new Poco::JSON::Object());
     testPlan->set("enableBuffers", true);
-    testPlan->set("minValue", 1);
-    testPlan->set("maxValue", 100);
     auto expected = feeder.callProxy("feedTestPlan", testPlan);
 
     //run the topology

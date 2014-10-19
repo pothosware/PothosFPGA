@@ -45,7 +45,7 @@ architecture sim of ExternalSink is begin
 
         if (rising_edge(clk)) then
             if (in_valid = '1' and thisReady) then
-                sinkPushData(handle, to_integer(unsigned(in_data)));
+                sinkPushData(handle, to_integer(signed(in_data)));
             end if;
         end if;
 

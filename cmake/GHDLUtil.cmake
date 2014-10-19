@@ -83,12 +83,15 @@ function(GHDL_ELABORATE)
     unset(elabargs)
     foreach(lib ${GHDL_LIBRARIES})
         get_target_property(liblocation ${lib} LOCATION_${CMAKE_BUILD_TYPE})
+        get_filename_component(ext ${lib} EXT)
         #is this an in-tree library?
         #save dependency list and library path
         #and add the library to the linker
         if (liblocation)
             list(APPEND elabdeps ${lib})
             list(APPEND elabargs "-Wl,-l:${liblocation}")
+        elseif (ext)
+            list(APPEND elabargs "-Wl,-l:${lib}")
         else ()
             list(APPEND elabargs "-Wl,-l${lib}")
         endif ()

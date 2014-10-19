@@ -13,6 +13,7 @@
 #include <chrono>
 #include <thread>
 #include <iostream>
+#include <cstdlib>
 
 class MyTCPServerConnection : public Poco::Net::TCPServerConnection
 {
@@ -22,6 +23,12 @@ public:
         _handler(Pothos::RemoteHandler(socket.peerAddress().host().toString()))
     {
         return;
+    }
+
+    ~MyTCPServerConnection(void)
+    {
+        std::cout << "killing process\n";
+        Poco::Process::kill(Poco::Process::id());
     }
 
     void run(void)
@@ -46,36 +53,6 @@ public:
     {
         return new MyTCPServerConnection(socket);
     }
-};
-
-struct MyTCPConnectionMonitor: public Poco::Runnable
-{
-    MyTCPConnectionMonitor(Poco::Net::TCPServer &server):
-        running(true),
-        server(server)
-    {
-        return;
-    }
-
-    virtual void run(void)
-    {
-        while (running)
-        {
-            std::this_thread::sleep_for(std::chrono::milliseconds(100));
-            /*
-            if (server.currentConnections() == 0)
-            {
-                std::cerr << "Proxy server: No active connections - killing server" << std::endl;
-                Poco::Process::kill(Poco::Process::id());
-                return;
-            }
-            */
-        }
-        std::cout << __func__ << std::endl;
-    }
-
-    bool running;
-    Poco::Net::TCPServer &server;
 };
 
 static void runProxyServer(const std::string &uriStr)
@@ -109,12 +86,11 @@ static void runProxyServer(const std::string &uriStr)
     std::cout << "Host: " << serverSocket.address().host().toString() << std::endl;
     std::cout << "Port: " << serverSocket.address().port() << std::endl;
 
-    //create a TCP connection monitor thread
-    MyTCPConnectionMonitor monitor(tcpServer);
-    Poco::Thread monitorThread;
-    monitorThread.start(monitor);
-    monitorThread.join();
-    std::cout << "exit?\n";
+    //wait forever for exit
+    while (true)
+    {
+        std::this_thread::sleep_for(std::chrono::milliseconds(100));
+    }
 }
 
 void runProxyServer(void)
