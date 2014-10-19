@@ -14,21 +14,42 @@ endif ()
 include_directories(${Pothos_INCLUDE_DIRS})
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-add_library(PothosFPGA SHARED
-    PothosFPGA.cpp
+add_library(PothosFPGAHarness SHARED
     SimulationHarness.cpp
+    SimulationServer.cpp
 )
-target_link_libraries(PothosFPGA ${Pothos_LIBRARIES})
+target_link_libraries(PothosFPGAHarness ${Pothos_LIBRARIES})
+
+install(TARGETS PothosFPGAHarness
+    LIBRARY DESTINATION lib${LIB_SUFFIX} # .so file
+    ARCHIVE DESTINATION lib${LIB_SUFFIX} # .lib file
+    RUNTIME DESTINATION bin              # .dll file
+)
 
 ########################################################################
 ## quick testbench for compiles -- replace w/ better later
 ########################################################################
 GHDL_ELABORATE(
-    TARGET mytest_tb
+    TARGET SimpleLoopbackTb
     SOURCES
         SimulationHarnessPkg.vhdl
         ExternalSource.vhdl
         ExternalSink.vhdl
-        mytest_tb.vhdl
-    LIBRARIES PothosFPGA
+        SimpleLoopbackTb.vhdl
+    LIBRARIES PothosFPGAHarness
+)
+
+GHDL_INSTALL(
+    TARGET SimpleLoopbackTb
+    DESTINATION lib${LIB_SUFFIX}/Pothos/FPGA/test
+)
+
+########################################################################
+## module for the unit test side of the test bench
+########################################################################
+POTHOS_MODULE_UTIL(
+    TARGET SimpleLoopbackTest
+    SOURCES SimpleLoopbackTest.cpp
+    LIBRARIES PothosFPGAHarness
+    DESTINATION fpga
 )

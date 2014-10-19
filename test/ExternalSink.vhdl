@@ -1,31 +1,8 @@
 ------------------------------------------------------------------------
 -- External input implementation
 ------------------------------------------------------------------------
-
-package ExternalSinkFunctions is
-    function setupInput (portNum : integer) return integer;
-    attribute foreign of setupInput : function is "VHPIDIRECT PothosFPGA_setupInput";
-
-    function inputHasSpace (handle : integer) return boolean;
-    attribute foreign of inputHasSpace : function is "VHPIDIRECT PothosFPGA_inputHasSpace";
-
-    procedure inputPushData (handle : integer; data : integer);
-    attribute foreign of inputPushData : procedure is "VHPIDIRECT PothosFPGA_inputPushData";
-end ExternalSinkFunctions;
-
-package body ExternalSinkFunctions is
-    function setupInput (portNum : integer) return integer is begin
-    end function setupInput;
-
-    function inputHasSpace (handle : integer) return boolean is begin
-    end function inputHasSpace;
-
-    procedure inputPushData (handle : integer; data : integer) is begin
-    end procedure inputPushData;
-end ExternalSinkFunctions;
-
 library work;
-use work.ExternalSinkFunctions.all;
+use work.SimulationHarnessPkg.all;
 
 library ieee;
 use ieee.std_logic_1164.all;
@@ -53,11 +30,11 @@ end entity ExternalSink;
 architecture sim of ExternalSink is begin
 
     process (clk)
-        variable handle : integer := setupInput(PORT_NUMBER);
+        variable handle : integer := setupSink(PORT_NUMBER);
         variable thisReady : boolean := false;
     begin
 
-        thisReady := inputHasSpace(handle);
+        thisReady := sinkHasSpace(handle);
         if (thisReady) then
             in_ready <= '1';
         else
@@ -66,7 +43,7 @@ architecture sim of ExternalSink is begin
 
         if (rising_edge(clk)) then
             if (in_valid = '1' and thisReady) then
-                inputPushData(handle, to_integer(unsigned(in_data)));
+                sinkPushData(handle, to_integer(unsigned(in_data)));
             end if;
         end if;
 

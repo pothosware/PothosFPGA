@@ -3,6 +3,10 @@
 ------------------------------------------------------------------------
 
 package SimulationHarnessPkg is
+
+    procedure initProxyServer (zero : integer);
+    attribute foreign of initProxyServer : procedure is "VHPIDIRECT PothosFPGA_initProxyServer";
+
     function setupSource (portNum : integer) return integer;
     attribute foreign of setupSource : function is "VHPIDIRECT PothosFPGA_setupSource";
 
@@ -27,6 +31,10 @@ end SimulationHarnessPkg;
 
 -- empty function definitions to satisfy the tools
 package body SimulationHarnessPkg is
+
+    procedure initProxyServer (zero : integer) is begin
+    end procedure initProxyServer;
+
     function setupSource (portNum : integer) return integer is begin
     end function setupSource;
 

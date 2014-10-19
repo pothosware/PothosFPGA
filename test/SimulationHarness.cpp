@@ -6,6 +6,7 @@
 #include <memory>
 #include <mutex>
 #include <condition_variable>
+#include <thread>
 #include <queue>
 #include <map>
 
@@ -135,9 +136,40 @@ static std::map<int, std::shared_ptr<SimulationSink>> &getSimSinks(void)
 }
 
 /***********************************************************************
+ * Proxy server background thread
+ **********************************************************************/
+void runProxyServer(void);
+
+struct MyProxyServerRunner
+{
+    MyProxyServerRunner(void)
+    {
+        _thread = std::thread(&runProxyServer);
+    }
+
+    ~MyProxyServerRunner(void)
+    {
+        _thread.join();
+    }
+
+    std::thread _thread;
+};
+
+static MyProxyServerRunner &getMyProxyServerRunner(void)
+{
+    static Poco::SingletonHolder<MyProxyServerRunner> sh;
+    return *sh.get();
+}
+
+/***********************************************************************
  * VHDL C foreign interface
  **********************************************************************/
 #define EXPORT_TO_VHDL extern "C" POTHOS_HELPER_DLL_EXPORT
+
+EXPORT_TO_VHDL void PothosFPGA_initProxyServer(int)
+{
+    getMyProxyServerRunner(); //one time init of server
+}
 
 EXPORT_TO_VHDL int PothosFPGA_setupSource(const int portIndex)
 {

@@ -1,18 +1,15 @@
-
-
-------------------------------------------------------------------------------
---  TEST BENCH
-------------------------------------------------------------------------------
+------------------------------------------------------------------------
+-- Simple loopback test bench for trying out external port interfaces
+------------------------------------------------------------------------
 library ieee;
-    use ieee.std_logic_1164.all;
-    --use ieee.std_logic_unsigned.all;
-    --use ieee.std_logic_textio.all;
-    use std.textio.all;
+use ieee.std_logic_1164.all;
 library work;
+use work.SimulationHarnessPkg.all;
 
-entity mytest_tb is
-end entity mytest_tb;
-architecture test of mytest_tb is
+entity SimpleLoopbackTb is
+end entity SimpleLoopbackTb;
+
+architecture test of SimpleLoopbackTb is
 
     signal clk    :std_logic := '0';
     signal rst    :std_logic := '1';
@@ -22,6 +19,10 @@ architecture test of mytest_tb is
     signal ready : std_logic;
 
 begin
+
+    process begin
+        initProxyServer(0);
+    end process;
 
     -- Generate clock
     clk <= not clk after 10 ns;
@@ -53,4 +54,4 @@ begin
         in_ready => ready
     );
 
-end architecture;
+end architecture test;
