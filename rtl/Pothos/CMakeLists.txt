@@ -7,6 +7,7 @@ GHDL_ELABORATE(
     SOURCES
         Interconnect.vhdl
         StreamFifo.vhdl
+    LIBRARIES vhdl-extras
     ANALYZE_ONLY
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )

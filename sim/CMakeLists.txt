@@ -48,6 +48,26 @@ GHDL_INSTALL(
 )
 
 ########################################################################
+## fifo loopback testbench
+########################################################################
+GHDL_ELABORATE(
+    TARGET FifoLoopbackTb
+    LIBRARY FifoLoopbackTb
+    SOURCES FifoLoopbackTb.vhdl
+    LIBRARIES
+        PothosInterconnect
+        PothosSimulation
+        PothosFPGAHarness
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    IEEE synopsys
+)
+
+GHDL_INSTALL(
+    TARGET FifoLoopbackTb
+    DESTINATION lib${LIB_SUFFIX}/Pothos/fpga/test
+)
+
+########################################################################
 ## build and install unit tests
 ########################################################################
 POTHOS_MODULE_UTIL(

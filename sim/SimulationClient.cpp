@@ -8,12 +8,19 @@
 #include <Poco/Process.h>
 #include <Poco/Path.h>
 #include <Poco/NamedMutex.h>
+#include <Poco/String.h>
+#include <iostream>
 #include <memory>
 
 Pothos::ProxyEnvironment::Sptr getSimulationEnv(const std::string &testName)
 {
-    static const std::string serverPort = std::to_string(1024+Poco::Process::id());
-    static const std::string mutexName = "ghdl_"+testName+serverPort;
+    const std::string serverPort = std::to_string(1024+Poco::Process::id());
+    const std::string mutexName = "ghdl_"+testName+serverPort;
+
+    //path to vcd output
+    Poco::Path vcdFile(Poco::Path::temp());
+    vcdFile.append(testName+".vcd");
+    std::cout << "Output: " << vcdFile.toString() << std::endl;
 
     //test install directory
     Poco::Path testPath(Pothos::System::getPothosDevLibraryPath());
@@ -24,7 +31,8 @@ Pothos::ProxyEnvironment::Sptr getSimulationEnv(const std::string &testName)
     //setup args and env vars
     Poco::Process::Args args;
     args.push_back("-r");
-    args.push_back(testName);
+    args.push_back(Poco::toLower(testName));
+    args.push_back("--vcd="+vcdFile.toString());
     Poco::Process::Env envVars;
     envVars["POTHOS_FPGA_SERVER_PORT"] = serverPort;
     envVars["POTHOS_FPGA_MUTEX_NAME"] = mutexName;

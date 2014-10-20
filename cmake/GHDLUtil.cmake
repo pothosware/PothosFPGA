@@ -87,17 +87,39 @@ function(GHDL_ELABORATE)
         list(APPEND outfiles ${outfile})
     endforeach(file)
 
+    #determine library dependencies and linker arguments
+    unset(libdeps)
+    unset(linkargs)
+    foreach(lib ${GHDL_LIBRARIES})
+        get_target_property(liblocation ${lib} LOCATION_${CMAKE_BUILD_TYPE})
+        get_filename_component(ext ${lib} EXT)
+        #is this an in-tree library?
+        #save dependency list and library path
+        #and add the library to the linker
+        if (__${lib}_analyzed_output)
+            list(APPEND libdeps ${__${lib}_analyzed_output})
+        elseif (liblocation)
+            list(APPEND libdeps ${lib})
+            list(APPEND linkargs "-Wl,-l:${liblocation}")
+        elseif (ext)
+            list(APPEND linkargs "-Wl,-l:${lib}")
+        else ()
+            list(APPEND linkargs "-Wl,-l${lib}")
+        endif ()
+    endforeach(lib)
+
     #the analyzed output file
     string(TOLOWER ${GHDL_LIBRARY} librarylower)
     set(analyzed_output "${GHDL_WORKING_DIRECTORY}/${librarylower}-obj93.cf")
-    set(__${GHDL_TARGET}_analyzed_output "${analyzed_output}" PARENT_SCOPE)
+    set(__${GHDL_TARGET}_analyzed_output "${analyzed_output}" CACHE STRING "" FORCE)
 
     #analyze all the input files
     add_custom_command(
         OUTPUT ${analyzed_output} ${outfiles}
-        DEPENDS ${GHDL_SOURCES}
+        DEPENDS ${GHDL_SOURCES} ${libdeps}
         COMMAND ${GHDL_EXECUTABLE} -a ${GHDL_STD} ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${GHDL_SOURCES}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
+        COMMENT "Generating ${outfiles}"
     )
 
     #handle analyze only
@@ -106,46 +128,23 @@ function(GHDL_ELABORATE)
         return()
     endif ()
 
-    #generate linker arguments
-    unset(elabdeps)
-    unset(elabargs)
-    foreach(lib ${GHDL_LIBRARIES})
-        get_target_property(liblocation ${lib} LOCATION_${CMAKE_BUILD_TYPE})
-        get_filename_component(ext ${lib} EXT)
-        #is this an in-tree library?
-        #save dependency list and library path
-        #and add the library to the linker
-        if (__${lib}_analyzed_output)
-            list(APPEND elabdeps ${lib})
-        elseif (liblocation)
-            list(APPEND elabdeps ${lib})
-            list(APPEND elabargs "-Wl,-l:${liblocation}")
-        elseif (ext)
-            list(APPEND elabargs "-Wl,-l:${lib}")
-        else ()
-            list(APPEND elabargs "-Wl,-l${lib}")
-        endif ()
-    endforeach(lib)
-
     #elaborate - creates simulation exe
-    list(INSERT elabargs 0 "--work=${GHDL_LIBRARY}")
-    list(INSERT elabargs 0 "-e")
-    list(APPEND elabargs "${GHDL_TARGET}")
     string(TOLOWER ${GHDL_TARGET} targetlower)
     set(elaborated_output_obj "${GHDL_WORKING_DIRECTORY}/e~${targetlower}.o")
     set(elaborated_output "${GHDL_WORKING_DIRECTORY}/${targetlower}")
     add_custom_command(
         OUTPUT ${elaborated_output} ${elaborated_output_obj}
-        DEPENDS ${analyzed_output} ${elabdeps}
+        DEPENDS ${analyzed_output}
         COMMAND ${GHDL_EXECUTABLE}
-        ARGS ${elabargs}
+        ARGS -e ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${linkargs} ${GHDL_TARGET}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
+        COMMENT "Generating ${elaborated_output}"
     )
 
     #build target for output executable
     add_custom_target(${GHDL_TARGET} ALL DEPENDS ${elaborated_output})
 
-    set(__${GHDL_TARGET}_elaborated_output "${elaborated_output}" PARENT_SCOPE)
+    set(__${GHDL_TARGET}_elaborated_output "${elaborated_output}" CACHE STRING "" FORCE)
 
 endfunction(GHDL_ELABORATE)
 

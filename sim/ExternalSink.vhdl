@@ -14,19 +14,16 @@ use ieee.numeric_std.all;
 entity ExternalSink is
     generic(
         -- the external interface port identification number
-        PORT_NUMBER : natural;
-
-        -- the bit width of the data port
-        DATA_WIDTH : positive
+        PORT_NUMBER : natural
     );
     port(
-        clk : in std_logic;
-        rst : in std_logic;
+        clk : in std_ulogic;
+        rst : in std_ulogic;
 
         -- input bus
-        in_data : in std_logic_vector((DATA_WIDTH)-1 downto 0);
-        in_valid : in std_logic;
-        in_ready : out std_logic
+        in_data : in std_ulogic_vector;
+        in_valid : in std_ulogic;
+        in_ready : out std_ulogic
     );
 end entity ExternalSink;
 
@@ -47,7 +44,9 @@ architecture sim of ExternalSink is begin
         end if;
 
         if (rising_edge(clk)) then
-            if (in_valid = '1' and thisReady) then
+            if (rst = '1') then
+                in_ready <= '0';
+            elsif (in_valid = '1' and thisReady) then
                 sinkPushData(handle, to_integer(signed(in_data)));
             end if;
         end if;
