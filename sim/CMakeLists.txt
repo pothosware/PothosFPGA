@@ -30,29 +30,29 @@ GHDL_ELABORATE(
 )
 
 ########################################################################
-## simple loopback testbench
+## loopback testbench
 ########################################################################
 GHDL_ELABORATE(
-    TARGET SimpleLoopbackTb
-    LIBRARY SimpleLoopbackTb
-    SOURCES SimpleLoopbackTb.vhdl
+    TARGET LoopbackTb
+    LIBRARY LoopbackTb
+    SOURCES LoopbackTb.vhdl
     DEPENDS PothosSimulation
     LIBRARIES PothosFPGAHarness
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )
 
 GHDL_INSTALL(
-    TARGET SimpleLoopbackTb
+    TARGET LoopbackTb
     DESTINATION lib${LIB_SUFFIX}/Pothos/fpga/test
 )
 
 ########################################################################
-## fifo loopback testbench
+## fifo testbench
 ########################################################################
 GHDL_ELABORATE(
-    TARGET FifoLoopbackTb
-    LIBRARY FifoLoopbackTb
-    SOURCES FifoLoopbackTb.vhdl
+    TARGET FifoTb
+    LIBRARY FifoTb
+    SOURCES FifoTb.vhdl
     DEPENDS
         PothosInterconnect
         PothosSimulation
@@ -62,7 +62,7 @@ GHDL_ELABORATE(
 )
 
 GHDL_INSTALL(
-    TARGET FifoLoopbackTb
+    TARGET FifoTb
     DESTINATION lib${LIB_SUFFIX}/Pothos/fpga/test
 )
 
@@ -73,6 +73,6 @@ POTHOS_MODULE_UTIL(
     TARGET SimulationUnitTests
     SOURCES
         SimulationClient.cpp
-        SimpleLoopbackTest.cpp
+        ComponentTests.cpp
     DESTINATION fpga
 )

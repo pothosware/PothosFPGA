@@ -7,6 +7,7 @@
 #include <Pothos/Proxy.hpp>
 #include <Poco/Process.h>
 #include <Poco/Path.h>
+#include <Poco/File.h>
 #include <Poco/NamedMutex.h>
 #include <Poco/String.h>
 #include <iostream>
@@ -27,11 +28,15 @@ Pothos::ProxyEnvironment::Sptr getSimulationEnv(const std::string &testName)
     testPath.append("Pothos");
     testPath.append("fpga");
     testPath.append("test");
+    testPath.append(Poco::toLower(testName));
+
+    //check that the file exists
+    if (not Poco::File(testPath).exists()) throw Pothos::FileExistsException(testPath.toString());
 
     //setup args and env vars
     Poco::Process::Args args;
     args.push_back("-r");
-    args.push_back(Poco::toLower(testName));
+    args.push_back(Poco::toLower(testPath.getFileName()));
     args.push_back("--vcd="+vcdFile.toString());
     Poco::Process::Env envVars;
     envVars["POTHOS_FPGA_SERVER_PORT"] = serverPort;
@@ -42,7 +47,7 @@ Pothos::ProxyEnvironment::Sptr getSimulationEnv(const std::string &testName)
     mutex.lock();
     std::shared_ptr<Poco::ProcessHandle> phc;
     phc.reset(new Poco::ProcessHandle(Poco::Process::launch(
-        "ghdl", args, testPath.toString(), nullptr, nullptr, nullptr, envVars)));
+        "ghdl", args, testPath.parent().toString(), nullptr, nullptr, nullptr, envVars)));
     mutex.lock();
     mutex.unlock();
 
