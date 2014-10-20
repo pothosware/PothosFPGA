@@ -36,9 +36,8 @@ GHDL_ELABORATE(
     TARGET SimpleLoopbackTb
     LIBRARY SimpleLoopbackTb
     SOURCES SimpleLoopbackTb.vhdl
-    LIBRARIES
-        PothosSimulation
-        PothosFPGAHarness
+    DEPENDS PothosSimulation
+    LIBRARIES PothosFPGAHarness
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )
 
@@ -54,10 +53,10 @@ GHDL_ELABORATE(
     TARGET FifoLoopbackTb
     LIBRARY FifoLoopbackTb
     SOURCES FifoLoopbackTb.vhdl
-    LIBRARIES
+    DEPENDS
         PothosInterconnect
         PothosSimulation
-        PothosFPGAHarness
+    LIBRARIES PothosFPGAHarness
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
     IEEE synopsys
 )

@@ -32,6 +32,8 @@ endif ()
 ##
 ## LIBRARIES - a list of libraries to link against
 ##
+## DEPENDS - other analyzed targets required by this target
+##
 ## WORKING_DIRECTORY - output directory or CMAKE_CURRENT_BINARY_DIR
 ##
 ## STD - langage standard of VHDL
@@ -46,7 +48,7 @@ endif ()
 function(GHDL_ELABORATE)
 
     include(CMakeParseArguments)
-    CMAKE_PARSE_ARGUMENTS(GHDL "ANALYZE_ONLY" "TARGET;WORKING_DIRECTORY;STD;LIBRARY;IEEE" "SOURCES;LIBRARIES" ${ARGN})
+    CMAKE_PARSE_ARGUMENTS(GHDL "ANALYZE_ONLY" "TARGET;WORKING_DIRECTORY;STD;LIBRARY;IEEE" "SOURCES;LIBRARIES;DEPENDS" ${ARGN})
 
     #determine working directory
     if (NOT GHDL_WORKING_DIRECTORY)
@@ -87,27 +89,6 @@ function(GHDL_ELABORATE)
         list(APPEND outfiles ${outfile})
     endforeach(file)
 
-    #determine library dependencies and linker arguments
-    unset(libdeps)
-    unset(linkargs)
-    foreach(lib ${GHDL_LIBRARIES})
-        get_target_property(liblocation ${lib} LOCATION_${CMAKE_BUILD_TYPE})
-        get_filename_component(ext ${lib} EXT)
-        #is this an in-tree library?
-        #save dependency list and library path
-        #and add the library to the linker
-        if (__${lib}_analyzed_output)
-            list(APPEND libdeps ${__${lib}_analyzed_output})
-        elseif (liblocation)
-            list(APPEND libdeps ${lib})
-            list(APPEND linkargs "-Wl,-l:${liblocation}")
-        elseif (ext)
-            list(APPEND linkargs "-Wl,-l:${lib}")
-        else ()
-            list(APPEND linkargs "-Wl,-l${lib}")
-        endif ()
-    endforeach(lib)
-
     #the analyzed output file
     string(TOLOWER ${GHDL_LIBRARY} librarylower)
     set(analyzed_output "${GHDL_WORKING_DIRECTORY}/${librarylower}-obj93.cf")
@@ -116,7 +97,7 @@ function(GHDL_ELABORATE)
     #analyze all the input files
     add_custom_command(
         OUTPUT ${analyzed_output} ${outfiles}
-        DEPENDS ${GHDL_SOURCES} ${libdeps}
+        DEPENDS ${GHDL_SOURCES} ${GHDL_DEPENDS}
         COMMAND ${GHDL_EXECUTABLE} -a ${GHDL_STD} ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${GHDL_SOURCES}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
         COMMENT "Generating ${outfiles}"
@@ -128,15 +109,33 @@ function(GHDL_ELABORATE)
         return()
     endif ()
 
+    #determine library dependencies and linker arguments
+    unset(libdeps)
+    unset(linkargs)
+    foreach(lib ${GHDL_LIBRARIES})
+        get_target_property(liblocation ${lib} LOCATION_${CMAKE_BUILD_TYPE})
+        get_filename_component(ext ${lib} EXT)
+        #is this an in-tree library?
+        #save dependency list and library path
+        #and add the library to the linker
+        if (liblocation)
+            list(APPEND libdeps ${lib})
+            list(APPEND linkargs "-Wl,-l:${liblocation}")
+        elseif (ext)
+            list(APPEND linkargs "-Wl,-l:${lib}")
+        else ()
+            list(APPEND linkargs "-Wl,-l${lib}")
+        endif ()
+    endforeach(lib)
+
     #elaborate - creates simulation exe
     string(TOLOWER ${GHDL_TARGET} targetlower)
     set(elaborated_output_obj "${GHDL_WORKING_DIRECTORY}/e~${targetlower}.o")
     set(elaborated_output "${GHDL_WORKING_DIRECTORY}/${targetlower}")
     add_custom_command(
         OUTPUT ${elaborated_output} ${elaborated_output_obj}
-        DEPENDS ${analyzed_output}
-        COMMAND ${GHDL_EXECUTABLE}
-        ARGS -e ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${linkargs} ${GHDL_TARGET}
+        DEPENDS ${analyzed_output} ${libdeps}
+        COMMAND ${GHDL_EXECUTABLE} -e ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${linkargs} ${GHDL_TARGET}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
         COMMENT "Generating ${elaborated_output}"
     )
