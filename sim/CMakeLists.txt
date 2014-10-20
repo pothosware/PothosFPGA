@@ -37,7 +37,9 @@ GHDL_INSTALL(
 ## module for the unit test side of the test bench
 ########################################################################
 POTHOS_MODULE_UTIL(
-    TARGET SimpleLoopbackTest
-    SOURCES SimpleLoopbackTest.cpp
+    TARGET SimulationUnitTests
+    SOURCES
+        SimulationClient.cpp
+        SimpleLoopbackTest.cpp
     DESTINATION fpga
 )
