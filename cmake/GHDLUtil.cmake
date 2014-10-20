@@ -79,6 +79,14 @@ function(GHDL_ELABORATE)
     endforeach(source)
     set(GHDL_SOURCES ${__sources})
 
+    #generate a list of output files
+    unset(outfiles)
+    foreach(file ${GHDL_SOURCES})
+        get_filename_component(outfile ${file} NAME_WE)
+        set(outfile "${GHDL_WORKING_DIRECTORY}/${outfile}.o")
+        list(APPEND outfiles ${outfile})
+    endforeach(file)
+
     #the analyzed output file
     string(TOLOWER ${GHDL_LIBRARY} librarylower)
     set(analyzed_output "${GHDL_WORKING_DIRECTORY}/${librarylower}-obj93.cf")
@@ -86,7 +94,7 @@ function(GHDL_ELABORATE)
 
     #analyze all the input files
     add_custom_command(
-        OUTPUT ${analyzed_output}
+        OUTPUT ${analyzed_output} ${outfiles}
         DEPENDS ${GHDL_SOURCES}
         COMMAND ${GHDL_EXECUTABLE} -a ${GHDL_STD} ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${GHDL_SOURCES}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
@@ -124,9 +132,10 @@ function(GHDL_ELABORATE)
     list(INSERT elabargs 0 "-e")
     list(APPEND elabargs "${GHDL_TARGET}")
     string(TOLOWER ${GHDL_TARGET} targetlower)
-    set(elaborated_output ${CMAKE_CURRENT_BINARY_DIR}/${targetlower})
+    set(elaborated_output_obj "${GHDL_WORKING_DIRECTORY}/e~${targetlower}.o")
+    set(elaborated_output "${GHDL_WORKING_DIRECTORY}/${targetlower}")
     add_custom_command(
-        OUTPUT ${elaborated_output}
+        OUTPUT ${elaborated_output} ${elaborated_output_obj}
         DEPENDS ${analyzed_output} ${elabdeps}
         COMMAND ${GHDL_EXECUTABLE}
         ARGS ${elabargs}

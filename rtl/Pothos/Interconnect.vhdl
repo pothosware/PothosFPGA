@@ -1,11 +1,13 @@
 ------------------------------------------------------------------------
 -- Interconnect implementation
+-- Copyright (c) 2014-2014 Josh Blum
+-- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 
 library ieee;
 use ieee.std_logic_1164.all;
 
-entity PothosInterconnect is
+entity Interconnect is
     generic(
 
         -- the number of input ports
@@ -49,9 +51,9 @@ entity PothosInterconnect is
         out_valid : out std_logic_vector(NUM_OUTPUTS-1 downto 0);
         out_ready : in std_logic_vector(NUM_OUTPUTS-1 downto 0)
     );
-end entity PothosInterconnect;
+end entity Interconnect;
 
-architecture rtl of PothosInterconnect is
+architecture rtl of Interconnect is
 begin
     --TODO
 end architecture rtl;

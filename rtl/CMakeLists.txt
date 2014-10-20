@@ -1,8 +1,10 @@
 ########################################################################
-## Check the contents of the lib directory
+## VHDL extras included into this project
+## https://code.google.com/p/vhdl-extras/
 ########################################################################
-GHDL_ELABORATE(
-    TARGET PothosFPGALibs
-    SOURCES Interconnect.vhdl
-    ANALYZE_ONLY
-)
+add_subdirectory(extras)
+
+########################################################################
+## Pothos interconnect library and utils
+########################################################################
+add_subdirectory(Pothos)

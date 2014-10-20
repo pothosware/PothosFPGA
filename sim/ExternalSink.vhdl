@@ -1,9 +1,11 @@
 ------------------------------------------------------------------------
 -- External input implementation
+-- Copyright (c) 2014-2014 Josh Blum
+-- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 
-library PothosFPGAHarness;
-use PothosFPGAHarness.ExternalFunctionsPkg.all;
+library PothosSimulation;
+use PothosSimulation.ExternalFunctionsPkg.all;
 
 library ieee;
 use ieee.std_logic_1164.all;

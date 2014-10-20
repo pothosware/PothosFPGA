@@ -1,11 +1,13 @@
 ------------------------------------------------------------------------
 -- Simple loopback test bench for trying out external port interfaces
+-- Copyright (c) 2014-2014 Josh Blum
+-- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
 
-library PothosFPGAHarness;
-use PothosFPGAHarness.ExternalFunctionsPkg.all;
+library PothosSimulation;
+use PothosSimulation.ExternalFunctionsPkg.all;
 
 entity SimpleLoopbackTb is
 end entity SimpleLoopbackTb;
@@ -25,7 +27,7 @@ begin
     clk <= not clk after 10 ns;
     rst <= '0' after 3 ns;
 
-    source0: entity PothosFPGAHarness.ExternalSource
+    source0: entity PothosSimulation.ExternalSource
     generic map (
         PORT_NUMBER => 0,
         DATA_WIDTH => 32
@@ -38,7 +40,7 @@ begin
         out_ready => ready
     );
 
-    sink0: entity PothosFPGAHarness.ExternalSink
+    sink0: entity PothosSimulation.ExternalSink
     generic map (
         PORT_NUMBER => 0,
         DATA_WIDTH => 32

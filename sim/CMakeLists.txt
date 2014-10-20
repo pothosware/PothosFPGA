@@ -19,13 +19,14 @@ install(TARGETS PothosFPGAHarness
 ## Create VHDL library for external simulation interface
 ########################################################################
 GHDL_ELABORATE(
-    TARGET PothosFPGAHarnessPkg
-    LIBRARY PothosFPGAHarness
+    TARGET PothosSimulation
+    LIBRARY PothosSimulation
     SOURCES
         ExternalFunctionsPkg.vhdl
         ExternalSource.vhdl
         ExternalSink.vhdl
     ANALYZE_ONLY
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )
 
 ########################################################################
@@ -36,8 +37,9 @@ GHDL_ELABORATE(
     LIBRARY SimpleLoopbackTb
     SOURCES SimpleLoopbackTb.vhdl
     LIBRARIES
-        PothosFPGAHarnessPkg
+        PothosSimulation
         PothosFPGAHarness
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )
 
 GHDL_INSTALL(
