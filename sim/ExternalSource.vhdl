@@ -1,8 +1,9 @@
 ------------------------------------------------------------------------
 -- External output implementation
 ------------------------------------------------------------------------
-library work;
-use work.SimulationHarnessPkg.all;
+
+library PothosFPGAHarness;
+use PothosFPGAHarness.ExternalFunctionsPkg.all;
 
 library ieee;
 use ieee.std_logic_1164.all;

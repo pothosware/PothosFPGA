@@ -16,16 +16,28 @@ install(TARGETS PothosFPGAHarness
 )
 
 ########################################################################
-## quick testbench for compiles -- replace w/ better later
+## Create VHDL library for external simulation interface
+########################################################################
+GHDL_ELABORATE(
+    TARGET PothosFPGAHarnessPkg
+    LIBRARY PothosFPGAHarness
+    SOURCES
+        ExternalFunctionsPkg.vhdl
+        ExternalSource.vhdl
+        ExternalSink.vhdl
+    ANALYZE_ONLY
+)
+
+########################################################################
+## simple loopback testbench
 ########################################################################
 GHDL_ELABORATE(
     TARGET SimpleLoopbackTb
-    SOURCES
-        SimulationHarnessPkg.vhdl
-        ExternalSource.vhdl
-        ExternalSink.vhdl
-        SimpleLoopbackTb.vhdl
-    LIBRARIES PothosFPGAHarness
+    LIBRARY SimpleLoopbackTb
+    SOURCES SimpleLoopbackTb.vhdl
+    LIBRARIES
+        PothosFPGAHarnessPkg
+        PothosFPGAHarness
 )
 
 GHDL_INSTALL(
@@ -34,7 +46,7 @@ GHDL_INSTALL(
 )
 
 ########################################################################
-## module for the unit test side of the test bench
+## build and install unit tests
 ########################################################################
 POTHOS_MODULE_UTIL(
     TARGET SimulationUnitTests

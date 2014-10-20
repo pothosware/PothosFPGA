@@ -34,7 +34,11 @@ endif ()
 ##
 ## WORKING_DIRECTORY - output directory or CMAKE_CURRENT_BINARY_DIR
 ##
-## STD - langage standard of VHDL (default "02" for VHDL2002)
+## STD - langage standard of VHDL
+##
+## LIBRARY - Specify the name of the WORK library
+##
+## IEEE - Select the IEEE library to use
 ##
 ## ANALYZE_ONLY - set this to check the sources
 ## No test bench required, elaboration will not be performed.
@@ -42,7 +46,7 @@ endif ()
 function(GHDL_ELABORATE)
 
     include(CMakeParseArguments)
-    CMAKE_PARSE_ARGUMENTS(GHDL "ANALYZE_ONLY" "TARGET;WORKING_DIRECTORY;STD" "SOURCES;LIBRARIES" ${ARGN})
+    CMAKE_PARSE_ARGUMENTS(GHDL "ANALYZE_ONLY" "TARGET;WORKING_DIRECTORY;STD;LIBRARY;IEEE" "SOURCES;LIBRARIES" ${ARGN})
 
     #determine working directory
     if (NOT GHDL_WORKING_DIRECTORY)
@@ -50,8 +54,18 @@ function(GHDL_ELABORATE)
     endif ()
 
     #determine standard
-    if (NOT GHDL_STD)
-        set(GHDL_STD "02")
+    if (GHDL_STD)
+        set(GHDL_STD "--std=${GHDL_STD}")
+    endif ()
+
+    #determine ieee
+    if (GHDL_IEEE)
+        set(GHDL_IEEE "--ieee=${GHDL_IEEE}")
+    endif ()
+
+    #determine library
+    if (NOT GHDL_LIBRARY)
+        set(GHDL_LIBRARY "work")
     endif ()
 
     #turn sources into an absolute path
@@ -65,25 +79,22 @@ function(GHDL_ELABORATE)
     endforeach(source)
     set(GHDL_SOURCES ${__sources})
 
-    #generate a list of output files
-    unset(outfiles)
-    foreach(file ${GHDL_SOURCES})
-        get_filename_component(outfile ${file} NAME_WE)
-        set(outfile "${CMAKE_CURRENT_BINARY_DIR}/${outfile}.o")
-        list(APPEND outfiles ${outfile})
-    endforeach(file)
+    #the analyzed output file
+    string(TOLOWER ${GHDL_LIBRARY} librarylower)
+    set(analyzed_output "${GHDL_WORKING_DIRECTORY}/${librarylower}-obj93.cf")
+    set(__${GHDL_TARGET}_analyzed_output "${analyzed_output}" PARENT_SCOPE)
 
     #analyze all the input files
     add_custom_command(
-        OUTPUT ${outfiles}
+        OUTPUT ${analyzed_output}
         DEPENDS ${GHDL_SOURCES}
-        COMMAND ${GHDL_EXECUTABLE} -a --std=${GHDL_STD} ${GHDL_SOURCES}
+        COMMAND ${GHDL_EXECUTABLE} -a ${GHDL_STD} ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${GHDL_SOURCES}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
     )
 
     #handle analyze only
     if (GHDL_ANALYZE_ONLY)
-        add_custom_target(${GHDL_TARGET} ALL DEPENDS ${outfiles})
+        add_custom_target(${GHDL_TARGET} ALL DEPENDS ${analyzed_output})
         return()
     endif ()
 
@@ -96,7 +107,9 @@ function(GHDL_ELABORATE)
         #is this an in-tree library?
         #save dependency list and library path
         #and add the library to the linker
-        if (liblocation)
+        if (__${lib}_analyzed_output)
+            list(APPEND elabdeps ${lib})
+        elseif (liblocation)
             list(APPEND elabdeps ${lib})
             list(APPEND elabargs "-Wl,-l:${liblocation}")
         elseif (ext)
@@ -107,13 +120,14 @@ function(GHDL_ELABORATE)
     endforeach(lib)
 
     #elaborate - creates simulation exe
+    list(INSERT elabargs 0 "--work=${GHDL_LIBRARY}")
     list(INSERT elabargs 0 "-e")
     list(APPEND elabargs "${GHDL_TARGET}")
     string(TOLOWER ${GHDL_TARGET} targetlower)
     set(elaborated_output ${CMAKE_CURRENT_BINARY_DIR}/${targetlower})
     add_custom_command(
         OUTPUT ${elaborated_output}
-        DEPENDS ${outfiles} ${elabdeps}
+        DEPENDS ${analyzed_output} ${elabdeps}
         COMMAND ${GHDL_EXECUTABLE}
         ARGS ${elabargs}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}

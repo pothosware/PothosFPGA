@@ -2,7 +2,7 @@
 -- Simulation harness foreign functions
 ------------------------------------------------------------------------
 
-package SimulationHarnessPkg is
+package ExternalFunctionsPkg is
 
     procedure initProxyServer (zero : integer);
     attribute foreign of initProxyServer : procedure is "VHPIDIRECT PothosFPGA_initProxyServer";
@@ -27,10 +27,10 @@ package SimulationHarnessPkg is
 
     procedure sinkPushData (handle : integer; data : integer);
     attribute foreign of sinkPushData : procedure is "VHPIDIRECT PothosFPGA_sinkPushData";
-end SimulationHarnessPkg;
+end ExternalFunctionsPkg;
 
 -- empty function definitions to satisfy the tools
-package body SimulationHarnessPkg is
+package body ExternalFunctionsPkg is
 
     procedure initProxyServer (zero : integer) is begin
     end procedure initProxyServer;
@@ -55,4 +55,4 @@ package body SimulationHarnessPkg is
 
     procedure sinkPushData (handle : integer; data : integer) is begin
     end procedure sinkPushData;
-end SimulationHarnessPkg;
+end ExternalFunctionsPkg;

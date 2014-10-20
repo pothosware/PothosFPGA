@@ -3,8 +3,9 @@
 ------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
-library work;
-use work.SimulationHarnessPkg.all;
+
+library PothosFPGAHarness;
+use PothosFPGAHarness.ExternalFunctionsPkg.all;
 
 entity SimpleLoopbackTb is
 end entity SimpleLoopbackTb;
@@ -24,7 +25,7 @@ begin
     clk <= not clk after 10 ns;
     rst <= '0' after 3 ns;
 
-    source0: entity work.ExternalSource
+    source0: entity PothosFPGAHarness.ExternalSource
     generic map (
         PORT_NUMBER => 0,
         DATA_WIDTH => 32
@@ -37,7 +38,7 @@ begin
         out_ready => ready
     );
 
-    sink0: entity work.ExternalSink
+    sink0: entity PothosFPGAHarness.ExternalSink
     generic map (
         PORT_NUMBER => 0,
         DATA_WIDTH => 32
