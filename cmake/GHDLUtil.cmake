@@ -83,8 +83,10 @@ function(GHDL_ELABORATE)
 
     #generate a list of output files
     unset(outfiles)
+    unset(outnames)
     foreach(file ${GHDL_SOURCES})
         get_filename_component(outfile ${file} NAME_WE)
+        set(outnames "${outnames}${outfile}.o, ")
         set(outfile "${GHDL_WORKING_DIRECTORY}/${outfile}.o")
         list(APPEND outfiles ${outfile})
     endforeach(file)
@@ -100,7 +102,7 @@ function(GHDL_ELABORATE)
         DEPENDS ${GHDL_SOURCES} ${GHDL_DEPENDS}
         COMMAND ${GHDL_EXECUTABLE} -a ${GHDL_STD} ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${GHDL_SOURCES}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
-        COMMENT "Generating ${outfiles}"
+        COMMENT "Analysis ${GHDL_WORKING_DIRECTORY}/${outnames}"
     )
 
     #handle analyze only
@@ -137,7 +139,7 @@ function(GHDL_ELABORATE)
         DEPENDS ${analyzed_output} ${libdeps}
         COMMAND ${GHDL_EXECUTABLE} -e ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${linkargs} ${GHDL_TARGET}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
-        COMMENT "Generating ${elaborated_output}"
+        COMMENT "Elaboration ${elaborated_output}"
     )
 
     #build target for output executable
