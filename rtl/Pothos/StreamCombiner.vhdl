@@ -39,7 +39,8 @@ architecture rtl of StreamCombiner is
     --one-hot enables used to determine the input mux
     signal inputEnables : std_ulogic_vector(NUM_INPUTS-1 downto 0);
 
-    --fifo ingress bus signals
+    --fifo iogress bus signals
+    signal out_fifo_data : std_ulogic_vector(DATA_WIDTH downto 0);
     signal in_fifo_data : std_ulogic_vector(DATA_WIDTH downto 0);
     signal in_fifo_valid : std_ulogic;
     signal in_fifo_ready : std_ulogic;
@@ -49,19 +50,18 @@ begin
     --------------------------------------------------------------------
     -- Create input fifo mux to in_fifo signals
     --------------------------------------------------------------------
-    process begin
+    gen_mux: process (inputEnables, in_valid, in_data, in_last, in_fifo_ready) begin
         for i in 0 to NUM_INPUTS-1 loop
-            in_ready(i) <= inputEnables(i) and in_fifo_ready;
             in_fifo_valid <= '0';
             in_fifo_data <= (others => '0');
+            in_ready(i) <= inputEnables(i) and in_fifo_ready;
             if (inputEnables(i) = '1') then
                 in_fifo_valid <= in_valid(i);
-                in_fifo_data(DATA_WIDTH) <= in_last(i);
-                in_fifo_data(DATA_WIDTH-1 downto 0) <= in_data((DATA_WIDTH*(i+1))-1 downto DATA_WIDTH*i);
+                in_fifo_data <= in_last(i) & in_data((DATA_WIDTH*(i+1))-1 downto DATA_WIDTH*i);
                 exit;
             end if;
         end loop;
-    end process;
+    end process gen_mux;
 
     --------------------------------------------------------------------
     -- Round robin through input enables
@@ -108,9 +108,12 @@ begin
         in_data => in_fifo_data,
         in_valid => in_fifo_valid,
         in_ready => in_fifo_ready,
-        out_data => out_data,
+        out_data => out_fifo_data,
         out_valid => out_valid,
         out_ready => out_ready
     );
+
+    out_data <= out_fifo_data(DATA_WIDTH-1 downto 0);
+    out_last <= out_fifo_data(DATA_WIDTH);
 
 end architecture rtl;

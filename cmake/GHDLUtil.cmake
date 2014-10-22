@@ -96,10 +96,16 @@ function(GHDL_ELABORATE)
     set(analyzed_output "${GHDL_WORKING_DIRECTORY}/${librarylower}-obj93.cf")
     set(__${GHDL_TARGET}_analyzed_output "${analyzed_output}" CACHE STRING "" FORCE)
 
+    #the analyzed output files from dependencies
+    unset(analyzed_deps)
+    foreach(dep ${GHDL_DEPENDS})
+        list(APPEND analyzed_deps ${__${dep}_analyzed_output})
+    endforeach(dep)
+
     #analyze all the input files
     add_custom_command(
         OUTPUT ${analyzed_output} ${outfiles}
-        DEPENDS ${GHDL_SOURCES} ${GHDL_DEPENDS}
+        DEPENDS ${GHDL_SOURCES} ${GHDL_DEPENDS} ${analyzed_deps}
         COMMAND ${GHDL_EXECUTABLE} -a ${GHDL_STD} ${GHDL_IEEE} --work=${GHDL_LIBRARY} ${GHDL_SOURCES}
         WORKING_DIRECTORY ${GHDL_WORKING_DIRECTORY}
         COMMENT "Analysis ${GHDL_WORKING_DIRECTORY}/${outnames}"

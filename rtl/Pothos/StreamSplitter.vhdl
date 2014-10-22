@@ -55,7 +55,7 @@ begin
     --------------------------------------------------------------------
     -- Create in_ready output signal from enabled ready signals
     --------------------------------------------------------------------
-    process begin
+    process (usedEnables, in_fifo_ready) begin
         --in ready is a combination of all fifo ready signals on enabled ports
         in_ready_i <= '1';
         for i in 0 to NUM_OUTPUTS-1 loop
@@ -90,15 +90,14 @@ begin
     --------------------------------------------------------------------
     -- Generate small outgress fifos
     --------------------------------------------------------------------
-    gen_code_label: for i in 0 to (NUM_OUTPUTS-1) generate
+    gen_fifos: for i in 0 to (NUM_OUTPUTS-1) generate
         signal out_fifo_data : std_ulogic_vector(DATA_WIDTH downto 0);
         signal in_fifo_data : std_ulogic_vector(DATA_WIDTH downto 0);
         signal in_fifo_valid : std_ulogic;
     begin
 
         --input fifo data comes from input last, data
-        in_fifo_data(DATA_WIDTH) <= in_last;
-        in_fifo_data(DATA_WIDTH-1 downto 0) <= in_data(DATA_WIDTH-1 downto 0);
+        in_fifo_data <= in_last & in_data(DATA_WIDTH-1 downto 0);
 
         --input fifo valid is when the input is valid and output enabled
         in_fifo_valid <= in_valid and usedEnables(i);
@@ -123,6 +122,6 @@ begin
             out_valid => out_valid(i),
             out_ready => out_ready(i)
         );
-    end generate;
+    end generate gen_fifos;
 
 end architecture rtl;

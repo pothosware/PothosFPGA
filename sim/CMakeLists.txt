@@ -67,6 +67,26 @@ GHDL_INSTALL(
 )
 
 ########################################################################
+## combiner testbench
+########################################################################
+GHDL_ELABORATE(
+    TARGET CombinerTb
+    LIBRARY CombinerTb
+    SOURCES CombinerTb.vhdl
+    DEPENDS
+        PothosInterconnect
+        PothosSimulation
+    LIBRARIES PothosFPGAHarness
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    IEEE synopsys
+)
+
+GHDL_INSTALL(
+    TARGET CombinerTb
+    DESTINATION lib${LIB_SUFFIX}/Pothos/fpga/test
+)
+
+########################################################################
 ## build and install unit tests
 ########################################################################
 POTHOS_MODULE_UTIL(
@@ -74,5 +94,6 @@ POTHOS_MODULE_UTIL(
     SOURCES
         SimulationClient.cpp
         ComponentTests.cpp
+        CombinerTests.cpp
     DESTINATION fpga
 )
