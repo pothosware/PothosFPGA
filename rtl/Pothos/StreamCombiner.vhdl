@@ -43,6 +43,7 @@ architecture rtl of StreamCombiner is
     signal in_fifo_data : std_ulogic_vector(DATA_WIDTH downto 0);
     signal in_fifo_valid : std_ulogic;
     signal in_fifo_ready : std_ulogic;
+    signal in_fifo_busy : std_ulogic;
 begin
 
     --------------------------------------------------------------------
@@ -65,33 +66,30 @@ begin
     --------------------------------------------------------------------
     -- Round robin through input enables
     --------------------------------------------------------------------
+    inspect: entity work.StreamInspector
+    port map (
+        clk => clk,
+        rst => rst,
+        last => in_fifo_data(DATA_WIDTH),
+        valid => in_fifo_valid,
+        ready => in_fifo_ready,
+        packet_busy => in_fifo_busy
+    );
+
     process (clk)
-        variable inPacket : boolean := false;
-        variable inPacketEnd : boolean := false;
         variable inputEnablesNext : std_ulogic_vector(NUM_INPUTS downto 0);
     begin
 
         inputEnablesNext(NUM_INPUTS downto 1) := inputEnables(NUM_INPUTS-1 downto 0);
         inputEnablesNext(0) := inputEnables(NUM_INPUTS-1);
 
-        inPacketEnd := (in_fifo_valid = '1' and in_fifo_ready = '1' and in_fifo_data(DATA_WIDTH) = '1');
-
         if (rising_edge(clk)) then
-            if (rst = '1') then
-                inPacket := false;
-            elsif (inPacketEnd) then
-                inPacket := false;
-            elsif (in_fifo_valid = '1' and in_fifo_ready = '1') then
-                inPacket := true;
-            end if;
-
             if (rst = '1') then
                 inputEnables <= (others => '0');
                 inputEnables(0) <= '1';
-            elsif (not inPacket or inPacketEnd) then
+            elsif (in_fifo_busy = '0') then
                 inputEnables <= inputEnablesNext(NUM_INPUTS-1 downto 0);
             end if;
-
         end if;
     end process;
 

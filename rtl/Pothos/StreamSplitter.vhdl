@@ -42,6 +42,7 @@ architecture rtl of StreamSplitter is
 
     --all ready signals to fifo input stream buses
     signal in_fifo_ready : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+    signal in_fifo_busy : std_ulogic;
 
     --enables that are not changed during a packet transfer
     signal usedEnables : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
@@ -68,26 +69,21 @@ begin
     --------------------------------------------------------------------
     -- Maintain packet-safe up-to-date copy of enables
     --------------------------------------------------------------------
-    process (clk)
-        variable inPacket : boolean := false;
-        variable inPacketEnd : boolean := false;
-    begin
+    inspect: entity work.StreamInspector
+    port map (
+        clk => clk,
+        rst => rst,
+        last => in_last,
+        valid => in_valid,
+        ready => in_ready_i,
+        packet_busy => in_fifo_busy
+    );
 
-        inPacketEnd := (in_valid = '1' and in_ready_i = '1' and in_last = '1');
-
+    process (clk) begin
         if (rising_edge(clk)) then
-            if (rst = '1') then
-                inPacket := false;
-            elsif (inPacketEnd) then
-                inPacket := false;
-            elsif (in_valid = '1' and in_ready_i = '1') then
-                inPacket := true;
-            end if;
-
-            if (rst = '1' or not inPacket or inPacketEnd) then
+            if (rst = '1' or in_fifo_busy = '0') then
                 usedEnables <= enables;
             end if;
-
         end if;
     end process;
 

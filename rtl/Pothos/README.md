@@ -8,6 +8,7 @@ resource usage, stream width, number of input and output ports.
 
 * Interconnect - Top level input/output port interconnect.
 * StreamFifo - Single clock domain configurable stream buffer.
+* StreamInspector - Utility for stateful stream information.
 * StreamCombiner - Combine multiple input streams into one.
 * StreamSplitter - Duplicate a single input stream into many.
 
