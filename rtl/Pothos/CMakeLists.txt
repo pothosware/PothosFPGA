@@ -7,6 +7,8 @@ GHDL_ELABORATE(
     SOURCES
         Interconnect.vhdl
         StreamFifo.vhdl
+        StreamCombiner.vhdl
+        StreamSplitter.vhdl
     DEPENDS vhdl-extras
     ANALYZE_ONLY
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}

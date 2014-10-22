@@ -62,14 +62,14 @@ begin
         SYNC_READ => true -- block ram
     )
     port map (
-        Clock => clk,
-        Reset => rst,
-        Wr_data => data0,
-        Wr_valid => valid0,
-        Wr_ready => ready0,
-        Rd_data => data1,
-        Rd_valid => valid1,
-        Rd_ready => ready1
+        clk => clk,
+        rst => rst,
+        in_data => data0,
+        in_valid => valid0,
+        in_ready => ready0,
+        out_data => data1,
+        out_valid => valid1,
+        out_ready => ready1
     );
 
     sink0: entity PothosSimulation.ExternalSink
@@ -105,14 +105,14 @@ begin
         SYNC_READ => false -- dist ram
     )
     port map (
-        Clock => clk,
-        Reset => rst,
-        Wr_data => data2,
-        Wr_valid => valid2,
-        Wr_ready => ready2,
-        Rd_data => data3,
-        Rd_valid => valid3,
-        Rd_ready => ready3
+        clk => clk,
+        rst => rst,
+        in_data => data2,
+        in_valid => valid2,
+        in_ready => ready2,
+        out_data => data3,
+        out_valid => valid3,
+        out_ready => ready3
     );
 
     sink1: entity PothosSimulation.ExternalSink

@@ -2,6 +2,7 @@
 -- StreamFifo
 --
 -- Configurable buffering between an input and output stream.
+-- See vhdl-extras simple_fifo for additional documentation.
 -- SYNC_READ = true uses block ram
 -- SYNC_READ = false uses dist ram
 --
@@ -20,24 +21,24 @@ entity StreamFifo is
         SYNC_READ          : boolean    := true
     );
     port(
-        Clock : in std_ulogic;
-        Reset : in std_ulogic;
+        clk : in std_ulogic;
+        rst : in std_ulogic;
 
-        -- write or input port
-        Wr_data : in std_ulogic_vector;
-        Wr_valid : in std_ulogic;
-        Wr_ready : out std_ulogic;
+        -- input bus
+        in_data : in std_ulogic_vector;
+        in_valid : in std_ulogic;
+        in_ready : out std_ulogic;
 
-        -- read or output port
-        Rd_data : out std_ulogic_vector;
-        Rd_valid : out std_ulogic;
-        Rd_ready : in std_ulogic;
+        -- output bus
+        out_data : out std_ulogic_vector;
+        out_valid : out std_ulogic;
+        out_ready : in std_ulogic;
 
         --space and availability
-        Almost_empty_thresh : in  natural range 0 to MEM_SIZE-1 := 1;
-        Almost_full_thresh  : in  natural range 0 to MEM_SIZE-1 := 1;
-        Almost_empty        : out std_ulogic;
-        Almost_full         : out std_ulogic
+        almost_empty_thresh : in  natural range 0 to MEM_SIZE-1 := 1;
+        almost_full_thresh  : in  natural range 0 to MEM_SIZE-1 := 1;
+        almost_empty        : out std_ulogic;
+        almost_full         : out std_ulogic
     );
 end entity StreamFifo;
 
@@ -50,20 +51,20 @@ architecture rtl of StreamFifo is
 
 begin
 
-    Wr_ready <= not Full;
-    We <= Wr_valid and not Full;
-    Re <= Rd_ready and not Empty;
+    in_ready <= not Full;
+    We <= in_valid and not Full;
+    Re <= out_ready and not Empty;
 
-    process (Clock)
+    process (clk)
         variable syncValid : std_ulogic := '0';
     begin
         if (SYNC_READ) then
-            Rd_valid <= syncValid;
+            out_valid <= syncValid;
         else
-            Rd_valid <= not Empty;
+            out_valid <= not Empty;
         end if;
-        if (rising_edge(Clock)) then
-            if (Reset = '1') then
+        if (rising_edge(clk)) then
+            if (rst = '1') then
                 syncValid := '0';
             else
                 syncValid := Re;
@@ -77,21 +78,21 @@ begin
         SYNC_READ => SYNC_READ
     )
     port map (
-        Clock => Clock,
-        Reset => Reset,
+        Clock => clk,
+        Reset => rst,
 
         We => We,
-        Wr_data => Wr_data,
+        Wr_data => in_data,
 
         Re => Re,
-        Rd_data => Rd_data,
+        Rd_data => out_data,
 
         Empty => Empty,
         Full => Full,
 
-        Almost_empty_thresh => Almost_empty_thresh,
-        Almost_full_thresh => Almost_full_thresh,
-        Almost_empty => Almost_empty,
-        Almost_full => Almost_full
+        Almost_empty_thresh => almost_empty_thresh,
+        Almost_full_thresh => almost_full_thresh,
+        Almost_empty => almost_empty,
+        Almost_full => almost_full
     );
 end architecture rtl;
