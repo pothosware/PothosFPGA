@@ -10,6 +10,7 @@
 #include <Poco/File.h>
 #include <Poco/NamedMutex.h>
 #include <Poco/String.h>
+#include <Poco/Environment.h>
 #include <iostream>
 #include <memory>
 
@@ -41,6 +42,10 @@ Pothos::ProxyEnvironment::Sptr getSimulationEnv(const std::string &testName)
     Poco::Process::Env envVars;
     envVars["POTHOS_FPGA_SERVER_PORT"] = serverPort;
     envVars["POTHOS_FPGA_MUTEX_NAME"] = mutexName;
+
+    //ghdl doesnt support -rpath, execute with library path set
+    envVars["LD_LIBRARY_PATH"] = Pothos::System::getPothosDevLibraryPath();
+    envVars["LD_LIBRARY_PATH"] += ":"+Poco::Environment::get("LD_LIBRARY_PATH", "");
 
     //launch with named mutex barrier
     Poco::NamedMutex mutex(mutexName);
