@@ -24,7 +24,7 @@ entity StreamSplitter is
 
         -- input buses
         in_data : in std_ulogic_vector;
-        in_last : in std_ulogic;
+        in_last : in std_ulogic := '1';
         in_valid : in std_ulogic;
         in_ready : out std_ulogic;
 

@@ -87,6 +87,26 @@ GHDL_INSTALL(
 )
 
 ########################################################################
+## splitter testbench
+########################################################################
+GHDL_ELABORATE(
+    TARGET SplitterTb
+    LIBRARY SplitterTb
+    SOURCES SplitterTb.vhdl
+    DEPENDS
+        PothosInterconnect
+        PothosSimulation
+    LIBRARIES PothosFPGAHarness
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    IEEE synopsys
+)
+
+GHDL_INSTALL(
+    TARGET SplitterTb
+    DESTINATION lib${LIB_SUFFIX}/Pothos/fpga/test
+)
+
+########################################################################
 ## build and install unit tests
 ########################################################################
 POTHOS_MODULE_UTIL(
@@ -95,5 +115,6 @@ POTHOS_MODULE_UTIL(
         SimulationClient.cpp
         ComponentTests.cpp
         CombinerTests.cpp
+        SplitterTests.cpp
     DESTINATION fpga
 )
