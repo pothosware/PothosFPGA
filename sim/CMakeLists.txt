@@ -115,7 +115,8 @@ POTHOS_MODULE_UTIL(
     TARGET SimulationUnitTests
     SOURCES
         SimulationClient.cpp
-        ComponentTests.cpp
+        LoopbackTests.cpp
+        FifoTests.cpp
         CombinerTests.cpp
         SplitterTests.cpp
     DESTINATION fpga

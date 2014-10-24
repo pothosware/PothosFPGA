@@ -8,69 +8,6 @@
 #include <Poco/JSON/Object.h>
 #include <iostream>
 
-POTHOS_TEST_BLOCK("/fpga/tests", test_loopback)
-{
-    //create client environment
-    auto env = getSimulationEnv("LoopbackTb");
-    auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
-
-    auto sourceIndexes = SimulationHarness.call<std::vector<int>>("getSourceIndexes");
-    POTHOS_TEST_EQUAL(sourceIndexes.size(), 1);
-    POTHOS_TEST_EQUAL(sourceIndexes[0], 0);
-
-    auto sinkIndexes = SimulationHarness.call<std::vector<int>>("getSinkIndexes");
-    POTHOS_TEST_EQUAL(sinkIndexes.size(), 1);
-    POTHOS_TEST_EQUAL(sinkIndexes[0], 0);
-
-    auto source0 = SimulationHarness.callProxy("getSourceBlock", 0);
-    auto sink0 = SimulationHarness.callProxy("getSinkBlock", 0);
-
-    auto registry = env->findProxy("Pothos/BlockRegistry");
-    auto feeder = registry.callProxy("/blocks/feeder_source", "int");
-    auto collector = registry.callProxy("/blocks/collector_sink", "int");
-
-    //create a test plan
-    Poco::JSON::Object::Ptr testPlan(new Poco::JSON::Object());
-    testPlan->set("enableBuffers", true);
-    auto expected = feeder.callProxy("feedTestPlan", testPlan);
-
-    //run the topology
-    {
-        Pothos::Topology topology;
-        topology.connect(feeder, 0, sink0, 0);
-        topology.connect(source0, 0, collector, 0);
-        topology.commit();
-        POTHOS_TEST_TRUE(topology.waitInactive());
-    }
-
-    collector.callVoid("verifyTestPlan", expected);
-}
-
-POTHOS_TEST_BLOCK("/fpga/tests", test_control)
-{
-    //create client environment
-    auto env = getSimulationEnv("LoopbackTb");
-    auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
-
-    auto controlIndexes = SimulationHarness.call<std::vector<int>>("getControlIndexes");
-    POTHOS_TEST_EQUAL(controlIndexes.size(), 1);
-    POTHOS_TEST_EQUAL(controlIndexes[0], 0);
-
-    const int numAddrs = 4;
-
-    std::cout << "write the test ram..." << std::endl;
-    for (int i = 0; i < numAddrs; i++)
-    {
-        SimulationHarness.callVoid("writeControl", 0, i, 10+i);
-    }
-
-    std::cout << "read the test ram..." << std::endl;
-    for (int i = 0; i < numAddrs; i++)
-    {
-        POTHOS_TEST_EQUAL(SimulationHarness.call<int>("readControl", 0, i), 10+i);
-    }
-}
-
 POTHOS_TEST_BLOCK("/fpga/tests", test_fifo_bram)
 {
     //create client environment
