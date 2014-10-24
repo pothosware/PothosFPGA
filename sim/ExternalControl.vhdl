@@ -32,13 +32,13 @@ entity ExternalControl is
         rd : out std_ulogic;
 
         --bus address
-        addr : out std_ulogic_vector(31 downto 0);
+        addr : out std_ulogic_vector;
 
         --data output
-        out_data : out std_ulogic_vector(31 downto 0);
+        out_data : out std_ulogic_vector;
 
         --data input
-        in_data : in std_ulogic_vector(31 downto 0)
+        in_data : in std_ulogic_vector
     );
 end entity ExternalControl;
 
@@ -51,8 +51,8 @@ architecture sim of ExternalControl is begin
 
         if (rising_edge(clk)) then
             if (rst = '1') then
-                addr <= (others => '0');
-                out_data <= (others => '0');
+                addr <= std_ulogic_vector(to_signed(0, addr'length));
+                out_data <= std_ulogic_vector(to_signed(0, out_data'length));
                 wr <= '0';
                 rd <= '0';
             else

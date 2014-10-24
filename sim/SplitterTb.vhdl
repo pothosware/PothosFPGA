@@ -5,6 +5,7 @@
 ------------------------------------------------------------------------
 library ieee;
 use ieee.std_logic_1164.all;
+use ieee.numeric_std.all;
 
 library PothosSimulation;
 use PothosSimulation.ExternalFunctionsPkg.all;
@@ -28,12 +29,17 @@ architecture test of SplitterTb is
     signal dst0_ready : std_ulogic_vector(0 downto 0);
 
     -- test 1 signals
+    signal enables1 : std_ulogic_vector(1 downto 0);
     signal src1_data : std_ulogic_vector(31 downto 0);
     signal src1_valid : std_ulogic;
     signal src1_ready : std_ulogic;
     signal dst1_data : std_ulogic_vector(63 downto 0);
     signal dst1_valid : std_ulogic_vector(1 downto 0);
     signal dst1_ready : std_ulogic_vector(1 downto 0);
+    signal ctrl1_wr : std_ulogic;
+    signal ctrl1_addr : std_ulogic_vector(31 downto 0);
+    signal ctrl1_out_data : std_ulogic_vector(31 downto 0);
+    signal ctrl1_in_data : std_ulogic_vector(31 downto 0);
 
 begin
 
@@ -98,6 +104,29 @@ begin
         out_ready => src1_ready
     );
 
+    --simple process to register a new enable setting for the splitter
+    ctrl1_in_data <= (others => '0');
+    process (clk) begin
+        if (rst = '1') then
+            enables1 <= (others => '0');
+        elsif (ctrl1_wr = '1' and to_integer(signed(ctrl1_addr)) = 1) then
+            enables1 <= ctrl1_out_data(1 downto 0);
+        end if;
+    end process;
+
+    ctrl1: entity PothosSimulation.ExternalControl
+    generic map (
+        ID => 0
+    )
+    port map (
+        clk => clk,
+        rst => rst,
+        wr => ctrl1_wr,
+        addr => ctrl1_addr,
+        out_data => ctrl1_out_data,
+        in_data => ctrl1_in_data
+    );
+
     test1_splitter: entity PothosInterconnect.StreamSplitter
     generic map (
         NUM_OUTPUTS => 2
@@ -105,6 +134,7 @@ begin
     port map (
         clk => clk,
         rst => rst,
+        enables => enables1,
         in_data => src1_data,
         in_valid => src1_valid,
         in_ready => src1_ready,

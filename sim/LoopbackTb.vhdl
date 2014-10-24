@@ -69,7 +69,11 @@ begin
     --------------------------------------------------------------------
     -- test1: basic control loopback
     --------------------------------------------------------------------
-    ctrl_addr_num <= to_integer(signed(ctrl_addr));
+    process (ctrl_wr, ctrl_rd) begin
+        if (ctrl_wr = '1' or ctrl_rd = '1') then
+            ctrl_addr_num <= to_integer(signed(ctrl_addr));
+        end if;
+    end process;
 
     ctrl0: entity PothosSimulation.ExternalControl
     generic map (
