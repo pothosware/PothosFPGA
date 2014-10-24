@@ -22,6 +22,8 @@ architecture test of LoopbackTb is
 
     -- loopback test signals
     signal data : std_ulogic_vector(31 downto 0);
+    signal meta : std_ulogic;
+    signal last : std_ulogic;
     signal valid : std_ulogic;
     signal ready : std_ulogic;
 
@@ -50,6 +52,8 @@ begin
         clk => clk,
         rst => rst,
         out_data => data,
+        out_meta => meta,
+        out_last => last,
         out_valid => valid,
         out_ready => ready
     );
@@ -62,6 +66,8 @@ begin
         clk => clk,
         rst => rst,
         in_data => data,
+        in_meta => meta,
+        in_last => last,
         in_valid => valid,
         in_ready => ready
     );
