@@ -29,6 +29,22 @@ package ExternalFunctionsPkg is
 
     procedure sinkPushData (handle : integer; data : integer);
     attribute foreign of sinkPushData : procedure is "VHPIDIRECT PothosFPGA_sinkPushData";
+
+    function setupControl (id : integer) return integer;
+    attribute foreign of setupControl : function is "VHPIDIRECT PothosFPGA_setupControl";
+
+    function controlGetAction (handle : integer) return integer;
+    attribute foreign of controlGetAction : function is "VHPIDIRECT PothosFPGA_controlGetAction";
+
+    function controlGetAddr (handle : integer) return integer;
+    attribute foreign of controlGetAddr : function is "VHPIDIRECT PothosFPGA_controlGetAddr";
+
+    function controlGetData (handle : integer) return integer;
+    attribute foreign of controlGetData : function is "VHPIDIRECT PothosFPGA_controlGetData";
+
+    procedure controlPutData (handle : integer; data : integer);
+    attribute foreign of controlPutData : procedure is "VHPIDIRECT PothosFPGA_controlPutData";
+
 end ExternalFunctionsPkg;
 
 -- empty function definitions to satisfy the tools
@@ -57,4 +73,20 @@ package body ExternalFunctionsPkg is
 
     procedure sinkPushData (handle : integer; data : integer) is begin
     end procedure sinkPushData;
+
+    function setupControl (id : integer) return integer is begin
+    end function setupControl;
+
+    function controlGetAction (handle : integer) return integer is begin
+    end function controlGetAction;
+
+    function controlGetAddr (handle : integer) return integer is begin
+    end function controlGetAddr;
+
+    function controlGetData (handle : integer) return integer is begin
+    end function controlGetData;
+
+    procedure controlPutData (handle : integer; data : integer) is begin
+    end procedure controlPutData;
+
 end ExternalFunctionsPkg;

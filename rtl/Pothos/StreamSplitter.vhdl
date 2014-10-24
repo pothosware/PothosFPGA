@@ -55,16 +55,9 @@ begin
     --------------------------------------------------------------------
     -- Create in_ready output signal from enabled ready signals
     --------------------------------------------------------------------
-    process (usedEnables, in_fifo_ready) begin
-        --in ready is a combination of all fifo ready signals on enabled ports
-        in_ready_i <= '1';
-        for i in 0 to NUM_OUTPUTS-1 loop
-            if (usedEnables(i) = '1') then
-                in_ready_i <= in_ready_i and in_fifo_ready(i);
-            end if;
-        end loop;
-        in_ready <= in_ready_i;
-    end process;
+    --in ready is a combination of all fifo ready signals on enabled ports
+    in_ready_i <= '1' when (usedEnables and in_fifo_ready) = usedEnables else '0';
+    in_ready <= in_ready_i;
 
     --------------------------------------------------------------------
     -- Maintain packet-safe up-to-date copy of enables

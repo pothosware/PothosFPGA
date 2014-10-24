@@ -46,6 +46,31 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_loopback)
     collector.callVoid("verifyTestPlan", expected);
 }
 
+POTHOS_TEST_BLOCK("/fpga/tests", test_control)
+{
+    //create client environment
+    auto env = getSimulationEnv("LoopbackTb");
+    auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
+
+    auto controlIndexes = SimulationHarness.call<std::vector<int>>("getControlIndexes");
+    POTHOS_TEST_EQUAL(controlIndexes.size(), 1);
+    POTHOS_TEST_EQUAL(controlIndexes[0], 0);
+
+    const int numAddrs = 4;
+
+    std::cout << "write the test ram..." << std::endl;
+    for (int i = 0; i < numAddrs; i++)
+    {
+        SimulationHarness.callVoid("writeControl", 0, i, 10+i);
+    }
+
+    std::cout << "read the test ram..." << std::endl;
+    for (int i = 0; i < numAddrs; i++)
+    {
+        POTHOS_TEST_EQUAL(SimulationHarness.call<int>("readControl", 0, i), 10+i);
+    }
+}
+
 POTHOS_TEST_BLOCK("/fpga/tests", test_fifo_bram)
 {
     //create client environment

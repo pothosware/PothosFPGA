@@ -1,5 +1,7 @@
 ------------------------------------------------------------------------
 -- External input implementation
+-- Read stream data from an input bus.
+--
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------

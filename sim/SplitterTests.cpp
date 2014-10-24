@@ -14,14 +14,6 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_1x)
     auto env = getSimulationEnv("SplitterTb");
     auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
 
-    auto sourceIndexes = SimulationHarness.call<std::vector<int>>("getSourceIndexes");
-    POTHOS_TEST_EQUAL(sourceIndexes.size(), 1);
-    POTHOS_TEST_EQUAL(sourceIndexes[0], 0);
-
-    auto sinkIndexes = SimulationHarness.call<std::vector<int>>("getSinkIndexes");
-    POTHOS_TEST_EQUAL(sinkIndexes.size(), 1);
-    POTHOS_TEST_EQUAL(sinkIndexes[0], 0);
-
     auto source0 = SimulationHarness.callProxy("getSourceBlock", 0);
     auto sink0 = SimulationHarness.callProxy("getSinkBlock", 0);
 
@@ -44,4 +36,38 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_1x)
     }
 
     collector.callVoid("verifyTestPlan", expected);
+}
+
+POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_2x)
+{
+    //create client environment
+    auto env = getSimulationEnv("SplitterTb");
+    auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
+
+    auto source1 = SimulationHarness.callProxy("getSourceBlock", 1);
+    auto source2 = SimulationHarness.callProxy("getSourceBlock", 2);
+    auto sink1 = SimulationHarness.callProxy("getSinkBlock", 1);
+
+    auto registry = env->findProxy("Pothos/BlockRegistry");
+    auto feeder = registry.callProxy("/blocks/feeder_source", "int");
+    auto collector0 = registry.callProxy("/blocks/collector_sink", "int");
+    auto collector1 = registry.callProxy("/blocks/collector_sink", "int");
+
+    //create a test plan
+    Poco::JSON::Object::Ptr testPlan(new Poco::JSON::Object());
+    testPlan->set("enableBuffers", true);
+    auto expected = feeder.callProxy("feedTestPlan", testPlan);
+
+    //run the topology
+    {
+        Pothos::Topology topology;
+        topology.connect(feeder, 0, sink1, 0);
+        topology.connect(source1, 0, collector0, 0);
+        topology.connect(source2, 0, collector1, 0);
+        topology.commit();
+        POTHOS_TEST_TRUE(topology.waitInactive());
+    }
+
+    collector0.callVoid("verifyTestPlan", expected);
+    collector1.callVoid("verifyTestPlan", expected);
 }

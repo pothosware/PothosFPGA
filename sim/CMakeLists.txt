@@ -25,6 +25,7 @@ GHDL_ELABORATE(
         ExternalFunctionsPkg.vhdl
         ExternalSource.vhdl
         ExternalSink.vhdl
+        ExternalControl.vhdl
     ANALYZE_ONLY
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )
@@ -39,6 +40,7 @@ GHDL_ELABORATE(
     DEPENDS PothosSimulation
     LIBRARIES PothosFPGAHarness
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    IEEE synopsys
 )
 
 GHDL_INSTALL(

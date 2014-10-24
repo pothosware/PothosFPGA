@@ -19,13 +19,13 @@ architecture test of CombinerTb is
     signal clk : std_ulogic := '0';
     signal rst : std_ulogic := '1';
 
-    signal data0 : std_ulogic_vector(31 downto 0);
-    signal valid0 : std_ulogic_vector(0 downto 0);
-    signal ready0 : std_ulogic_vector(0 downto 0);
-
-    signal data1 : std_ulogic_vector(31 downto 0);
-    signal valid1 : std_ulogic;
-    signal ready1 : std_ulogic;
+    -- test 0 signals
+    signal src0_data : std_ulogic_vector(31 downto 0);
+    signal src0_valid : std_ulogic_vector(0 downto 0);
+    signal src0_ready : std_ulogic_vector(0 downto 0);
+    signal dst0_data : std_ulogic_vector(31 downto 0);
+    signal dst0_valid : std_ulogic;
+    signal dst0_ready : std_ulogic;
 
 begin
 
@@ -34,7 +34,7 @@ begin
     rst <= '0' after 25 ns;
 
     --------------------------------------------------------------------
-    -- test combiner with only one input
+    -- test0: combiner with only one input
     --------------------------------------------------------------------
     source0: entity PothosSimulation.ExternalSource
     generic map (
@@ -43,9 +43,9 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        out_data => data0,
-        out_valid => valid0(0),
-        out_ready => ready0(0)
+        out_data => src0_data,
+        out_valid => src0_valid(0),
+        out_ready => src0_ready(0)
     );
 
     combiner0: entity PothosInterconnect.StreamCombiner
@@ -55,12 +55,12 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        in_data => data0,
-        in_valid => valid0,
-        in_ready => ready0,
-        out_data => data1,
-        out_valid => valid1,
-        out_ready => ready1
+        in_data => src0_data,
+        in_valid => src0_valid,
+        in_ready => src0_ready,
+        out_data => dst0_data,
+        out_valid => dst0_valid,
+        out_ready => dst0_ready
     );
 
     sink0: entity PothosSimulation.ExternalSink
@@ -70,9 +70,9 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        in_data => data1,
-        in_valid => valid1,
-        in_ready => ready1
+        in_data => dst0_data,
+        in_valid => dst0_valid,
+        in_ready => dst0_ready
     );
 
     process begin

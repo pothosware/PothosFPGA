@@ -149,6 +149,92 @@ static std::map<int, std::shared_ptr<SimulationSink>> &getSimSinks(void)
 }
 
 /***********************************************************************
+ * The simulation control interfaces with address and data buses
+ **********************************************************************/
+class SimulationControl
+{
+public:
+    SimulationControl(void):
+        _action(0),
+        _addr(0),
+        _data(0)
+    {
+        return;
+    }
+
+    /*******************************************************************
+     * host calls
+     ******************************************************************/
+    void write(const int addr, const int data)
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+        _action = 1;
+        _addr = addr;
+        _data = data;
+        while (_action != 0) _cond.wait(lock);
+    }
+
+    int read(const int addr)
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+        _action = 2;
+        _addr = addr;
+        while (_action != 0) _cond.wait(lock);
+        return _data;
+    }
+
+    /*******************************************************************
+     * vhdl calls
+     ******************************************************************/
+    int getAction(void)
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+        return _action;
+    }
+
+    int getAddr(void)
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+        return _addr;
+    }
+
+    int getData(void)
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+        return _data;
+    }
+
+    void putData(const int data)
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+        _data = data;
+        _action = 0;
+        lock.unlock();
+        _cond.notify_one();
+    }
+
+private:
+    int _action;
+    int _addr;
+    int _data;
+
+    std::condition_variable _cond;
+    std::mutex _mutex;
+};
+
+static std::mutex &getControlMutex(void)
+{
+    static Poco::SingletonHolder<std::mutex> sh;
+    return *sh.get();
+}
+
+static std::map<int, std::shared_ptr<SimulationControl>> &getSimControls(void)
+{
+    static Poco::SingletonHolder<std::map<int, std::shared_ptr<SimulationControl>>> sh;
+    return *sh.get();
+}
+
+/***********************************************************************
  * Proxy server background thread
  **********************************************************************/
 void runProxyServer(void);
@@ -228,6 +314,37 @@ EXPORT_TO_VHDL void PothosFPGA_sinkPushData(const int handle, const int data)
     return getSimSources().at(handle)->pushData(data);
 }
 
+EXPORT_TO_VHDL int PothosFPGA_setupControl(const int id)
+{
+    std::unique_lock<std::mutex> lock(getControlMutex());
+    getSimControls()[id].reset(new SimulationControl());
+    return id;
+}
+
+EXPORT_TO_VHDL int PothosFPGA_controlGetAction(const int handle)
+{
+    std::unique_lock<std::mutex> lock(getControlMutex());
+    return getSimControls().at(handle)->getAction();
+}
+
+EXPORT_TO_VHDL int PothosFPGA_controlGetAddr(const int handle)
+{
+    std::unique_lock<std::mutex> lock(getControlMutex());
+    return getSimControls().at(handle)->getAddr();
+}
+
+EXPORT_TO_VHDL int PothosFPGA_controlGetData(const int handle)
+{
+    std::unique_lock<std::mutex> lock(getControlMutex());
+    return getSimControls().at(handle)->getData();
+}
+
+EXPORT_TO_VHDL void PothosFPGA_controlPutData(const int handle, const int data)
+{
+    std::unique_lock<std::mutex> lock(getControlMutex());
+    return getSimControls().at(handle)->putData(data);
+}
+
 /***********************************************************************
  * Registered interface
  **********************************************************************/
@@ -245,6 +362,18 @@ struct SimulationHarness
         return getSimSinks().at(which);
     }
 
+    static void writeControl(const int which, const int addr, const int data)
+    {
+        //std::unique_lock<std::mutex> lock(getControlMutex());
+        return getSimControls().at(which)->write(addr, data);
+    }
+
+    static int readControl(const int which, const int addr)
+    {
+        //std::unique_lock<std::mutex> lock(getControlMutex());
+        return getSimControls().at(which)->read(addr);
+    }
+
     static std::vector<int> getSourceIndexes(void)
     {
         std::unique_lock<std::mutex> lock(getSourceMutex());
@@ -260,6 +389,14 @@ struct SimulationHarness
         for (const auto &pair : getSimSinks()) indexes.push_back(pair.first);
         return indexes;
     }
+
+    static std::vector<int> getControlIndexes(void)
+    {
+        std::unique_lock<std::mutex> lock(getControlMutex());
+        std::vector<int> indexes;
+        for (const auto &pair : getSimControls()) indexes.push_back(pair.first);
+        return indexes;
+    }
 };
 
 #include <Pothos/Managed.hpp>
@@ -268,6 +405,9 @@ static auto managedSimulationHarness = Pothos::ManagedClass()
     .registerClass<SimulationHarness>()
     .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSourceBlock))
     .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSinkBlock))
+    .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, writeControl))
+    .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, readControl))
     .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSourceIndexes))
     .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getSinkIndexes))
+    .registerStaticMethod(POTHOS_FCN_TUPLE(SimulationHarness, getControlIndexes))
     .commit("Pothos/FPGA/SimulationHarness");
