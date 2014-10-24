@@ -21,13 +21,19 @@ package ExternalFunctionsPkg is
     function sourceFrontData (handle : integer) return integer;
     attribute foreign of sourceFrontData : function is "VHPIDIRECT PothosFPGA_sourceFrontData";
 
+    function sourceMetaData (handle : integer) return boolean;
+    attribute foreign of sourceMetaData : function is "VHPIDIRECT PothosFPGA_sourceMetaData";
+
+    function sourceLastData (handle : integer) return boolean;
+    attribute foreign of sourceLastData : function is "VHPIDIRECT PothosFPGA_sourceLastData";
+
     function setupSink (portNum : integer) return integer;
     attribute foreign of setupSink : function is "VHPIDIRECT PothosFPGA_setupSink";
 
     function sinkHasSpace (handle : integer) return boolean;
     attribute foreign of sinkHasSpace : function is "VHPIDIRECT PothosFPGA_sinkHasSpace";
 
-    procedure sinkPushData (handle : integer; data : integer);
+    procedure sinkPushData (handle : integer; data : integer; meta : boolean; last : boolean);
     attribute foreign of sinkPushData : procedure is "VHPIDIRECT PothosFPGA_sinkPushData";
 
     function setupControl (id : integer) return integer;
@@ -65,13 +71,19 @@ package body ExternalFunctionsPkg is
     function sourceFrontData (handle : integer) return integer is begin
     end function sourceFrontData;
 
+    function sourceMetaData (handle : integer) return boolean is begin
+    end function sourceMetaData;
+
+    function sourceLastData (handle : integer) return boolean is begin
+    end function sourceLastData;
+
     function setupSink (portNum : integer) return integer is begin
     end function setupSink;
 
     function sinkHasSpace (handle : integer) return boolean is begin
     end function sinkHasSpace;
 
-    procedure sinkPushData (handle : integer; data : integer) is begin
+    procedure sinkPushData (handle : integer; data : integer; meta : boolean; last : boolean) is begin
     end procedure sinkPushData;
 
     function setupControl (id : integer) return integer is begin

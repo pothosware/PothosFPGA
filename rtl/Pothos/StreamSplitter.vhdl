@@ -93,7 +93,8 @@ begin
         in_fifo_data <= in_last & in_data(DATA_WIDTH-1 downto 0);
 
         --input fifo valid is when the input is valid and output enabled
-        in_fifo_valid <= in_valid and usedEnables(i);
+        --and *all* destination fifos are ready to accept transfers
+        in_fifo_valid <= in_valid and usedEnables(i) and in_ready_i;
 
         --output fifo data assigned to outout last, data
         out_last(i) <= out_fifo_data(DATA_WIDTH);

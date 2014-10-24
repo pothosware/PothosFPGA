@@ -24,6 +24,8 @@ entity ExternalSource is
 
         -- output bus
         out_data : out std_ulogic_vector;
+        out_meta : out std_ulogic;
+        out_last : out std_ulogic;
         out_valid : out std_ulogic;
         out_ready : in std_ulogic
     );
@@ -41,6 +43,16 @@ architecture sim of ExternalSource is begin
             if (thisValid) then
                 out_valid <= '1';
                 out_data <= std_ulogic_vector(to_signed(sourceFrontData(handle), out_data'length));
+                if (sourceMetaData(handle)) then
+                    out_meta <= '1';
+                else
+                    out_meta <= '0';
+                end if;
+                if (sourceLastData(handle)) then
+                    out_last <= '1';
+                else
+                    out_last <= '0';
+                end if;
             else
                 out_valid <= '0';
             end if;
@@ -50,6 +62,7 @@ architecture sim of ExternalSource is begin
             if (rst = '1') then
                 out_valid <= '0';
                 out_data <= std_ulogic_vector(to_signed(0, out_data'length));
+                out_last <= '0';
             elsif (out_ready = '1' and thisValid) then
                 sourcePopData(handle);
             end if;

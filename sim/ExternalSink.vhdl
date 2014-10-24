@@ -24,6 +24,8 @@ entity ExternalSink is
 
         -- input bus
         in_data : in std_ulogic_vector;
+        in_meta : in std_ulogic := '0';
+        in_last : in std_ulogic := '1';
         in_valid : in std_ulogic;
         in_ready : out std_ulogic
     );
@@ -49,7 +51,7 @@ architecture sim of ExternalSink is begin
             if (rst = '1') then
                 in_ready <= '0';
             elsif (in_valid = '1' and thisReady) then
-                sinkPushData(handle, to_integer(signed(in_data)));
+                sinkPushData(handle, to_integer(signed(in_data)), in_meta = '1', in_last = '1');
             end if;
         end if;
 

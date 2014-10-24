@@ -18,7 +18,9 @@ class SimulationSource : public Pothos::Block
 {
 public:
 
-    SimulationSource(void)
+    SimulationSource(void):
+        _inPacket(false),
+        _headerCount(0)
     {
         this->setupOutput(0, typeid(int));
     }
@@ -29,14 +31,33 @@ public:
         std::unique_lock<std::mutex> lock(_mutex);
         if (not _queue.empty())
         {
-            auto buff = outputPort->buffer().as<int *>();
-            const auto num = std::min(_queue.size(), outputPort->elements());
-            for (size_t i = 0; i < num; i++)
+            //got a packet from the interface
+            if (this->hasCompletePacket())
             {
-                buff[i] = _queue.front();
-                _queue.pop();
+                Pothos::Packet pkt;
+                pkt.payload = Pothos::BufferChunk(outputPort->dtype(), _queue.size()-_headerCount);
+                auto buff = pkt.payload.as<int *>();
+                size_t i = 0;
+                while (not _queue.empty())
+                {
+                    if (_headerCount != 0) _headerCount--;
+                    else buff[i++] = _queue.front();
+                    _queue.pop();
+                }
+                outputPort->postMessage(pkt);
             }
-            outputPort->produce(num);
+            //otherwise regular streaming data
+            else if (not _inPacket)
+            {
+                auto buff = outputPort->buffer().as<int *>();
+                const auto num = std::min(_queue.size(), outputPort->elements());
+                for (size_t i = 0; i < num; i++)
+                {
+                    buff[i] = _queue.front();
+                    _queue.pop();
+                }
+                outputPort->produce(num);
+            }
         }
         else
         {
@@ -45,23 +66,44 @@ public:
         }
     }
 
+    bool hasCompletePacket(void)
+    {
+        return _headerCount != 0 and not _inPacket;
+    }
+
     bool hasSpace(void)
     {
         std::unique_lock<std::mutex> lock(_mutex);
-        //TODO EOP condition in the future...
+        if (not this->isActive()) return false;
+        if (this->hasCompletePacket()) return false;
         return _queue.size()*sizeof(int) < 1024;
     }
 
-    void pushData(const int data)
+    void pushData(const int data, const bool meta, const bool last)
     {
         std::unique_lock<std::mutex> lock(_mutex);
         _queue.push(data);
+        if (meta)
+        {
+            _headerCount++;
+            if (_queue.size() != _headerCount) throw Pothos::Exception(
+                "SimulationSource::pushData", "meta used for non header data");
+            _inPacket = true;
+        }
+        if (_inPacket and last)
+        {
+            _inPacket = false;
+        }
+        if (_inPacket) return; //dont notify
+        lock.unlock();
         _cond.notify_one();
     }
 
 private:
     std::queue<int> _queue;
     std::condition_variable _cond;
+    bool _inPacket;
+    size_t _headerCount;
     std::mutex _mutex;
 };
 
@@ -78,7 +120,9 @@ class SimulationSink : public Pothos::Block
 {
 public:
 
-    SimulationSink(void)
+    SimulationSink(void):
+        _inPacket(false),
+        _headerCount(0)
     {
         this->setupInput(0, typeid(int));
     }
@@ -89,18 +133,37 @@ public:
         std::unique_lock<std::mutex> lock(_mutex);
         if (_queue.empty())
         {
-            auto buff = inputPort->buffer().as<const int *>();
-            const auto num = inputPort->elements();
-            for (size_t i = 0; i < num; i++)
+            //take the buffer from the input stream
+            if (inputPort->elements() != 0)
             {
-                _queue.push(buff[i]);
+                _loadBuffer(inputPort->buffer());
+                _inPacket = false;
+                inputPort->consume(inputPort->elements());
             }
-            inputPort->consume(num);
+
+            //take the buffer from a packet message
+            else if (inputPort->hasMessage())
+            {
+                const auto msg = inputPort->popMessage();
+                const auto pkt = msg.convert<Pothos::Packet>();
+                _inPacket = true;
+                _headerCount = 1;
+                _queue.push(0);
+                _loadBuffer(pkt.payload);
+            }
         }
         else
         {
             _cond.wait_for(lock, std::chrono::nanoseconds(this->workInfo().maxTimeoutNs));
             return this->yield();
+        }
+    }
+
+    void _loadBuffer(const Pothos::BufferChunk &buff)
+    {
+        for (size_t i = 0; i < buff.elements(); i++)
+        {
+            _queue.push(buff.as<const int *>()[i]);
         }
     }
 
@@ -113,7 +176,10 @@ public:
     void popData(void)
     {
         std::unique_lock<std::mutex> lock(_mutex);
+        if (_headerCount != 0) _headerCount--;
         _queue.pop();
+        if (not _queue.empty()) return;
+        lock.unlock();
         _cond.notify_one();
     }
 
@@ -124,8 +190,23 @@ public:
         return _queue.front();
     }
 
+    bool metaData(void)
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+        return _headerCount != 0;
+    }
+
+    bool lastData(void)
+    {
+        std::unique_lock<std::mutex> lock(_mutex);
+        if (_inPacket) return _queue.size() == 1;
+        return true;
+    }
+
 private:
     std::queue<int> _queue;
+    bool _inPacket;
+    size_t _headerCount;
     std::condition_variable _cond;
     std::mutex _mutex;
 };
@@ -273,6 +354,16 @@ EXPORT_TO_VHDL int PothosFPGA_sourceFrontData(const int handle)
     return getSimSinks().at(handle)->frontData();
 }
 
+EXPORT_TO_VHDL bool PothosFPGA_sourceMetaData(const int handle)
+{
+    return getSimSinks().at(handle)->metaData();
+}
+
+EXPORT_TO_VHDL bool PothosFPGA_sourceLastData(const int handle)
+{
+    return getSimSinks().at(handle)->lastData();
+}
+
 EXPORT_TO_VHDL int PothosFPGA_setupSink(const unsigned portIndex)
 {
     getSimSources()[portIndex].reset(new SimulationSource());
@@ -284,9 +375,9 @@ EXPORT_TO_VHDL bool PothosFPGA_sinkHasSpace(const int handle)
     return getSimSources().at(handle)->hasSpace();
 }
 
-EXPORT_TO_VHDL void PothosFPGA_sinkPushData(const int handle, const int data)
+EXPORT_TO_VHDL void PothosFPGA_sinkPushData(const int handle, const int data, const bool meta, const bool last)
 {
-    return getSimSources().at(handle)->pushData(data);
+    return getSimSources().at(handle)->pushData(data, meta, last);
 }
 
 EXPORT_TO_VHDL int PothosFPGA_setupControl(const int id)
