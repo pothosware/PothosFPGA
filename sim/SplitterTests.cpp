@@ -48,12 +48,13 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_2x)
     POTHOS_TEST_EQUAL(controlIndexes.size(), 1);
     POTHOS_TEST_EQUAL(controlIndexes[0], 0);
 
+    auto source1 = SimulationHarness.callProxy("getSourceBlock", 1);
+    auto source2 = SimulationHarness.callProxy("getSourceBlock", 2);
+    auto sink1 = SimulationHarness.callProxy("getSinkBlock", 1);
+
     for (int enables = 0; enables < 4; enables++)
     {
         std::cout << "testing splitter with enables = " << enables << std::endl;
-        auto source1 = SimulationHarness.callProxy("getSourceBlock", 1);
-        auto source2 = SimulationHarness.callProxy("getSourceBlock", 2);
-        auto sink1 = SimulationHarness.callProxy("getSinkBlock", 1);
 
         auto registry = env->findProxy("Pothos/BlockRegistry");
         auto feeder = registry.callProxy("/blocks/feeder_source", "int");

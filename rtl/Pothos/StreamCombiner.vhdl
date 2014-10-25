@@ -50,18 +50,21 @@ begin
     --------------------------------------------------------------------
     -- Create input fifo mux to in_fifo signals
     --------------------------------------------------------------------
-    gen_mux: process (inputEnables, in_valid, in_data, in_last, in_fifo_ready) begin
+    onehot_mux: process (inputEnables, in_valid, in_data, in_last) begin
         for i in 0 to NUM_INPUTS-1 loop
             in_fifo_valid <= '0';
             in_fifo_data <= (others => '0');
-            in_ready(i) <= inputEnables(i) and in_fifo_ready;
             if (inputEnables(i) = '1') then
                 in_fifo_valid <= in_valid(i);
                 in_fifo_data <= in_last(i) & in_data((DATA_WIDTH*(i+1))-1 downto DATA_WIDTH*i);
                 exit;
             end if;
         end loop;
-    end process gen_mux;
+    end process onehot_mux;
+
+    ready_mux: for i in 0 to (NUM_INPUTS-1) generate begin
+        in_ready(i) <= inputEnables(i) and in_fifo_ready;
+    end generate ready_mux;
 
     --------------------------------------------------------------------
     -- Round robin through input enables
