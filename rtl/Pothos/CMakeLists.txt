@@ -5,6 +5,7 @@ GHDL_ELABORATE(
     TARGET PothosInterconnect
     LIBRARY PothosInterconnect
     SOURCES
+        InterconnectPkg.vhdl
         StreamFifo.vhdl
         StreamInspector.vhdl
         StreamCombiner.vhdl

@@ -14,12 +14,12 @@ entity LaneIngress is
 
         --dest enables for splitter
         --each enable maps to a lane
-        enables : in std_ulogic_vector;
+        lane_mask : in std_ulogic_vector;
 
         --dest bus per each lane
         --each dest is num out ports wide
         --[destN-1.., dest1, dest0]
-        in_dests : in std_ulogic_vector;
+        egress_masks : in std_ulogic_vector;
 
         --lanes in x NUM_LANES
         in_lane_dest : in std_ulogic_vector;
@@ -61,9 +61,9 @@ begin
 
     assert (DATA_WIDTH*NUM_LANES = out_lane_data'length) report "LaneIngress: out lane data width" severity failure;
     assert (DEST_WIDTH*NUM_LANES = out_lane_dest'length) report "LaneIngress: out lane dest width" severity failure;
-    assert (DEST_WIDTH*NUM_LANES = in_dests'length) report "LaneIngress: in dest width" severity failure;
-    assert (DATA_WIDTH = in_data'length) report "LaneIngress: in data width" severity failure;
-    assert (NUM_LANES = enables'length) report "LaneIngress: enables width" severity failure;
+    assert (DEST_WIDTH*NUM_LANES = egress_masks'length) report "LaneIngress: in dest width" severity failure;
+    assert (DATA_WIDTH = egress_masks'length) report "LaneIngress: egress masks width" severity failure;
+    assert (NUM_LANES = lane_mask'length) report "LaneIngress: lane mask width" severity failure;
 
     --------------------------------------------------------------------
     -- split the input port to each lane
@@ -75,7 +75,7 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        enables => enables,
+        enables => lane_mask,
         in_data => in_data,
         in_last => in_last,
         in_valid => in_valid,
@@ -120,7 +120,7 @@ begin
         comb_in_data <=
             in_lane_dest(((i+1)*DEST_WIDTH)-1 downto i*DEST_WIDTH) &
             in_lane_data(((i+1)*DATA_WIDTH)-1 downto i*DATA_WIDTH) &
-            in_dests(((i+1)*DEST_WIDTH)-1 downto i*DEST_WIDTH) &
+            egress_masks(((i+1)*DEST_WIDTH)-1 downto i*DEST_WIDTH) &
             split_data(((i+1)*DATA_WIDTH)-1 downto i*DATA_WIDTH);
         comb_in_last <= in_lane_last(i) & split_last(i);
         comb_in_valid <= in_lane_valid(i) & split_valid(i);

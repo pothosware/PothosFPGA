@@ -19,7 +19,7 @@ entity StreamCombiner is
         clk : in std_ulogic;
         rst : in std_ulogic;
 
-        -- input buses (num input ports width)
+        -- input buses x NUM_INPUTS
         in_data : in std_ulogic_vector;
         in_last : in std_ulogic_vector(NUM_INPUTS-1 downto 0) := (others => '1');
         in_valid : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
@@ -52,8 +52,8 @@ begin
     --------------------------------------------------------------------
     onehot_mux: process (inputEnables, in_valid, in_data, in_last) begin
         for i in 0 to NUM_INPUTS-1 loop
-            in_fifo_valid <= '0';
-            in_fifo_data <= (others => '0');
+            in_fifo_valid <= in_valid(0);
+            in_fifo_data <= in_last(0) & in_data(DATA_WIDTH-1 downto 0);
             if (inputEnables(i) = '1') then
                 in_fifo_valid <= in_valid(i);
                 in_fifo_data <= in_last(i) & in_data((DATA_WIDTH*(i+1))-1 downto DATA_WIDTH*i);

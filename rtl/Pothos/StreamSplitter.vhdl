@@ -28,7 +28,7 @@ entity StreamSplitter is
         in_valid : in std_ulogic;
         in_ready : out std_ulogic;
 
-        -- output bus (num output ports width)
+        -- output bus x NUM_OUTPUTS
         out_data : out std_ulogic_vector;
         out_last : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
         out_valid : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
