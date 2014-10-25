@@ -27,11 +27,13 @@ end entity StreamInspector;
 
 architecture rtl of StreamInspector is
     signal packet_xfer : std_ulogic;
-    signal packet_end : std_ulogic;
+    signal packet_end : std_ulogic := '0';
+    signal packet_begin : std_ulogic := '0';
 begin
 
     packet_end <= valid and ready and last;
-    packet_busy <= packet_xfer and not packet_end;
+    packet_begin <= valid and ready and not packet_xfer;
+    packet_busy <= (packet_begin or packet_xfer) and not packet_end;
 
     process (clk) begin
         if (rising_edge(clk)) then

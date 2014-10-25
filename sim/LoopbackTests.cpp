@@ -62,8 +62,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_packet_loopback)
     auto packetsOut = registry.callProxy("/blocks/collector_sink", "int");
 
     auto s2p = registry.callProxy("/blocks/stream_to_packet");
-    const size_t pktMtu = 8;
-    s2p.callVoid("setMTU", pktMtu*4); //small fragments
+    s2p.callVoid("setMTU", 32); //small fragments
     auto p2s = registry.callProxy("/blocks/packet_to_stream");
 
     //create a test plan

@@ -10,6 +10,7 @@
 #include <queue>
 #include <map>
 #include <iostream>
+#include <cstdlib>
 
 /***********************************************************************
  * The simulation source moves simulation data into the topology
@@ -86,8 +87,11 @@ public:
         if (meta)
         {
             _headerCount++;
-            if (_queue.size() != _headerCount) throw Pothos::Exception(
-                "SimulationSource::pushData", "meta used for non header data");
+            if (_queue.size() != _headerCount)
+            {
+                std::cerr << "SimulationSource::pushData - meta used for non header data" << std::endl;
+                abort();
+            }
             _inPacket = true;
         }
         if (_inPacket and last)
