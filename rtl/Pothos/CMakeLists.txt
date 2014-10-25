@@ -9,6 +9,8 @@ GHDL_ELABORATE(
         StreamInspector.vhdl
         StreamCombiner.vhdl
         StreamSplitter.vhdl
+        LaneOutgress.vhdl
+        LaneIngress.vhdl
         Interconnect.vhdl
     DEPENDS vhdl-extras
     ANALYZE_ONLY
