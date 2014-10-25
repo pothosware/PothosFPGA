@@ -9,12 +9,6 @@ use ieee.std_logic_1164.all;
 
 entity LaneOutgress is
     generic(
-        -- the bit width of the output port
-        DATA_WIDTH : positive;
-
-        -- the number input and output lanes
-        NUM_LANES : positive;
-
         -- the number of this outgress port
         PORT_NUMBER : natural
     );
@@ -22,16 +16,16 @@ entity LaneOutgress is
         clk : in std_ulogic;
         rst : in std_ulogic;
 
-        --lanes in
-        in_lane_data : in std_ulogic_vector;
+        --lanes in x NUM_LANES
         in_lane_dest : in std_ulogic_vector;
+        in_lane_data : in std_ulogic_vector;
         in_lane_last : in std_ulogic_vector;
         in_lane_valid : in std_ulogic_vector;
         in_lane_ready : out std_ulogic_vector;
 
-        --lanes out
-        out_lane_data : out std_ulogic_vector;
+        --lanes out x NUM_LANES
         out_lane_dest : out std_ulogic_vector;
+        out_lane_data : out std_ulogic_vector;
         out_lane_last : out std_ulogic_vector;
         out_lane_valid : out std_ulogic_vector;
         out_lane_ready : in std_ulogic_vector;
@@ -46,9 +40,12 @@ end entity LaneOutgress;
 
 architecture rtl of LaneOutgress is
 
-    constant LANE_DATA_WIDTH : positive := in_lane_data'length/NUM_LANES;
-    constant LANE_DEST_WIDTH : positive := in_lane_dest'length/NUM_LANES;
-    constant LANE_WIDTH : positive := LANE_DATA_WIDTH + LANE_DEST_WIDTH;
+    -- calculate constants from input widths
+    constant NUM_LANES : positive := in_lane_valid'length;
+    constant DATA_WIDTH : positive := in_lane_data'length/NUM_LANES;
+    constant DEST_WIDTH : positive := in_lane_dest'length/NUM_LANES;
+    constant LANE_WIDTH : positive := DATA_WIDTH + DEST_WIDTH;
+    constant ENABLE_BIT : natural := 2**PORT_NUMBER;
 
     -- input bus for stream combiner
     signal comb_data : std_ulogic_vector((DATA_WIDTH*NUM_LANES)-1 downto 0);
@@ -58,20 +55,25 @@ architecture rtl of LaneOutgress is
 
 begin
 
+    assert (DATA_WIDTH*NUM_LANES = out_lane_data'length) report "LaneOutgress: out lane data width" severity failure;
+    assert (DEST_WIDTH*NUM_LANES = out_lane_dest'length) report "LaneOutgress: out lane dest width" severity failure;
+    assert (DATA_WIDTH = out_data'length) report "LaneOutgress: out data width" severity failure;
+
     --------------------------------------------------------------------
     -- split each input lane to the combiner and to the out lane
     --------------------------------------------------------------------
     gen_lane_splitters: for i in 0 to (NUM_LANES-1) generate
         signal enables : std_ulogic_vector(1 downto 0);
 
-        signal split_in_data : std_ulogic_vector(LANE_DATA_WIDTH-1 downto 0);
-        signal split_in_dest : std_ulogic_vector(LANE_DEST_WIDTH-1 downto 0);
+        signal split_in_data : std_ulogic_vector(DATA_WIDTH-1 downto 0);
+        signal split_in_dest : std_ulogic_vector(DEST_WIDTH-1 downto 0);
+        signal dest_removed : std_ulogic_vector(DEST_WIDTH-1 downto 0);
         signal split_in_both : std_ulogic_vector(LANE_WIDTH-1 downto 0);
 
-        signal split_data : std_ulogic_vector((LANE_WIDTH*2)-1 downto 0);
-        signal split_last : std_ulogic_vector(1 downto 0);
-        signal split_valid : std_ulogic_vector(1 downto 0);
-        signal split_ready : std_ulogic_vector(1 downto 0);
+        signal split_out_both : std_ulogic_vector((LANE_WIDTH*2)-1 downto 0);
+        signal split_out_last : std_ulogic_vector(1 downto 0);
+        signal split_out_valid : std_ulogic_vector(1 downto 0);
+        signal split_out_ready : std_ulogic_vector(1 downto 0);
     begin
         splitter: entity work.StreamSplitter
         generic map (
@@ -85,38 +87,38 @@ begin
             in_last => in_lane_last(i),
             in_valid => in_lane_valid(i),
             in_ready => in_lane_ready(i),
-            out_data => split_data,
-            out_last => split_last,
-            out_valid => split_valid,
-            out_ready => split_ready
+            out_data => split_out_both,
+            out_last => split_out_last,
+            out_valid => split_out_valid,
+            out_ready => split_out_ready
         );
 
-        split_in_data <= in_lane_data((LANE_DATA_WIDTH*(i+1))-1 downto LANE_DATA_WIDTH*i);
-        split_in_dest <= in_lane_dest((LANE_DEST_WIDTH*(i+1))-1 downto LANE_DEST_WIDTH*i);
+        --extract input data(i) and input dest(i)
+        --clear out "our" enable bit from input dest
+        split_in_dest <= in_lane_dest((DEST_WIDTH*(i+1))-1 downto DEST_WIDTH*i);
+        split_in_data <= in_lane_data((DATA_WIDTH*(i+1))-1 downto DATA_WIDTH*i);
+        dest_removed <= split_in_dest;
+        dest_removed(ENABLE_BIT) <= '0'; --remove the enable bit for this port
+        split_in_both <= dest_removed & split_in_data;
 
         --enables logic
-        --TODO this is what we want, but clean it up
         --port 1 enabled when the destination includes this port
-        enables(1) <= split_in_dest(2**PORT_NUMBER);
-        --remove the enable bit for this port
-        split_in_dest(2**PORT_NUMBER) <= '0';
         --port 0 enabled when there is at least one destination remaining
-        enables(0) <= '0' when split_in_dest = (split_in_dest'range => '0') else '1';
-
-        split_in_both <= split_in_dest & split_in_data;
+        enables(1) <= split_in_dest(ENABLE_BIT);
+        enables(0) <= '0' when dest_removed = (dest_removed'range => '0') else '1';
 
         -- assign splitter output 0 to the output lane
-        out_lane_data((LANE_DATA_WIDTH*(i+1))-1 downto LANE_DATA_WIDTH*i) <= split_data(LANE_DATA_WIDTH-1 downto 0);
-        out_lane_dest((LANE_DEST_WIDTH*(i+1))-1 downto LANE_DEST_WIDTH*i) <= split_data(LANE_WIDTH-1 downto LANE_DATA_WIDTH);
-        out_lane_last(i) <= split_last(0);
-        out_lane_valid(i) <= split_valid(0);
-        split_ready(0) <= out_lane_ready(i);
+        out_lane_dest((DEST_WIDTH*(i+1))-1 downto DEST_WIDTH*i) <= split_out_both(LANE_WIDTH-1 downto DATA_WIDTH);
+        out_lane_data((DATA_WIDTH*(i+1))-1 downto DATA_WIDTH*i) <= split_out_both(DATA_WIDTH-1 downto 0);
+        out_lane_last(i) <= split_out_last(0);
+        out_lane_valid(i) <= split_out_valid(0);
+        split_out_ready(0) <= out_lane_ready(i);
 
         -- assign splitter output 1 to the combiner
-        comb_data((DATA_WIDTH*(i+1))-1 downto DATA_WIDTH*i) <= split_data((LANE_WIDTH+DATA_WIDTH)-1 downto LANE_WIDTH);
-        comb_last(i) <= split_last(1);
-        comb_valid(i) <= split_valid(1);
-        split_ready(1) <= comb_ready(i);
+        comb_data((DATA_WIDTH*(i+1))-1 downto DATA_WIDTH*i) <= split_out_both((LANE_WIDTH+DATA_WIDTH)-1 downto LANE_WIDTH);
+        comb_last(i) <= split_out_last(1);
+        comb_valid(i) <= split_out_valid(1);
+        split_out_ready(1) <= comb_ready(i);
 
     end generate gen_lane_splitters;
 
