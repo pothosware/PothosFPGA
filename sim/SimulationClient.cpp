@@ -17,7 +17,7 @@
 Pothos::ProxyEnvironment::Sptr getSimulationEnv(const std::string &testName)
 {
     const std::string serverPort = std::to_string(1024+Poco::Process::id());
-    const std::string mutexName = "ghdl_"+testName+serverPort;
+    const std::string mutexName = "pothos_spawn_ghdl_simulation_barrier";
 
     //path to vcd output
     Poco::Path vcdFile(Poco::Path::temp());
