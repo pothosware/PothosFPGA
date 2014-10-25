@@ -21,21 +21,27 @@ architecture test of SplitterTb is
     signal rst : std_ulogic := '1';
 
     -- test 0 signals
-    signal src0_data : std_ulogic_vector(31 downto 0);
+    signal src0_data : std_ulogic_vector(32 downto 0); --meta1, data32
+    signal src0_last : std_ulogic;
     signal src0_valid : std_ulogic;
     signal src0_ready : std_ulogic;
-    signal dst0_data : std_ulogic_vector(31 downto 0);
+    signal dst0_data : std_ulogic_vector(32 downto 0); --meta1, data32
+    signal dst0_last : std_ulogic_vector(0 downto 0);
     signal dst0_valid : std_ulogic_vector(0 downto 0);
     signal dst0_ready : std_ulogic_vector(0 downto 0);
 
     -- test 1 signals
     signal enables1 : std_ulogic_vector(1 downto 0);
-    signal src1_data : std_ulogic_vector(31 downto 0);
+    signal src1_data : std_ulogic_vector(32 downto 0); --meta1, data32
+    signal src1_last : std_ulogic;
     signal src1_valid : std_ulogic;
     signal src1_ready : std_ulogic;
-    signal dst1_data : std_ulogic_vector(63 downto 0);
+    signal dst1_data : std_ulogic_vector(65 downto 0); --(meta1, data32) X2
+    signal dst1_last : std_ulogic_vector(1 downto 0);
     signal dst1_valid : std_ulogic_vector(1 downto 0);
     signal dst1_ready : std_ulogic_vector(1 downto 0);
+
+    -- ctrl signals
     signal ctrl1_wr : std_ulogic;
     signal ctrl1_addr : std_ulogic_vector(31 downto 0);
     signal ctrl1_out_data : std_ulogic_vector(31 downto 0);
@@ -57,7 +63,9 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        out_data => src0_data,
+        out_data => src0_data(31 downto 0),
+        out_meta => src0_data(32),
+        out_last => src0_last,
         out_valid => src0_valid,
         out_ready => src0_ready
     );
@@ -70,9 +78,11 @@ begin
         clk => clk,
         rst => rst,
         in_data => src0_data,
+        in_last => src0_last,
         in_valid => src0_valid,
         in_ready => src0_ready,
         out_data => dst0_data,
+        out_last => dst0_last,
         out_valid => dst0_valid,
         out_ready => dst0_ready
     );
@@ -84,7 +94,9 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        in_data => dst0_data,
+        in_data => dst0_data(31 downto 0),
+        in_meta => dst0_data(32),
+        in_last => dst0_last(0),
         in_valid => dst0_valid(0),
         in_ready => dst0_ready(0)
     );
@@ -99,7 +111,9 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        out_data => src1_data,
+        out_data => src1_data(31 downto 0),
+        out_meta => src1_data(32),
+        out_last => src1_last,
         out_valid => src1_valid,
         out_ready => src1_ready
     );
@@ -136,9 +150,11 @@ begin
         rst => rst,
         enables => enables1,
         in_data => src1_data,
+        in_last => src1_last,
         in_valid => src1_valid,
         in_ready => src1_ready,
         out_data => dst1_data,
+        out_last => dst1_last,
         out_valid => dst1_valid,
         out_ready => dst1_ready
     );
@@ -151,6 +167,8 @@ begin
         clk => clk,
         rst => rst,
         in_data => dst1_data(31 downto 0),
+        in_meta => dst1_data(32),
+        in_last => dst1_last(0),
         in_valid => dst1_valid(0),
         in_ready => dst1_ready(0)
     );
@@ -162,7 +180,9 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        in_data => dst1_data(63 downto 32),
+        in_data => dst1_data(64 downto 33),
+        in_meta => dst1_data(65),
+        in_last => dst1_last(1),
         in_valid => dst1_valid(1),
         in_ready => dst1_ready(1)
     );

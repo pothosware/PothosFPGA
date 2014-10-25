@@ -30,7 +30,7 @@ public:
     {
         auto outputPort = this->output(0);
         std::unique_lock<std::mutex> lock(_mutex);
-        if (not _queue.empty())
+        if (not _queue.empty() and not _inPacket)
         {
             //got a packet from the interface
             if (this->hasCompletePacket())
@@ -48,7 +48,7 @@ public:
                 outputPort->postMessage(pkt);
             }
             //otherwise regular streaming data
-            else if (not _inPacket)
+            else
             {
                 auto buff = outputPort->buffer().as<int *>();
                 const auto num = std::min(_queue.size(), outputPort->elements());
