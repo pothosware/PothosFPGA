@@ -55,20 +55,20 @@ begin
     We <= in_valid and not Full;
     Re <= out_ready and not Empty;
 
-    process (clk)
+    process (clk, Empty)
         variable syncValid : std_ulogic := '0';
     begin
-        if (SYNC_READ) then
-            out_valid <= syncValid;
-        else
-            out_valid <= not Empty;
-        end if;
         if (rising_edge(clk)) then
             if (rst = '1') then
                 syncValid := '0';
             else
                 syncValid := Re;
             end if;
+        end if;
+        if (SYNC_READ) then
+            out_valid <= syncValid;
+        else
+            out_valid <= not Empty;
         end if;
     end process;
 

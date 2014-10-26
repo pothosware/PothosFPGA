@@ -35,7 +35,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_interconnect)
     POTHOS_TEST_EQUAL(SimulationHarness.call<int>("readControl", 0, IC_TEST_LOOPBACK_ADDR), randNum);
 
     const auto numLanes = SimulationHarness.call<size_t>("readControl", 0, IC_NUM_LANES_ADDR);
-    POTHOS_TEST_EQUAL(size_t(2), numLanes);
+    POTHOS_TEST_EQUAL(size_t(1), numLanes);
 
     const auto numOutputs = SimulationHarness.call<size_t>("readControl", 0, IC_NUM_OUTPUTS_ADDR);
     auto sourceIndexes = SimulationHarness.call<std::vector<int>>("getSourceIndexes");
