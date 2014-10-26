@@ -100,6 +100,7 @@ begin
     --------------------------------------------------------------------
     config_addr_num <= to_integer(unsigned(config_addr));
     config_out_data <=
+        std_ulogic_vector(to_unsigned(IC_VERSION, 32)) when (config_addr_num = IC_VERSION_ADDR) else
         std_ulogic_vector(to_unsigned(NUM_LANES, 32)) when (config_addr_num = IC_NUM_LANES_ADDR) else
         std_ulogic_vector(to_unsigned(NUM_INPUTS, 32)) when (config_addr_num = IC_NUM_INPUTS_ADDR) else
         std_ulogic_vector(to_unsigned(NUM_OUTPUTS, 32)) when (config_addr_num = IC_NUM_OUTPUTS_ADDR) else

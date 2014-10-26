@@ -56,6 +56,10 @@ architecture sim of ExternalControl is begin
                 wr <= '0';
                 rd <= '0';
             else
+                --complete read from previous cycle
+                if (action = 2) then
+                    controlPutData(handle, to_integer(signed(in_data)));
+                end if;
                 action := controlGetAction(handle);
                 if (action = 1) then
                     wr <= '1';
@@ -65,7 +69,6 @@ architecture sim of ExternalControl is begin
                 elsif (action = 2) then
                     rd <= '1';
                     addr <= std_ulogic_vector(to_signed(controlGetAddr(handle), addr'length));
-                    controlPutData(handle, to_integer(signed(in_data)));
                 else
                     wr <= '0';
                     rd <= '0';

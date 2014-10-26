@@ -8,6 +8,15 @@ package InterconnectPkg is
 
     --IC = interconnect configuation
 
+    --The version number of the interconnect config.
+    --This value can be read with IC_VERSION_ADDR.
+    constant IC_VERSION : natural;
+
+    --Read this address to get the config version.
+    --This value should change with config address changes,
+    --so the host driver can determine the correct procedure.
+    constant IC_VERSION_ADDR : natural;
+
     --Read this address to get the total lane count.
     constant IC_NUM_LANES_ADDR : natural;
 
@@ -46,6 +55,10 @@ end InterconnectPkg;
 
 package body InterconnectPkg is
 
+    --increment on breaking changes
+    constant IC_VERSION : natural := 1;
+
+    constant IC_VERSION_ADDR : natural := 5;
     constant IC_NUM_LANES_ADDR : natural := 6;
     constant IC_NUM_INPUTS_ADDR : natural := 7;
     constant IC_NUM_OUTPUTS_ADDR : natural := 8;
