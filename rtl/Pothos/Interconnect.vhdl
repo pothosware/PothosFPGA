@@ -37,8 +37,10 @@ entity Interconnect is
 
         -- configuration channel
         config_write : in std_ulogic;
+        config_read : in std_ulogic;
         config_addr : in std_ulogic_vector(31 downto 0);
-        config_data : in std_ulogic_vector(31 downto 0);
+        config_in_data : in std_ulogic_vector(31 downto 0);
+        config_out_data : out std_ulogic_vector(31 downto 0);
 
         -- all ports into the interconnect
         in_data : in std_ulogic_vector;
@@ -62,6 +64,8 @@ architecture rtl of Interconnect is
     constant DATA_WIDTH : positive := in_data'length/NUM_INPUTS;
 
     --selection registers set by the config bus
+    signal config_addr_num : natural;
+    signal test_loopback_reg : std_ulogic_vector(31 downto 0);
     signal lane_select_reg : natural range 0 to NUM_LANES-1;
     signal input_select_reg : natural range 0 to NUM_INPUTS-1;
 
@@ -92,18 +96,31 @@ begin
     assert (NUM_LANES <= 32) report "Interconnect: 32 lanes limit" severity failure;
 
     --------------------------------------------------------------------
+    -- configuration readback mux
+    --------------------------------------------------------------------
+    config_addr_num <= to_integer(unsigned(config_addr));
+    config_out_data <=
+        std_ulogic_vector(to_unsigned(NUM_LANES, 32)) when (config_addr_num = IC_NUM_LANES_ADDR) else
+        std_ulogic_vector(to_unsigned(NUM_INPUTS, 32)) when (config_addr_num = IC_NUM_INPUTS_ADDR) else
+        std_ulogic_vector(to_unsigned(NUM_OUTPUTS, 32)) when (config_addr_num = IC_NUM_OUTPUTS_ADDR) else
+        test_loopback_reg when (config_addr_num = IC_TEST_LOOPBACK_ADDR) else (others => '0');
+
+    --------------------------------------------------------------------
     -- record configuration selections
     --------------------------------------------------------------------
     process (clk) begin
         if (rising_edge(clk)) then
             if (rst = '1') then
+                test_loopback_reg <= (others => '0');
                 lane_select_reg <= 0;
                 input_select_reg <= 0;
             elsif (config_write = '1') then
-                if (to_integer(unsigned(config_addr)) = IC_LANE_SELECT_ADDR) then
-                    lane_select_reg <= to_integer(unsigned(config_data));
-                elsif (to_integer(unsigned(config_addr)) = IC_INPUT_SELECT_ADDR) then
-                    input_select_reg <= to_integer(unsigned(config_data));
+                if (config_addr_num = IC_TEST_LOOPBACK_ADDR) then
+                    test_loopback_reg <= config_in_data;
+                elsif (config_addr_num = IC_LANE_SELECT_ADDR) then
+                    lane_select_reg <= to_integer(unsigned(config_in_data));
+                elsif (config_addr_num = IC_INPUT_SELECT_ADDR) then
+                    input_select_reg <= to_integer(unsigned(config_in_data));
                 end if;
             end if;
         end if;
@@ -125,12 +142,12 @@ begin
                     lane_mask <= (others => '0');
                     egress_masks <= (others => '0');
                 elsif (config_write = '1' and i = input_select_reg) then
-                    if (to_integer(unsigned(config_addr)) = IC_LANE_DEST_MASK_ADDR) then
-                        lane_mask <= config_data(NUM_LANES-1 downto 0);
-                    elsif (to_integer(unsigned(config_addr)) = IC_OUTPUT_DEST_MASK_ADDR) then
+                    if (config_addr_num = IC_LANE_DEST_MASK_ADDR) then
+                        lane_mask <= config_in_data(NUM_LANES-1 downto 0);
+                    elsif (config_addr_num = IC_OUTPUT_DEST_MASK_ADDR) then
                         for j in 0 to NUM_LANES-1 loop
                             if (j = lane_select_reg) then
-                                egress_masks(((j+1)*NUM_OUTPUTS)-1 downto j*NUM_OUTPUTS) <= config_data(NUM_OUTPUTS-1 downto 0);
+                                egress_masks(((j+1)*NUM_OUTPUTS)-1 downto j*NUM_OUTPUTS) <= config_in_data(NUM_OUTPUTS-1 downto 0);
                             end if;
                         end loop;
                     end if;

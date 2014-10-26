@@ -139,5 +139,6 @@ POTHOS_MODULE_UTIL(
         FifoTests.cpp
         CombinerTests.cpp
         SplitterTests.cpp
+        InterconnectTests.cpp
     DESTINATION fpga
 )

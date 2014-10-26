@@ -48,7 +48,6 @@ architecture rtl of LaneOutgress is
     constant DATA_WIDTH : positive := in_lane_data'length/NUM_LANES;
     constant DEST_WIDTH : positive := in_lane_dest'length/NUM_LANES;
     constant LANE_WIDTH : positive := DATA_WIDTH + DEST_WIDTH;
-    constant ENABLE_BIT : natural := 2**PORT_NUMBER;
 
     -- input bus for stream combiner
     signal comb_data : std_ulogic_vector((DATA_WIDTH*NUM_LANES)-1 downto 0);
@@ -70,6 +69,7 @@ begin
     assert (NUM_LANES = out_lane_valid'length) report "LaneOutgress: out lane valid width" severity failure;
     assert (NUM_LANES = out_lane_ready'length) report "LaneOutgress: out lane ready width" severity failure;
 
+    assert (PORT_NUMBER < DEST_WIDTH) report "LaneOutgress: port num too large for dest bus" severity failure;
     assert (DATA_WIDTH = out_data'length) report "LaneOutgress: out data width" severity failure;
 
     --------------------------------------------------------------------
@@ -110,14 +110,16 @@ begin
         --clear out "our" enable bit from input dest
         split_in_dest <= in_lane_dest((DEST_WIDTH*(i+1))-1 downto DEST_WIDTH*i);
         split_in_data <= in_lane_data((DATA_WIDTH*(i+1))-1 downto DATA_WIDTH*i);
-        dest_removed <= split_in_dest;
-        dest_removed(ENABLE_BIT) <= '0'; --remove the enable bit for this port
+        --remove the enable bit for this port
+        assign_dest: for j in 0 to (DEST_WIDTH-1) generate begin
+            dest_removed(j) <= '0' when j = PORT_NUMBER else split_in_dest(j);
+        end generate assign_dest;
         split_in_both <= dest_removed & split_in_data;
 
         --enables logic
         --port 1 enabled when the destination includes this port
         --port 0 enabled when there is at least one destination remaining
-        enables(1) <= split_in_dest(ENABLE_BIT);
+        enables(1) <= split_in_dest(PORT_NUMBER);
         enables(0) <= '0' when dest_removed = (dest_removed'range => '0') else '1';
 
         -- assign splitter output 0 to the output lane

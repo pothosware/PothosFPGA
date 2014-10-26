@@ -22,8 +22,8 @@ architecture test of InterconnectTb is
     signal clk : std_ulogic := '0';
     signal rst : std_ulogic := '1';
 
-    constant NUM_INPUTS : positive := 2;
-    constant NUM_OUTPUTS : positive := 2;
+    constant NUM_INPUTS : positive := 4;
+    constant NUM_OUTPUTS : positive := 3;
     constant NUM_LANES : positive := 2;
 
     --input port signals
@@ -44,8 +44,8 @@ architecture test of InterconnectTb is
     signal ctrl_wr : std_ulogic;
     signal ctrl_rd : std_ulogic;
     signal ctrl_addr : std_ulogic_vector(31 downto 0);
-    signal ctrl_out_data : std_ulogic_vector(31 downto 0);
-    signal ctrl_in_data : std_ulogic_vector(31 downto 0);
+    signal ctrl_wr_data : std_ulogic_vector(31 downto 0);
+    signal ctrl_rd_data : std_ulogic_vector(31 downto 0);
 
 begin
 
@@ -66,10 +66,9 @@ begin
         wr => ctrl_wr,
         rd => ctrl_rd,
         addr => ctrl_addr,
-        out_data => ctrl_out_data,
-        in_data => ctrl_in_data
+        out_data => ctrl_wr_data,
+        in_data => ctrl_rd_data
     );
-    ctrl_in_data <= (others => '0');
 
     --------------------------------------------------------------------
     -- external source blocks
@@ -127,8 +126,10 @@ begin
         rst => rst,
 
         config_write => ctrl_wr,
+        config_read => ctrl_rd,
         config_addr => ctrl_addr,
-        config_data => ctrl_out_data,
+        config_in_data => ctrl_wr_data,
+        config_out_data => ctrl_rd_data,
 
         in_data => in_data,
         in_meta => in_meta,

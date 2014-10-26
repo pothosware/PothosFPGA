@@ -8,6 +8,20 @@ package InterconnectPkg is
 
     --IC = interconnect configuation
 
+    --Read this address to get the total lane count.
+    constant IC_NUM_LANES_ADDR : natural;
+
+    --Read this address to get the total input count.
+    constant IC_NUM_INPUTS_ADDR : natural;
+
+    --Read this address to get the total output count.
+    constant IC_NUM_OUTPUTS_ADDR : natural;
+
+    --Write this address to set a value.
+    --Read this address to readback the value.
+    --This is a sanity check for the config bus.
+    constant IC_TEST_LOOPBACK_ADDR : natural;
+
     --Write this address to select a lane.
     --The data format is an available lane index.
     constant IC_LANE_SELECT_ADDR : natural;
@@ -32,6 +46,10 @@ end InterconnectPkg;
 
 package body InterconnectPkg is
 
+    constant IC_NUM_LANES_ADDR : natural := 6;
+    constant IC_NUM_INPUTS_ADDR : natural := 7;
+    constant IC_NUM_OUTPUTS_ADDR : natural := 8;
+    constant IC_TEST_LOOPBACK_ADDR : natural := 9;
     constant IC_LANE_SELECT_ADDR : natural := 10;
     constant IC_INPUT_SELECT_ADDR : natural := 11;
     constant IC_LANE_DEST_MASK_ADDR : natural := 12;
