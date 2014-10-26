@@ -1,5 +1,8 @@
 ------------------------------------------------------------------------
 -- Lane Outgress implementation
+-- A lane outgress attaches to a multi-lane busway,
+-- and delivers streams to the output port using the destination bus.
+--
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
@@ -55,8 +58,18 @@ architecture rtl of LaneOutgress is
 
 begin
 
-    assert (DATA_WIDTH*NUM_LANES = out_lane_data'length) report "LaneOutgress: out lane data width" severity failure;
-    assert (DEST_WIDTH*NUM_LANES = out_lane_dest'length) report "LaneOutgress: out lane dest width" severity failure;
+    assert (NUM_LANES*DEST_WIDTH = in_lane_dest'length) report "LaneOutgress: in lane dest width" severity failure;
+    assert (NUM_LANES*DATA_WIDTH = in_lane_data'length) report "LaneOutgress: in lane dest width" severity failure;
+    assert (NUM_LANES = in_lane_last'length) report "LaneOutgress: in lane last width" severity failure;
+    assert (NUM_LANES = in_lane_valid'length) report "LaneOutgress: in lane valid width" severity failure;
+    assert (NUM_LANES = in_lane_ready'length) report "LaneOutgress: in lane ready width" severity failure;
+
+    assert (NUM_LANES*DEST_WIDTH = out_lane_dest'length) report "LaneOutgress: out lane dest width" severity failure;
+    assert (NUM_LANES*DATA_WIDTH = out_lane_data'length) report "LaneOutgress: out lane dest width" severity failure;
+    assert (NUM_LANES = out_lane_last'length) report "LaneOutgress: out lane last width" severity failure;
+    assert (NUM_LANES = out_lane_valid'length) report "LaneOutgress: out lane valid width" severity failure;
+    assert (NUM_LANES = out_lane_ready'length) report "LaneOutgress: out lane ready width" severity failure;
+
     assert (DATA_WIDTH = out_data'length) report "LaneOutgress: out data width" severity failure;
 
     --------------------------------------------------------------------

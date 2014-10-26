@@ -109,6 +109,26 @@ GHDL_INSTALL(
 )
 
 ########################################################################
+## interconnect testbench
+########################################################################
+GHDL_ELABORATE(
+    TARGET InterconnectTb
+    LIBRARY InterconnectTb
+    SOURCES InterconnectTb.vhdl
+    DEPENDS
+        PothosInterconnect
+        PothosSimulation
+    LIBRARIES PothosFPGAHarness
+    WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
+    IEEE synopsys
+)
+
+GHDL_INSTALL(
+    TARGET InterconnectTb
+    DESTINATION lib${LIB_SUFFIX}/Pothos/fpga/test
+)
+
+########################################################################
 ## build and install unit tests
 ########################################################################
 POTHOS_MODULE_UTIL(

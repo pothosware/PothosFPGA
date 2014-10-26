@@ -1,5 +1,6 @@
 ------------------------------------------------------------------------
 -- Interconnect implementation
+--
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
@@ -21,16 +22,14 @@ entity Interconnect is
         -- the number of output ports
         NUM_OUTPUTS : positive;
 
-        -- the bit width of a single port
-        DATA_WIDTH : positive;
-
         -- the number of internal lanes to generate
-        NUM_LANES : positive;
+        NUM_LANES : positive
 
         -- high bandwidth ports for performance hints
         -- each bit represents a port by index number
-        HIGH_BW_INS : std_ulogic_vector;
-        HIGH_BW_OUTS : std_ulogic_vector
+        -- TODO, these will be used to generate muxing with non0 lanes
+        --HIGH_BW_INS : std_ulogic_vector;
+        --HIGH_BW_OUTS : std_ulogic_vector
     );
     port(
         clk : in std_ulogic;
@@ -42,14 +41,14 @@ entity Interconnect is
         config_data : in std_ulogic_vector(31 downto 0);
 
         -- all ports into the interconnect
-        in_data : in std_ulogic_vector((NUM_INPUTS*DATA_WIDTH)-1 downto 0);
+        in_data : in std_ulogic_vector;
         in_meta : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
         in_last : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
         in_valid : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
         in_ready : out std_ulogic_vector(NUM_INPUTS-1 downto 0);
 
         -- all ports out from the interconnect
-        out_data : out std_ulogic_vector((NUM_OUTPUTS*DATA_WIDTH)-1 downto 0);
+        out_data : out std_ulogic_vector;
         out_meta : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
         out_last : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
         out_valid : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
@@ -60,6 +59,7 @@ end entity Interconnect;
 architecture rtl of Interconnect is
 
     constant NUM_PORTS : positive := NUM_INPUTS + NUM_OUTPUTS;
+    constant DATA_WIDTH : positive := in_data'length/NUM_INPUTS;
 
     --selection registers set by the config bus
     signal lane_select_reg : natural range 0 to NUM_LANES-1;
@@ -83,6 +83,13 @@ architecture rtl of Interconnect is
     signal lane_ready : lanes_ready_type;
 
 begin
+
+    assert (NUM_INPUTS*DATA_WIDTH = in_data'length) report "Interconnect: in data width" severity failure;
+    assert (NUM_OUTPUTS*DATA_WIDTH = out_data'length) report "Interconnect: out data width" severity failure;
+
+    assert (NUM_INPUTS <= 32) report "Interconnect: 32 inputs limit" severity failure;
+    assert (NUM_OUTPUTS <= 32) report "Interconnect: 32 outputs limit" severity failure;
+    assert (NUM_LANES <= 32) report "Interconnect: 32 lanes limit" severity failure;
 
     --------------------------------------------------------------------
     -- record configuration selections

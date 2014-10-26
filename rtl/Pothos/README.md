@@ -11,6 +11,8 @@ resource usage, stream width, number of input and output ports.
 * StreamInspector - Utility for stateful stream information.
 * StreamCombiner - Combine multiple input streams into one.
 * StreamSplitter - Duplicate a single input stream into many.
+* LaneIngress - mux an input stream into a multi-lane busway.
+* LaneOutgress - demux a multi-lane busway into an output stream.
 
 ## Bus standard
 

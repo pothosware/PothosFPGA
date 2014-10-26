@@ -52,6 +52,8 @@ architecture rtl of StreamSplitter is
 
 begin
 
+    assert (DATA_WIDTH = in_data'length) report "StreamSplitter: in data width" severity failure;
+
     --------------------------------------------------------------------
     -- Create in_ready output signal from enabled ready signals
     --------------------------------------------------------------------

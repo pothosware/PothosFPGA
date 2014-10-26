@@ -1,5 +1,8 @@
 ------------------------------------------------------------------------
 -- Lane Ingress implementation
+-- A lane ingress attaches to a multi-lane busway,
+-- and combines an input stream onto the busway based on an enable mask.
+--
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
@@ -59,11 +62,21 @@ architecture rtl of LaneIngress is
 
 begin
 
-    assert (DATA_WIDTH*NUM_LANES = out_lane_data'length) report "LaneIngress: out lane data width" severity failure;
-    assert (DEST_WIDTH*NUM_LANES = out_lane_dest'length) report "LaneIngress: out lane dest width" severity failure;
-    assert (DEST_WIDTH*NUM_LANES = egress_masks'length) report "LaneIngress: in dest width" severity failure;
-    assert (DATA_WIDTH = egress_masks'length) report "LaneIngress: egress masks width" severity failure;
+    assert (NUM_LANES*DEST_WIDTH = in_lane_dest'length) report "LaneIngress: in lane dest width" severity failure;
+    assert (NUM_LANES*DATA_WIDTH = in_lane_data'length) report "LaneIngress: in lane dest width" severity failure;
+    assert (NUM_LANES = in_lane_last'length) report "LaneIngress: in lane last width" severity failure;
+    assert (NUM_LANES = in_lane_valid'length) report "LaneIngress: in lane valid width" severity failure;
+    assert (NUM_LANES = in_lane_ready'length) report "LaneIngress: in lane ready width" severity failure;
+
+    assert (NUM_LANES*DEST_WIDTH = out_lane_dest'length) report "LaneIngress: out lane dest width" severity failure;
+    assert (NUM_LANES*DATA_WIDTH = out_lane_data'length) report "LaneIngress: out lane dest width" severity failure;
+    assert (NUM_LANES = out_lane_last'length) report "LaneIngress: out lane last width" severity failure;
+    assert (NUM_LANES = out_lane_valid'length) report "LaneIngress: out lane valid width" severity failure;
+    assert (NUM_LANES = out_lane_ready'length) report "LaneIngress: out lane ready width" severity failure;
+
+    assert (NUM_LANES*DEST_WIDTH = egress_masks'length) report "LaneIngress: egress masks width" severity failure;
     assert (NUM_LANES = lane_mask'length) report "LaneIngress: lane mask width" severity failure;
+    assert (DATA_WIDTH = in_data'length) report "LaneIngress: in data width" severity failure;
 
     --------------------------------------------------------------------
     -- split the input port to each lane

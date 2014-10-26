@@ -47,6 +47,8 @@ architecture rtl of StreamCombiner is
     signal in_fifo_busy : std_ulogic;
 begin
 
+    assert (DATA_WIDTH = out_data'length) report "StreamCombiner: out data width" severity failure;
+
     --------------------------------------------------------------------
     -- Create input fifo mux to in_fifo signals
     --------------------------------------------------------------------
