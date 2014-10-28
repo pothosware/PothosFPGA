@@ -22,9 +22,9 @@ architecture test of InterconnectTb is
     signal clk : std_ulogic := '0';
     signal rst : std_ulogic := '1';
 
-    constant NUM_INPUTS : positive := 1;
-    constant NUM_OUTPUTS : positive := 1;
-    constant NUM_LANES : positive := 1;
+    constant NUM_INPUTS : positive := 2;
+    constant NUM_OUTPUTS : positive := 2;
+    constant NUM_LANES : positive := 2;
 
     --input port signals
     signal in_data : std_ulogic_vector((NUM_INPUTS*32)-1 downto 0);

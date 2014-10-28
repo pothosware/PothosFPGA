@@ -35,7 +35,8 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_interconnect)
     POTHOS_TEST_EQUAL(SimulationHarness.call<int>("readControl", 0, IC_TEST_LOOPBACK_ADDR), randNum);
 
     const auto numLanes = SimulationHarness.call<size_t>("readControl", 0, IC_NUM_LANES_ADDR);
-    POTHOS_TEST_EQUAL(size_t(1), numLanes);
+    POTHOS_TEST_TRUE(numLanes > 0);
+    POTHOS_TEST_TRUE(numLanes <= 32);
 
     const auto numOutputs = SimulationHarness.call<size_t>("readControl", 0, IC_NUM_OUTPUTS_ADDR);
     auto sourceIndexes = SimulationHarness.call<std::vector<int>>("getSourceIndexes");
@@ -57,7 +58,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_interconnect)
         {
             //program the lane destinations
             SimulationHarness.callVoid("writeControl", 0, IC_INPUT_SELECT_ADDR, progInput_i);
-            const int laneMask = (progInput_i == input_i)? (1 << input_i) : 0;
+            const int laneMask = (progInput_i == input_i)? (1 << lane_i) : 0;
             SimulationHarness.callVoid("writeControl", 0, IC_LANE_DEST_MASK_ADDR, laneMask);
 
             //program the output destinations for each lane
@@ -80,12 +81,6 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_interconnect)
             auto feeder = registry.callProxy("/blocks/feeder_source", "int");
             Poco::JSON::Object::Ptr testPlan(new Poco::JSON::Object());
             testPlan->set("enableBuffers", true);
-            testPlan->set("minBuffers", 10);
-            testPlan->set("maxBuffers", 10);
-            testPlan->set("minBufferSize", 4);
-            testPlan->set("maxBufferSize", 4);
-            testPlan->set("minValue", 1);
-            testPlan->set("maxValue", 10);
             auto expected_i = feeder.callProxy("feedTestPlan", testPlan);
             if (input_i == progInput_i) expected = expected_i;
             topology.connect(feeder, 0, SimulationHarness.callProxy("getSinkBlock", progInput_i), 0);
