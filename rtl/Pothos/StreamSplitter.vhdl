@@ -42,7 +42,6 @@ architecture rtl of StreamSplitter is
 
     --all ready signals to fifo input stream buses
     signal in_fifo_ready : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal in_fifo_busy : std_ulogic;
     signal in_fifo_begin : std_ulogic;
 
     --enables that are not changed during a packet transfer
@@ -73,7 +72,6 @@ begin
         last => in_last,
         valid => in_valid,
         ready => in_ready_i,
-        packet_busy => in_fifo_busy,
         packet_begin => in_fifo_begin
     );
 
