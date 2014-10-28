@@ -21,19 +21,28 @@ entity StreamInspector is
         ready : in std_ulogic;
 
         -- the stream is transfering a packet and this is not the last cycle
-        packet_busy : out std_ulogic
+        packet_busy : out std_ulogic;
+
+        --this is the first cycle of a packet transfer
+        packet_begin : out std_ulogic;
+
+        --this is the last cycle of a packet transfer
+        packet_end : out std_ulogic
     );
 end entity StreamInspector;
 
 architecture rtl of StreamInspector is
     signal packet_xfer : std_ulogic;
-    signal packet_end : std_ulogic := '0';
-    signal packet_begin : std_ulogic := '0';
+    signal packet_begin_i : std_ulogic := '0';
+    signal packet_end_i : std_ulogic := '0';
 begin
 
-    packet_end <= valid and ready and last;
-    packet_begin <= valid and ready and not packet_xfer;
-    packet_busy <= (packet_begin or packet_xfer) and not packet_end;
+    packet_begin_i <= valid and ready and not packet_xfer;
+    packet_end_i <= valid and ready and last;
+    packet_busy <= (packet_begin_i or packet_xfer) and not packet_end_i;
+
+    packet_begin <= packet_begin_i;
+    packet_end <= packet_end_i;
 
     process (clk) begin
         if (rising_edge(clk)) then
