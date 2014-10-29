@@ -1,7 +1,5 @@
 ------------------------------------------------------------------------
--- StreamSplitter
---
--- Split an input stream to multiple output streams.
+-- StreamSplitter - Split an input stream to multiple output streams.
 --
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0

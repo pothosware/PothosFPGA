@@ -1,7 +1,5 @@
 ------------------------------------------------------------------------
--- StreamInspector
---
--- Inspect a stream and produce utility signals.
+-- StreamInspector - Inspect a stream and produce utility signals.
 --
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0

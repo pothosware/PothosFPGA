@@ -1,10 +1,11 @@
 ------------------------------------------------------------------------
 -- Lane Ingress implementation
--- A lane ingress attaches to a multi-lane busway,
--- and combines an input stream onto the busway based on an enable mask.
 --
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
+--
+-- A lane ingress attaches to a multi-lane busway,
+-- and combines an input stream onto the busway based on an enable mask.
 ------------------------------------------------------------------------
 
 library ieee;

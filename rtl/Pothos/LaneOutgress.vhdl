@@ -1,10 +1,11 @@
 ------------------------------------------------------------------------
 -- Lane Outgress implementation
--- A lane outgress attaches to a multi-lane busway,
--- and delivers streams to the output port using the destination bus.
 --
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
+--
+-- A lane outgress attaches to a multi-lane busway,
+-- and delivers streams to the output port using the destination bus.
 ------------------------------------------------------------------------
 
 library ieee;

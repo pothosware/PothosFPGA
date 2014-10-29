@@ -1,7 +1,5 @@
 ------------------------------------------------------------------------
--- StreamCombiner
---
--- Combine multiple input streams into one stream.
+-- StreamCombiner - Combine multiple input streams into one stream.
 --
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0

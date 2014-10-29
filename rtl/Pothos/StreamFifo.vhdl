@@ -1,13 +1,13 @@
 ------------------------------------------------------------------------
 -- StreamFifo
 --
+-- Copyright (c) 2014-2014 Josh Blum
+-- SPDX-License-Identifier: BSL-1.0
+--
 -- Configurable buffering between an input and output stream.
 -- See vhdl-extras simple_fifo for additional documentation.
 -- SYNC_READ = true uses block ram
 -- SYNC_READ = false uses dist ram
---
--- Copyright (c) 2014-2014 Josh Blum
--- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 
 library ieee;

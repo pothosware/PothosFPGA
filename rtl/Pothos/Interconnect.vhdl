@@ -3,6 +3,58 @@
 --
 -- Copyright (c) 2014-2014 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
+--
+-- The interconnect is a configurable stream delivery engine.
+-- The interface is composed of a configuration bus
+-- and an arbitrary number of input and output ports.
+--
+-- About lanes:
+-- The interconnect delivers data from input ports to output ports
+-- using the configurable lane-structures inside the interconnect.
+-- Each lane is muxed with the available input and output ports.
+-- The flow of data through the lanes is dynamically configurable.
+-- Users can control how many lanes are synthesized and how lanes
+-- are allotted to the available ports to optimize resource usage.
+--
+-- The configuration bus:
+-- This is a very simple read and write bus for settings and configuration.
+-- The interconnect is receptive to configuration reads and writes
+-- at specific addresses specified by InterconnectPkg IC_* constants.
+--
+-- The interconnect inputs:
+-- This is an NUM_INPUTS wide input bus following the streaming convention.
+-- For the 1-bit control signals, the bit index corresponds to the port index.
+-- The data bus is DATA_WIDTH*NUM_INPUTS wide, where the lowest DATA_WIDTH bits
+-- corresponds to input port 0, and increase linearly by DATA_WIDTH per port.
+--
+-- The interconnect outputs:
+-- This is an NUM_OUTPUTS wide input bus following the streaming convention.
+-- For the 1-bit control signals, the bit index corresponds to the port index.
+-- The data bus is DATA_WIDTH*NUM_OUTPUTS wide, where the lowest DATA_WIDTH bits
+-- corresponds to output port 0, and increase linearly by DATA_WIDTH per port.
+--
+-- The begin signals:
+-- The begin signals are a form of flow control for packet-based flows.
+-- Ports that do not work with packets should simply ignore this signal.
+-- The general idea is that input ports should not release packets into
+-- the interconnect until all destinations can accept the entire packet.
+--
+-- For flow-through blocks that can consume and produce at full-bus rate,
+-- simply connect begin from the output to begin from the input bus to say:
+-- "I can accept a packet when my destinations can accept a packet."
+-- For blocks that must fully buffer an entire packet before processing,
+-- use the input FIFO's space available count to drive the begin signal.
+--
+-- The begin signals implementation:
+-- The driver of the begin signal should always use this signal
+-- as a boolean value to indicate when the destination can accept
+-- an entire packet transfer. Its understood that the begin signal
+-- may become low once a transfer begins to fill up the buffer.
+-- And therefore, this signal is only valid at the start of a packet.
+-- Internally, the combined destination begin signals gate the flow
+-- from the input ports of the interconnect using the ready signals.
+-- Therefore, implementations should still use the bus ready signal
+-- to determine when to initiate flow into the interconnect.
 ------------------------------------------------------------------------
 
 library ieee;
@@ -48,13 +100,15 @@ entity Interconnect is
         in_last : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
         in_valid : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
         in_ready : out std_ulogic_vector(NUM_INPUTS-1 downto 0);
+        in_begin : out std_ulogic_vector(NUM_INPUTS-1 downto 0);
 
         -- all ports out from the interconnect
         out_data : out std_ulogic_vector;
         out_meta : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
         out_last : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
         out_valid : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-        out_ready : in std_ulogic_vector(NUM_OUTPUTS-1 downto 0)
+        out_ready : in std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+        out_begin : in std_ulogic_vector(NUM_OUTPUTS-1 downto 0) := (others => '1')
     );
 end entity Interconnect;
 
