@@ -199,3 +199,125 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_interconnect_m2m)
         }
     }
 }
+
+POTHOS_TEST_BLOCK("/fpga/tests", test_packet_interconnect_m2m)
+{
+    //create client environment
+    auto env = getSimulationEnv("InterconnectTb");
+    auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
+    auto registry = env->findProxy("Pothos/BlockRegistry");
+
+    //test the control bus
+    POTHOS_TEST_EQUAL(IC_VERSION, SimulationHarness.call<int>("readControl", 0, IC_VERSION_ADDR));
+
+    const int randNum = std::rand();
+    SimulationHarness.callVoid("writeControl", 0, IC_TEST_LOOPBACK_ADDR, randNum);
+    POTHOS_TEST_EQUAL(SimulationHarness.call<int>("readControl", 0, IC_TEST_LOOPBACK_ADDR), randNum);
+
+    const auto numLanes = SimulationHarness.call<size_t>("readControl", 0, IC_NUM_LANES_ADDR);
+    POTHOS_TEST_TRUE(numLanes > 0);
+    POTHOS_TEST_TRUE(numLanes <= 32);
+
+    const auto numOutputs = SimulationHarness.call<size_t>("readControl", 0, IC_NUM_OUTPUTS_ADDR);
+    auto sourceIndexes = SimulationHarness.call<std::vector<int>>("getSourceIndexes");
+    POTHOS_TEST_EQUAL(sourceIndexes.size(), numOutputs);
+
+    const auto numInputs = SimulationHarness.call<size_t>("readControl", 0, IC_NUM_INPUTS_ADDR);
+    auto sinkIndexes = SimulationHarness.call<std::vector<int>>("getSinkIndexes");
+    POTHOS_TEST_EQUAL(sinkIndexes.size(), numInputs);
+
+    //create feeders and collectors for each port
+    Pothos::Topology topology;
+    std::vector<Pothos::Proxy> expected;
+    std::vector<Pothos::Proxy> collectors;
+    std::vector<Pothos::Proxy> packetsIns;
+    std::vector<Pothos::Proxy> packetsOuts;
+
+    //create feeders for each input
+    for (size_t i = 0; i < numInputs; i++)
+    {
+        auto feeder = registry.callProxy("/blocks/feeder_source", "int");
+        Poco::JSON::Object::Ptr testPlan(new Poco::JSON::Object());
+        testPlan->set("enableBuffers", true);
+        expected.push_back(feeder.callProxy("feedTestPlan", testPlan));
+
+        auto packetsOut = registry.callProxy("/blocks/collector_sink", "int");
+        packetsOuts.push_back(packetsOut);
+
+        auto s2p = registry.callProxy("/blocks/stream_to_packet");
+        s2p.callVoid("setMTU", 32); //small fragments
+
+        topology.connect(feeder, 0, s2p, 0);
+        topology.connect(s2p, 0, packetsOut, 0);
+        topology.connect(s2p, 0, SimulationHarness.callProxy("getSinkBlock", i), 0);
+    }
+
+    //create collectors for each output
+    for (size_t i = 0; i < numOutputs; i++)
+    {
+        auto collector = registry.callProxy("/blocks/collector_sink", "int");
+        collectors.push_back(collector);
+
+        auto p2s = registry.callProxy("/blocks/packet_to_stream");
+
+        auto packetsIn = registry.callProxy("/blocks/collector_sink", "int");
+        packetsIns.push_back(packetsIn);
+
+        topology.connect(SimulationHarness.callProxy("getSourceBlock", i), 0, p2s, 0);
+        topology.connect(SimulationHarness.callProxy("getSourceBlock", i), 0, packetsIn, 0);
+        topology.connect(p2s, 0, collector, 0);
+    }
+
+    //program each input port
+    //each input port goes to an output of the same index if it exists
+    for (size_t progInput_i = 0; progInput_i < numInputs; progInput_i++)
+    {
+        //program the lane destinations
+        SimulationHarness.callVoid("writeControl", 0, IC_INPUT_SELECT_ADDR, progInput_i);
+        const int laneMask = 1 << (progInput_i % numLanes); //pick a lane
+        SimulationHarness.callVoid("writeControl", 0, IC_LANE_DEST_MASK_ADDR, laneMask);
+
+        //program the output destinations for each lane
+        for (size_t progLane_i = 0; progLane_i < numLanes; progLane_i++)
+        {
+            SimulationHarness.callVoid("writeControl", 0, IC_LANE_SELECT_ADDR, progLane_i);
+            const int outputMask = (progInput_i < numOutputs)? (1 << progInput_i) : 0;
+            SimulationHarness.callVoid("writeControl", 0, IC_OUTPUT_DEST_MASK_ADDR, outputMask);
+        }
+    }
+
+    topology.commit();
+    POTHOS_TEST_TRUE(topology.waitInactive(0.5, 5.0));
+
+    for (size_t i = 0; i < numOutputs; i++)
+    {
+        std::cout << "verify output " << i << std::endl;
+        auto &collector = collectors.at(i);
+        auto &packetsIn = packetsIns.at(i);
+        auto &packetsOut = packetsOuts.at(i);
+        if (i >= expected.size())
+        {
+            auto buffer = collector.call<Pothos::BufferChunk>("getBuffer");
+            POTHOS_TEST_EQUAL(buffer.length, 0);
+            std::cout << "empty OK" << std::endl;
+        }
+        else
+        {
+            //this collector should have the expected data
+            collector.callVoid("verifyTestPlan", expected.at(i));
+            std::cout << "test plan OK" << std::endl;
+
+            //check that we have the expected packets
+            const auto pktsIn = packetsIn.call<std::vector<Pothos::Object>>("getMessages");
+            const auto pktsOut = packetsOut.call<std::vector<Pothos::Object>>("getMessages");
+            POTHOS_TEST_EQUAL(pktsIn.size(), pktsOut.size());
+            for (size_t i = 0; i < pktsIn.size(); i++)
+            {
+                auto pktIn = pktsIn.at(i).convert<Pothos::Packet>();
+                auto pktOut = pktsOut.at(i).convert<Pothos::Packet>();
+                POTHOS_TEST_TRUE(pktIn.payload.length == pktOut.payload.length);
+                POTHOS_TEST_TRUE(pktIn.payload.dtype == pktOut.payload.dtype);
+            }
+        }
+    }
+}

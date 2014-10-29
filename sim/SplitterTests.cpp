@@ -113,6 +113,52 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_2x)
         auto feeder = registry.callProxy("/blocks/feeder_source", "int");
         auto collector0 = registry.callProxy("/blocks/collector_sink", "int");
         auto collector1 = registry.callProxy("/blocks/collector_sink", "int");
+
+        //write the enables register at addr = 1
+        SimulationHarness.callVoid("writeControl", 0, 1, enables);
+
+        //create a test plan
+        Poco::JSON::Object::Ptr testPlan(new Poco::JSON::Object());
+        testPlan->set("enableBuffers", true);
+        auto expected = feeder.callProxy("feedTestPlan", testPlan);
+
+        //run the topology
+        {
+            Pothos::Topology topology;
+            topology.connect(feeder, 0, sink1, 0);
+            topology.connect(source1, 0, collector0, 0);
+            topology.connect(source2, 0, collector1, 0);
+            topology.commit();
+            POTHOS_TEST_TRUE(topology.waitInactive());
+        }
+
+        if ((enables & 0x1) != 0) collector0.callVoid("verifyTestPlan", expected);
+        if ((enables & 0x2) != 0) collector1.callVoid("verifyTestPlan", expected);
+    }
+}
+
+POTHOS_TEST_BLOCK("/fpga/tests", test_packet_splitter_2x)
+{
+    //create client environment
+    auto env = getSimulationEnv("SplitterTb");
+    auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
+
+    auto controlIndexes = SimulationHarness.call<std::vector<int>>("getControlIndexes");
+    POTHOS_TEST_EQUAL(controlIndexes.size(), 1);
+    POTHOS_TEST_EQUAL(controlIndexes[0], 0);
+
+    auto source1 = SimulationHarness.callProxy("getSourceBlock", 1);
+    auto source2 = SimulationHarness.callProxy("getSourceBlock", 2);
+    auto sink1 = SimulationHarness.callProxy("getSinkBlock", 1);
+
+    for (int enables = 0; enables < 4; enables++)
+    {
+        std::cout << "testing splitter with enables = " << enables << std::endl;
+
+        auto registry = env->findProxy("Pothos/BlockRegistry");
+        auto feeder = registry.callProxy("/blocks/feeder_source", "int");
+        auto collector0 = registry.callProxy("/blocks/collector_sink", "int");
+        auto collector1 = registry.callProxy("/blocks/collector_sink", "int");
         auto packetsIn = registry.callProxy("/blocks/collector_sink", "int");
         auto packetsOut0 = registry.callProxy("/blocks/collector_sink", "int");
         auto packetsOut1 = registry.callProxy("/blocks/collector_sink", "int");
@@ -151,51 +197,33 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_2x)
 
         if ((enables & 0x1) != 0) collector0.callVoid("verifyTestPlan", expected);
         if ((enables & 0x2) != 0) collector1.callVoid("verifyTestPlan", expected);
-    }
-}
 
-POTHOS_TEST_BLOCK("/fpga/tests", test_packet_splitter_2x)
-{
-    //create client environment
-    auto env = getSimulationEnv("SplitterTb");
-    auto SimulationHarness = env->findProxy("Pothos/FPGA/SimulationHarness");
-
-    auto controlIndexes = SimulationHarness.call<std::vector<int>>("getControlIndexes");
-    POTHOS_TEST_EQUAL(controlIndexes.size(), 1);
-    POTHOS_TEST_EQUAL(controlIndexes[0], 0);
-
-    auto source1 = SimulationHarness.callProxy("getSourceBlock", 1);
-    auto source2 = SimulationHarness.callProxy("getSourceBlock", 2);
-    auto sink1 = SimulationHarness.callProxy("getSinkBlock", 1);
-
-    for (int enables = 0; enables < 4; enables++)
-    {
-        std::cout << "testing splitter with enables = " << enables << std::endl;
-
-        auto registry = env->findProxy("Pothos/BlockRegistry");
-        auto feeder = registry.callProxy("/blocks/feeder_source", "int");
-        auto collector0 = registry.callProxy("/blocks/collector_sink", "int");
-        auto collector1 = registry.callProxy("/blocks/collector_sink", "int");
-
-        //write the enables register at addr = 1
-        SimulationHarness.callVoid("writeControl", 0, 1, enables);
-
-        //create a test plan
-        Poco::JSON::Object::Ptr testPlan(new Poco::JSON::Object());
-        testPlan->set("enableBuffers", true);
-        auto expected = feeder.callProxy("feedTestPlan", testPlan);
-
-        //run the topology
+        //check that we have the expected packets
+        if ((enables & 0x1) != 0)
         {
-            Pothos::Topology topology;
-            topology.connect(feeder, 0, sink1, 0);
-            topology.connect(source1, 0, collector0, 0);
-            topology.connect(source2, 0, collector1, 0);
-            topology.commit();
-            POTHOS_TEST_TRUE(topology.waitInactive());
+            const auto pktsIn = packetsIn.call<std::vector<Pothos::Object>>("getMessages");
+            const auto pktsOut = packetsOut0.call<std::vector<Pothos::Object>>("getMessages");
+            POTHOS_TEST_EQUAL(pktsIn.size(), pktsOut.size());
+            for (size_t i = 0; i < pktsIn.size(); i++)
+            {
+                auto pktIn = pktsIn.at(i).convert<Pothos::Packet>();
+                auto pktOut = pktsOut.at(i).convert<Pothos::Packet>();
+                POTHOS_TEST_TRUE(pktIn.payload.length == pktOut.payload.length);
+                POTHOS_TEST_TRUE(pktIn.payload.dtype == pktOut.payload.dtype);
+            }
         }
-
-        if ((enables & 0x1) != 0) collector0.callVoid("verifyTestPlan", expected);
-        if ((enables & 0x2) != 0) collector1.callVoid("verifyTestPlan", expected);
+        if ((enables & 0x2) != 0)
+        {
+            const auto pktsIn = packetsIn.call<std::vector<Pothos::Object>>("getMessages");
+            const auto pktsOut = packetsOut1.call<std::vector<Pothos::Object>>("getMessages");
+            POTHOS_TEST_EQUAL(pktsIn.size(), pktsOut.size());
+            for (size_t i = 0; i < pktsIn.size(); i++)
+            {
+                auto pktIn = pktsIn.at(i).convert<Pothos::Packet>();
+                auto pktOut = pktsOut.at(i).convert<Pothos::Packet>();
+                POTHOS_TEST_TRUE(pktIn.payload.length == pktOut.payload.length);
+                POTHOS_TEST_TRUE(pktIn.payload.dtype == pktOut.payload.dtype);
+            }
+        }
     }
 }
