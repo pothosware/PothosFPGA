@@ -14,7 +14,10 @@ use ieee.std_logic_1164.all;
 entity LaneOutgress is
     generic(
         -- the number of this outgress port
-        PORT_NUMBER : natural
+        PORT_NUMBER : natural;
+
+        -- buffer depth for lane entry and exit
+        FIFO_SIZE : positive := 4
     );
     port(
         clk : in std_ulogic;
@@ -91,7 +94,8 @@ begin
     begin
         splitter: entity work.StreamSplitter
         generic map (
-            NUM_OUTPUTS => 2
+            NUM_OUTPUTS => 2,
+            FIFO_SIZE => FIFO_SIZE
         )
         port map (
             clk => clk,
@@ -143,7 +147,8 @@ begin
     --------------------------------------------------------------------
     combiner: entity work.StreamCombiner
     generic map (
-        NUM_INPUTS => NUM_LANES
+        NUM_INPUTS => NUM_LANES,
+        FIFO_SIZE => FIFO_SIZE
     )
     port map (
         clk => clk,

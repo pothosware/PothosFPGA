@@ -75,7 +75,10 @@ entity Interconnect is
         NUM_OUTPUTS : positive;
 
         -- the number of internal lanes to generate
-        NUM_LANES : positive
+        NUM_LANES : positive;
+
+        -- buffer depth for lane entry and exit
+        FIFO_SIZE : positive := 4
 
         -- high bandwidth ports for performance hints
         -- each bit represents a port by index number
@@ -211,6 +214,9 @@ begin
         end process;
 
         ingress: entity work.LaneIngress
+        generic map (
+            FIFO_SIZE => FIFO_SIZE
+        )
         port map (
             clk => clk,
             rst => rst,
@@ -250,7 +256,8 @@ begin
 
         outgress: entity work.LaneOutgress
         generic map (
-            PORT_NUMBER => i
+            PORT_NUMBER => i,
+            FIFO_SIZE => FIFO_SIZE
         )
         port map (
             clk => clk,

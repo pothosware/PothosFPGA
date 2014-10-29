@@ -11,7 +11,10 @@ use ieee.std_logic_1164.all;
 entity StreamCombiner is
     generic(
         -- the number of input ports
-        NUM_INPUTS : positive
+        NUM_INPUTS : positive;
+
+        -- outgress fifo size
+        FIFO_SIZE : positive := 4
     );
     port(
         clk : in std_ulogic;
@@ -102,7 +105,7 @@ begin
     fifo: entity work.StreamFifo
     generic map (
         --configure a small distributed ram
-        MEM_SIZE => 2,
+        MEM_SIZE => FIFO_SIZE,
         SYNC_READ => false
     )
     port map (
