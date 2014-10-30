@@ -103,8 +103,8 @@ entity Interconnect is
 
         -- all ports into the interconnect
         in_data : in std_ulogic_vector;
-        in_meta : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
-        in_last : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
+        in_meta : in std_ulogic_vector(NUM_INPUTS-1 downto 0) := (others => '0');
+        in_last : in std_ulogic_vector(NUM_INPUTS-1 downto 0) := (others => '1');
         in_valid : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
         in_ready : out std_ulogic_vector(NUM_INPUTS-1 downto 0);
         in_begin : out std_ulogic_vector(NUM_INPUTS-1 downto 0);
