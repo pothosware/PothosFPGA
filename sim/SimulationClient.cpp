@@ -49,7 +49,7 @@ Pothos::ProxyEnvironment::Sptr getSimulationEnv(const std::string &testName)
 
     //launch with named mutex barrier
     Poco::NamedMutex mutex(mutexName);
-    mutex.lock();
+    mutex.tryLock(); //in case it was left locked by a crash
     std::shared_ptr<Poco::ProcessHandle> phc;
     phc.reset(new Poco::ProcessHandle(Poco::Process::launch(
         "ghdl", args, testPath.parent().toString(), nullptr, nullptr, nullptr, envVars)));
