@@ -52,6 +52,13 @@ package InterconnectPkg is
     --where each bit corresponds to an output port index.
     constant IC_OUTPUT_DEST_MASK_ADDR : natural;
 
+    --Write this address to program flow control providers.
+    --The user should first program the input select.
+    --The data format is a bit mask of output enables,
+    --where each bit corresponds to an output port index.
+    --Each enabled output effects the input's begin signal.
+    constant IC_OUTPUT_FLOW_MASK_ADDR : natural;
+
 end InterconnectPkg;
 
 package body InterconnectPkg is
@@ -68,5 +75,6 @@ package body InterconnectPkg is
     constant IC_INPUT_SELECT_ADDR : natural := 11;
     constant IC_LANE_DEST_MASK_ADDR : natural := 12;
     constant IC_OUTPUT_DEST_MASK_ADDR : natural := 13;
+    constant IC_OUTPUT_FLOW_MASK_ADDR : natural := 14;
 
 end InterconnectPkg;

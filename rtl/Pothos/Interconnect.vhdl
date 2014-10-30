@@ -74,10 +74,14 @@ entity Interconnect is
         -- the number of output ports
         NUM_OUTPUTS : positive;
 
-        -- the number of internal lanes to generate
+        -- The number of internal lanes to generate:
+        -- Additional lanes provide dedicated paths of data flow
+        -- at the expense of increasing resource utilization.
         NUM_LANES : positive;
 
-        -- buffer depth for lane entry and exit
+        -- Buffer depth for lane entry and exit:
+        -- Small buffers are used within the interconnect to ease timing,
+        -- and to prevent minor contention within the lane in/outgress.
         FIFO_SIZE : positive := 4
 
         -- high bandwidth ports for performance hints
@@ -188,9 +192,21 @@ begin
     -- generate ingress blocks for each input port
     --------------------------------------------------------------------
     gen_lane_ingress: for i in 0 to (NUM_INPUTS-1) generate
+
+        --configuration registers
         signal lane_mask : std_ulogic_vector(NUM_LANES-1 downto 0);
+        signal flow_mask : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
         signal egress_masks : std_ulogic_vector((NUM_OUTPUTS*NUM_LANES)-1 downto 0);
+
+        --valve input data
         signal in_data_i : std_ulogic_vector(DATA_WIDTH downto 0);
+        signal in_begin_i : std_ulogic;
+
+        --bus inbetween valve and lane ingress
+        signal valve_data : std_ulogic_vector(DATA_WIDTH downto 0);
+        signal valve_last : std_ulogic;
+        signal valve_valid : std_ulogic;
+        signal valve_ready : std_ulogic;
     begin
 
         --record configuration selections into lane and output masks
@@ -198,10 +214,13 @@ begin
             if (rising_edge(clk)) then
                 if (rst = '1') then
                     lane_mask <= (others => '0');
+                    flow_mask <= (others => '0');
                     egress_masks <= (others => '0');
                 elsif (config_write = '1' and i = input_select_reg) then
                     if (config_addr_num = IC_LANE_DEST_MASK_ADDR) then
-                        lane_mask <= config_in_data(NUM_LANES-1 downto 0);
+                        lane_mask <= config_in_data(lane_mask'range);
+                    elsif (config_addr_num = IC_OUTPUT_FLOW_MASK_ADDR) then
+                        flow_mask <= config_in_data(flow_mask'range);
                     elsif (config_addr_num = IC_OUTPUT_DEST_MASK_ADDR) then
                         for j in 0 to NUM_LANES-1 loop
                             if (j = lane_select_reg) then
@@ -212,6 +231,27 @@ begin
                 end if;
             end if;
         end process;
+
+        --Generate the begin signal:
+        --The begin signal is intentionally delayed by register cycles
+        --to ease combinatorial paths on input and output begin signals.
+        --The delay is acceptable because the destination buffers are deeper.
+        process (clk)
+            variable out_begin_r : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+        begin
+            if (rising_edge(clk)) then
+                out_begin_r := out_begin;
+                if (rst = '1') then
+                    in_begin_i <= '0';
+                -- are all bits in the flow mask set in the begin signal?
+                elsif ((flow_mask and out_begin_r) = flow_mask) then
+                    in_begin_i <= '1';
+                else
+                    in_begin_i <= '0';
+                end if;
+            end if;
+        end process;
+        in_begin(i) <= in_begin_i;
 
         ingress: entity work.LaneIngress
         generic map (
@@ -236,10 +276,28 @@ begin
             out_lane_valid => lane_valid(i+1),
             out_lane_ready => lane_ready(i+1),
 
+            in_data => valve_data,
+            in_last => valve_last,
+            in_valid => valve_valid,
+            in_ready => valve_ready
+        );
+
+        valve : entity work.StreamValve
+        port map (
+            clk => clk,
+            rst => rst,
+
+            forward => in_begin_i,
+
             in_data => in_data_i,
             in_last => in_last(i),
             in_valid => in_valid(i),
-            in_ready => in_ready(i)
+            in_ready => in_ready(i),
+
+            out_data => valve_data,
+            out_last => valve_last,
+            out_valid => valve_valid,
+            out_ready => valve_ready
         );
 
         --combine meta and data into the input data bus

@@ -10,6 +10,7 @@ GHDL_ELABORATE(
         StreamInspector.vhdl
         StreamCombiner.vhdl
         StreamSplitter.vhdl
+        StreamValve.vhdl
         LaneOutgress.vhdl
         LaneIngress.vhdl
         Interconnect.vhdl
