@@ -79,16 +79,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_packet_splitter_1x)
     collector.callVoid("verifyTestPlan", expected);
 
     //check that we have the expected packets
-    const auto pktsIn = packetsIn.call<std::vector<Pothos::Object>>("getMessages");
-    const auto pktsOut = packetsOut.call<std::vector<Pothos::Object>>("getMessages");
-    POTHOS_TEST_EQUAL(pktsIn.size(), pktsOut.size());
-    for (size_t i = 0; i < pktsIn.size(); i++)
-    {
-        auto pktIn = pktsIn.at(i).convert<Pothos::Packet>();
-        auto pktOut = pktsOut.at(i).convert<Pothos::Packet>();
-        POTHOS_TEST_TRUE(pktIn.payload.length == pktOut.payload.length);
-        POTHOS_TEST_TRUE(pktIn.payload.dtype == pktOut.payload.dtype);
-    }
+    checkPacketCollectors(packetsIn, packetsOut);
 }
 
 POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_2x)
@@ -199,31 +190,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_packet_splitter_2x)
         if ((enables & 0x2) != 0) collector1.callVoid("verifyTestPlan", expected);
 
         //check that we have the expected packets
-        if ((enables & 0x1) != 0)
-        {
-            const auto pktsIn = packetsIn.call<std::vector<Pothos::Object>>("getMessages");
-            const auto pktsOut = packetsOut0.call<std::vector<Pothos::Object>>("getMessages");
-            POTHOS_TEST_EQUAL(pktsIn.size(), pktsOut.size());
-            for (size_t i = 0; i < pktsIn.size(); i++)
-            {
-                auto pktIn = pktsIn.at(i).convert<Pothos::Packet>();
-                auto pktOut = pktsOut.at(i).convert<Pothos::Packet>();
-                POTHOS_TEST_TRUE(pktIn.payload.length == pktOut.payload.length);
-                POTHOS_TEST_TRUE(pktIn.payload.dtype == pktOut.payload.dtype);
-            }
-        }
-        if ((enables & 0x2) != 0)
-        {
-            const auto pktsIn = packetsIn.call<std::vector<Pothos::Object>>("getMessages");
-            const auto pktsOut = packetsOut1.call<std::vector<Pothos::Object>>("getMessages");
-            POTHOS_TEST_EQUAL(pktsIn.size(), pktsOut.size());
-            for (size_t i = 0; i < pktsIn.size(); i++)
-            {
-                auto pktIn = pktsIn.at(i).convert<Pothos::Packet>();
-                auto pktOut = pktsOut.at(i).convert<Pothos::Packet>();
-                POTHOS_TEST_TRUE(pktIn.payload.length == pktOut.payload.length);
-                POTHOS_TEST_TRUE(pktIn.payload.dtype == pktOut.payload.dtype);
-            }
-        }
+        if ((enables & 0x1) != 0) checkPacketCollectors(packetsIn, packetsOut0);
+        if ((enables & 0x2) != 0) checkPacketCollectors(packetsIn, packetsOut1);
     }
 }
