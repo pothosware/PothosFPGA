@@ -1376,7 +1376,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>customizationCRC</spirit:name>
-            <spirit:value>49a2bc6d</spirit:value>
+            <spirit:value>771f51a2</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>customizationCRCversion</spirit:name>
@@ -1384,7 +1384,7 @@
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Sat Nov 15 19:40:37 UTC 2014</spirit:value>
+            <spirit:value>Sun Nov 16 01:21:55 UTC 2014</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>StaleAtRelink</spirit:name>
@@ -1403,7 +1403,7 @@
         <spirit:parameters>
           <spirit:parameter>
             <spirit:name>customizationCRC</spirit:name>
-            <spirit:value>49a2bc6d</spirit:value>
+            <spirit:value>771f51a2</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>customizationCRCversion</spirit:name>
@@ -1411,7 +1411,7 @@
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>GENtimestamp</spirit:name>
-            <spirit:value>Sat Nov 15 19:55:50 UTC 2014</spirit:value>
+            <spirit:value>Sun Nov 16 01:21:55 UTC 2014</spirit:value>
           </spirit:parameter>
           <spirit:parameter>
             <spirit:name>StaleAtRelink</spirit:name>
@@ -4369,9 +4369,9 @@
     </spirit:choice>
     <spirit:choice>
       <spirit:name>choices_7</spirit:name>
-      <spirit:enumeration spirit:text="8">8</spirit:enumeration>
-      <spirit:enumeration spirit:text="16">16</spirit:enumeration>
-      <spirit:enumeration spirit:text="32">32</spirit:enumeration>
+      <spirit:enumeration>8</spirit:enumeration>
+      <spirit:enumeration>16</spirit:enumeration>
+      <spirit:enumeration>32</spirit:enumeration>
     </spirit:choice>
     <spirit:choice>
       <spirit:name>choices_8</spirit:name>
@@ -4385,14 +4385,14 @@
     </spirit:choice>
     <spirit:choice>
       <spirit:name>choices_10</spirit:name>
-      <spirit:enumeration spirit:text="2">2</spirit:enumeration>
-      <spirit:enumeration spirit:text="4">4</spirit:enumeration>
-      <spirit:enumeration spirit:text="8">8</spirit:enumeration>
-      <spirit:enumeration spirit:text="16">16</spirit:enumeration>
-      <spirit:enumeration spirit:text="32">32</spirit:enumeration>
-      <spirit:enumeration spirit:text="64">64</spirit:enumeration>
-      <spirit:enumeration spirit:text="128">128</spirit:enumeration>
-      <spirit:enumeration spirit:text="256">256</spirit:enumeration>
+      <spirit:enumeration>2</spirit:enumeration>
+      <spirit:enumeration>4</spirit:enumeration>
+      <spirit:enumeration>8</spirit:enumeration>
+      <spirit:enumeration>16</spirit:enumeration>
+      <spirit:enumeration>32</spirit:enumeration>
+      <spirit:enumeration>64</spirit:enumeration>
+      <spirit:enumeration>128</spirit:enumeration>
+      <spirit:enumeration>256</spirit:enumeration>
     </spirit:choice>
     <spirit:choice>
       <spirit:name>choices_11</spirit:name>
@@ -4415,9 +4415,9 @@
     </spirit:choice>
     <spirit:choice>
       <spirit:name>choices_14</spirit:name>
-      <spirit:enumeration spirit:text="8">8</spirit:enumeration>
-      <spirit:enumeration spirit:text="16">16</spirit:enumeration>
-      <spirit:enumeration spirit:text="32">32</spirit:enumeration>
+      <spirit:enumeration>8</spirit:enumeration>
+      <spirit:enumeration>16</spirit:enumeration>
+      <spirit:enumeration>32</spirit:enumeration>
     </spirit:choice>
     <spirit:choice>
       <spirit:name>choices_15</spirit:name>
@@ -4431,14 +4431,14 @@
     </spirit:choice>
     <spirit:choice>
       <spirit:name>choices_17</spirit:name>
-      <spirit:enumeration spirit:text="2">2</spirit:enumeration>
-      <spirit:enumeration spirit:text="4">4</spirit:enumeration>
-      <spirit:enumeration spirit:text="8">8</spirit:enumeration>
-      <spirit:enumeration spirit:text="16">16</spirit:enumeration>
-      <spirit:enumeration spirit:text="32">32</spirit:enumeration>
-      <spirit:enumeration spirit:text="64">64</spirit:enumeration>
-      <spirit:enumeration spirit:text="128">128</spirit:enumeration>
-      <spirit:enumeration spirit:text="256">256</spirit:enumeration>
+      <spirit:enumeration>2</spirit:enumeration>
+      <spirit:enumeration>4</spirit:enumeration>
+      <spirit:enumeration>8</spirit:enumeration>
+      <spirit:enumeration>16</spirit:enumeration>
+      <spirit:enumeration>32</spirit:enumeration>
+      <spirit:enumeration>64</spirit:enumeration>
+      <spirit:enumeration>128</spirit:enumeration>
+      <spirit:enumeration>256</spirit:enumeration>
     </spirit:choice>
     <spirit:choice>
       <spirit:name>choices_18</spirit:name>

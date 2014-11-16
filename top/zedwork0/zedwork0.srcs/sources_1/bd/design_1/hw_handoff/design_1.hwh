@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sat Nov 15 12:25:53 2014" VIVADOVERSION="2014.3.1">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sat Nov 15 19:07:10 2014" VIVADOVERSION="2014.3.1">
 
-  <SYSTEMINFO ARCH="zynq" DEVICE="7z020" NAME="design_1_imp" PACKAGE="clg484" SPEEDGRADE="-1"/>
+  <SYSTEMINFO ARCH="zynq" DEVICE="7z020" NAME="design_1_imp" PACKAGE="clg400" SPEEDGRADE="-1"/>
 
   <EXTERNALPORTS>
     <PORT DIR="IO" NAME="DDR_cas_n" SIGIS="undef"/>
@@ -539,8 +539,16 @@
             <CONNECTION INSTANCE="axis_data_fifo_0" PORT="m_axis_tlast"/>
           </CONNECTIONS>
         </PORT>
-        <PORT DIR="O" NAME="mm2s_introut" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT"/>
-        <PORT DIR="O" NAME="s2mm_introut" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT"/>
+        <PORT DIR="O" IRQID="61" NAME="mm2s_introut" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT" SIGNAME="axi_dma_0_mm2s_introut">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_scugic_0" PORT="IRQ_F2P"/>
+          </CONNECTIONS>
+        </PORT>
+        <PORT DIR="O" IRQID="62" NAME="s2mm_introut" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT" SIGNAME="axi_dma_0_s2mm_introut">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="ps7_scugic_0" PORT="IRQ_F2P"/>
+          </CONNECTIONS>
+        </PORT>
       </PORTS>
       <BUSINTERFACES>
         <BUSINTERFACE BUSNAME="processing_system7_0_axi_periph_s00_couplers_auto_pc_M_AXI" NAME="S_AXI_LITE" TYPE="SLAVE">
@@ -699,7 +707,7 @@
         <PARAMETER NAME="RUSER_WIDTH" VALUE="0"/>
         <PARAMETER NAME="WUSER_WIDTH" VALUE="0"/>
         <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
-        <PARAMETER NAME="Component_Name" VALUE="design_1_auto_pc_1"/>
+        <PARAMETER NAME="Component_Name" VALUE="design_1_auto_pc_0"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -3373,7 +3381,7 @@
         <PARAMETER NAME="M15_A13_ADDR_WIDTH" VALUE="0"/>
         <PARAMETER NAME="M15_A14_ADDR_WIDTH" VALUE="0"/>
         <PARAMETER NAME="M15_A15_ADDR_WIDTH" VALUE="0"/>
-        <PARAMETER NAME="Component_Name" VALUE="design_1_xbar_2"/>
+        <PARAMETER NAME="Component_Name" VALUE="design_1_xbar_0"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -4171,7 +4179,7 @@
         <PARAMETER NAME="RUSER_WIDTH" VALUE="0"/>
         <PARAMETER NAME="WUSER_WIDTH" VALUE="0"/>
         <PARAMETER NAME="BUSER_WIDTH" VALUE="0"/>
-        <PARAMETER NAME="Component_Name" VALUE="design_1_auto_pc_0"/>
+        <PARAMETER NAME="Component_Name" VALUE="design_1_auto_pc_1"/>
         <PARAMETER NAME="EDK_IPTYPE" VALUE="BUS"/>
       </PARAMETERS>
       <PORTS>
@@ -4571,12 +4579,12 @@
         </PORT>
         <PORT DIR="O" LEFT="0" NAME="peripheral_aresetn" RIGHT="0" SIGIS="rst" SIGNAME="rst_processing_system7_0_100M_peripheral_aresetn">
           <CONNECTIONS>
-            <CONNECTION INSTANCE="processing_system7_0_axi_periph_s00_couplers_auto_pc" PORT="aresetn"/>
             <CONNECTION INSTANCE="axi_dma_0" PORT="axi_resetn"/>
             <CONNECTION INSTANCE="axi_mem_intercon_s00_couplers_auto_us" PORT="s_axi_aresetn"/>
             <CONNECTION INSTANCE="axi_mem_intercon_s01_couplers_auto_us" PORT="s_axi_aresetn"/>
             <CONNECTION INSTANCE="axi_mem_intercon_s02_couplers_auto_us" PORT="s_axi_aresetn"/>
             <CONNECTION INSTANCE="axis_data_fifo_0" PORT="s_axis_aresetn"/>
+            <CONNECTION INSTANCE="processing_system7_0_axi_periph_s00_couplers_auto_pc" PORT="aresetn"/>
           </CONNECTIONS>
         </PORT>
       </PORTS>
@@ -4608,20 +4616,20 @@
         <PORT CLKFREQUENCY="100000000" DIR="O" NAME="FCLK0" SIGIS="CLK" SIGNAME="processing_system7_0_FCLK_CLK0">
           <CONNECTIONS>
             <CONNECTION INSTANCE="ps7_dev_cfg_0" PORT="FCLK0"/>
+            <CONNECTION INSTANCE="axi_dma_0" PORT="s_axi_lite_aclk"/>
+            <CONNECTION INSTANCE="axi_dma_0" PORT="m_axi_sg_aclk"/>
+            <CONNECTION INSTANCE="axi_dma_0" PORT="m_axi_mm2s_aclk"/>
+            <CONNECTION INSTANCE="axi_dma_0" PORT="m_axi_s2mm_aclk"/>
+            <CONNECTION INSTANCE="axi_mem_intercon_xbar" PORT="aclk"/>
+            <CONNECTION INSTANCE="axi_mem_intercon_m00_couplers_auto_pc" PORT="aclk"/>
+            <CONNECTION INSTANCE="axi_mem_intercon_s00_couplers_auto_us" PORT="s_axi_aclk"/>
+            <CONNECTION INSTANCE="axi_mem_intercon_s01_couplers_auto_us" PORT="s_axi_aclk"/>
+            <CONNECTION INSTANCE="axi_mem_intercon_s02_couplers_auto_us" PORT="s_axi_aclk"/>
+            <CONNECTION INSTANCE="axis_data_fifo_0" PORT="s_axis_aclk"/>
             <CONNECTION INSTANCE="processing_system7_0" PORT="M_AXI_GP0_ACLK"/>
             <CONNECTION INSTANCE="processing_system7_0" PORT="S_AXI_HP0_ACLK"/>
             <CONNECTION INSTANCE="processing_system7_0_axi_periph_s00_couplers_auto_pc" PORT="aclk"/>
             <CONNECTION INSTANCE="rst_processing_system7_0_100M" PORT="slowest_sync_clk"/>
-            <CONNECTION INSTANCE="axi_dma_0" PORT="s_axi_lite_aclk"/>
-            <CONNECTION INSTANCE="axi_dma_0" PORT="m_axi_mm2s_aclk"/>
-            <CONNECTION INSTANCE="axi_mem_intercon_s00_couplers_auto_us" PORT="s_axi_aclk"/>
-            <CONNECTION INSTANCE="axi_mem_intercon_xbar" PORT="aclk"/>
-            <CONNECTION INSTANCE="axi_mem_intercon_m00_couplers_auto_pc" PORT="aclk"/>
-            <CONNECTION INSTANCE="axi_dma_0" PORT="m_axi_sg_aclk"/>
-            <CONNECTION INSTANCE="axi_mem_intercon_s01_couplers_auto_us" PORT="s_axi_aclk"/>
-            <CONNECTION INSTANCE="axi_dma_0" PORT="m_axi_s2mm_aclk"/>
-            <CONNECTION INSTANCE="axi_mem_intercon_s02_couplers_auto_us" PORT="s_axi_aclk"/>
-            <CONNECTION INSTANCE="axis_data_fifo_0" PORT="s_axis_aclk"/>
           </CONNECTIONS>
         </PORT>
         <PORT CLKFREQUENCY="50000000" DIR="O" NAME="FCLK1" SIGIS="CLK" SIGNAME="ps7_clockc_0_FCLK1">
@@ -8632,7 +8640,12 @@
         <PORT DIR="I" IRQID="31" NAME="Core0_nIRQ" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT"/>
         <PORT DIR="I" IRQID="28" NAME="Core1_nFIQ" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT"/>
         <PORT DIR="I" IRQID="31" NAME="Core1_nIRQ" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT"/>
-        <PORT DIR="I" IRQID="61:62:63:64:65:66:67:68:84:85:86:87:88:89:90:91" NAME="IRQ_F2P" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT"/>
+        <PORT DIR="I" IRQID="61:62:63:64:65:66:67:68:84:85:86:87:88:89:90:91" NAME="IRQ_F2P" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT" SIGNAME="axi_dma_0_s2mm_introut &amp; axi_dma_0_mm2s_introut">
+          <CONNECTIONS>
+            <CONNECTION INSTANCE="axi_dma_0" PORT="s2mm_introut"/>
+            <CONNECTION INSTANCE="axi_dma_0" PORT="mm2s_introut"/>
+          </CONNECTIONS>
+        </PORT>
         <PORT DIR="I" IRQID="27" NAME="IRQ_GLOBALTIMER" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT" SIGNAME="ps7_globaltimer_0_IRQ_GLOBALTIMER">
           <CONNECTIONS>
             <CONNECTION INSTANCE="ps7_globaltimer_0" PORT="IRQ_GLOBALTIMER"/>

@@ -1,5 +1,5 @@
 # Vivado/PlanAhead
-*.xpr
+#*.xpr
 *.ppr
 *.cache/
 *.runs/
