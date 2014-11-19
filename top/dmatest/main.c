@@ -5,76 +5,7 @@
  * Open /dev/mem and map shared memory and control registers.
  **********************************************************************/
 #include <stdio.h>
-/*
-#include <stdlib.h>
-#include <stdint.h>
-#include <stdbool.h>
-#include <fcntl.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <sys/mman.h>
-*/
 #include "xilinx_user_dma.h"
-
-/*
-#define REGS_MEM_BASE 0x40400000 //GP0 master mapped here
-#define REGS_MEM_SIZE 4096       //1 page worth covers all DMA registers
-#define PHYS_MEM_BASE 0x10000000 //boot args gave up upper 256M
-#define PHYS_MEM_SIZE 0x10000000 //take entire upper 256M
-*/
-
-/***********************************************************************
- * Helper functions to deal with DMA control
- **********************************************************************/
-/*
-static void xilinx_poke32(char *addr, uint32_t val)
-{
-    volatile uint32_t *p = (volatile uint32_t *)addr;
-    *p = val;
-}
-
-static uint32_t xilinx_peek32(char *addr)
-{
-    volatile uint32_t *p = (volatile uint32_t *)addr;
-    return *p;
-}
-
-static bool xilinx_user_dma_create(const xilinx_user_dma_config_t *config, xilinx_user_dma_t *user)
-{
-    
-}
-
-static bool xilinx_user_dma_destroy(xilinx_user_dma_t *user)
-{
-    
-}
-
-static bool xilinx_dma_init(char *base)
-{
-    //a simple test to check for an expected bit in the first register
-    if ((xilinx_peek32(base+XILINX_DMA_CONTROL_OFFSET) & 0x2) == 0)
-    {
-        printf("xilinx_dma_init: ctrl register bit1 unset");
-        return false;
-    }
-
-    //perform a soft reset
-    xilinx_poke32(base+XILINX_DMA_CONTROL_OFFSET, xilinx_peek32(base+XILINX_DMA_CONTROL_OFFSET) | XILINX_DMA_CR_RESET_MASK);
-    int loop = XILINX_DMA_RESET_LOOP;
-    while ((xilinx_peek32(base+XILINX_DMA_CONTROL_OFFSET) & XILINX_DMA_CR_RESET_MASK) != 0)
-    {
-        if (--loop == 0)
-        {
-            printf("xilinx_dma_init: reset loop timeout");
-            return false;
-        }
-    }
-
-    return true;
-}
-
-//__clear_cache TODO
-*/
 
 /***********************************************************************
  * main entry point
@@ -88,6 +19,10 @@ int main(void)
     user.hardware_register_base = 0x40400000; //GP0 master mapped here
     user.hardware_shared_base = 0x10000000; //boot args gave up upper 256M
     user.hardware_shared_size = 0x10000000; //take entire upper 256M
+    user.mm2s_buffer_size = 1024;
+    user.s2mm_buffer_size = 1024;
+    user.mm2s_num_buffers = 4;
+    user.s2mm_num_buffers = 4;
 
     int ret = 0;
 
@@ -99,11 +34,21 @@ int main(void)
         return -1;
     }
 
-    printf("---- xilinx_user_dma_init_engine() ----\n");
-    ret = xilinx_user_dma_init_engine(&user);
+    printf("---- xilinx_user_dma_init() ----\n");
+    ret = xilinx_user_dma_init(&user, XILINX_USER_DMA_MM2S) &&
+          xilinx_user_dma_init(&user, XILINX_USER_DMA_S2MM);
     if (ret != XILINX_USER_DMA_OK)
     {
-        printf("xilinx_user_dma_init_engine() failed %d\n", ret);
+        printf("xilinx_user_dma_init() failed %d\n", ret);
+        return -1;
+    }
+
+    printf("---- xilinx_user_dma_halt() ----\n");
+    ret = xilinx_user_dma_halt(&user, XILINX_USER_DMA_MM2S) &&
+          xilinx_user_dma_halt(&user, XILINX_USER_DMA_S2MM);
+    if (ret != XILINX_USER_DMA_OK)
+    {
+        printf("xilinx_user_dma_halt() failed %d\n", ret);
         return -1;
     }
 
