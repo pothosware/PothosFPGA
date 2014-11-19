@@ -15,7 +15,7 @@ int main(void)
     printf("========== Begin DMA Test =============\n");
 
     //! Physical memory constants based on boot config (device tree and bootargs)
-    xilinx_user_dma_t user;
+    xudma_t user;
     user.hardware_register_base = 0x40400000; //GP0 master mapped here
     user.hardware_shared_base = 0x10000000; //boot args gave up upper 256M
     user.hardware_shared_size = 0x10000000; //take entire upper 256M
@@ -26,37 +26,80 @@ int main(void)
 
     int ret = 0;
 
-    printf("---- xilinx_user_dma_create() ----\n");
-    ret = xilinx_user_dma_create(&user);
-    if (ret != XILINX_USER_DMA_OK)
+    /*******************************************************************
+     * setup
+     ******************************************************************/
+    printf("---- xudma_create() ----\n");
+    ret = xudma_create(&user);
+    if (ret != XUDMA_OK)
     {
-        printf("xilinx_user_dma_create() failed %d\n", ret);
+        printf("xudma_create() failed %d\n", ret);
         return -1;
     }
 
-    printf("---- xilinx_user_dma_init() ----\n");
-    ret = xilinx_user_dma_init(&user, XILINX_USER_DMA_MM2S) &&
-          xilinx_user_dma_init(&user, XILINX_USER_DMA_S2MM);
-    if (ret != XILINX_USER_DMA_OK)
+    printf("---- xudma_s2mm_init() ----\n");
+    ret = xudma_s2mm_init(&user);
+    if (ret != XUDMA_OK)
     {
-        printf("xilinx_user_dma_init() failed %d\n", ret);
+        printf("xudma_s2mm_init() failed %d\n", ret);
         return -1;
     }
 
-    printf("---- xilinx_user_dma_halt() ----\n");
-    ret = xilinx_user_dma_halt(&user, XILINX_USER_DMA_MM2S) &&
-          xilinx_user_dma_halt(&user, XILINX_USER_DMA_S2MM);
-    if (ret != XILINX_USER_DMA_OK)
+    printf("---- xudma_mm2s_init() ----\n");
+    ret = xudma_mm2s_init(&user);
+    if (ret != XUDMA_OK)
     {
-        printf("xilinx_user_dma_halt() failed %d\n", ret);
+        printf("xudma_mm2s_init() failed %d\n", ret);
         return -1;
     }
 
-    printf("---- xilinx_user_dma_destroy() ----\n");
-    ret = xilinx_user_dma_destroy(&user);
-    if (ret != XILINX_USER_DMA_OK)
+    /*******************************************************************
+     * stream test
+     ******************************************************************/
+    xudma_buffer_t buff0;
+    ret = xudma_mm2s_acquire(&user, &buff0, 0);
+    if (ret != XUDMA_OK)
     {
-        printf("xilinx_user_dma_destroy() failed %d\n", ret);
+        printf("xudma_mm2s_acquire() failed %d\n", ret);
+        return -1;
+    }
+    xudma_mm2s_release(&user, buff0.handle, 16);
+
+    sleep(1);
+    xudma_buffer_t buff1;
+    ret = xudma_s2mm_acquire(&user, &buff1, 0);
+    if (ret != XUDMA_OK)
+    {
+        printf("xudma_s2mm_acquire() failed %d\n", ret);
+        return -1;
+    }
+    printf("buff1 length = %d\n", buff1.length);
+    xudma_s2mm_release(&user, buff1.handle);
+
+    /*******************************************************************
+     * cleanup
+     ******************************************************************/
+    printf("---- xudma_s2mm_halt() ----\n");
+    ret = xudma_s2mm_halt(&user);
+    if (ret != XUDMA_OK)
+    {
+        printf("xudma_s2mm_halt() failed %d\n", ret);
+        return -1;
+    }
+
+    printf("---- xudma_mm2s_halt() ----\n");
+    ret = xudma_mm2s_halt(&user);
+    if (ret != XUDMA_OK)
+    {
+        printf("xudma_mm2s_halt() failed %d\n", ret);
+        return -1;
+    }
+
+    printf("---- xudma_destroy() ----\n");
+    ret = xudma_destroy(&user);
+    if (ret != XUDMA_OK)
+    {
+        printf("xudma_destroy() failed %d\n", ret);
         return -1;
     }
 
