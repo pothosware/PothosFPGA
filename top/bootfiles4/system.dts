@@ -9,7 +9,7 @@
 /include/ "pl.dtsi"
 /{
 	chosen {
-		bootargs = "console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlyprintk rootfstype=ext4 rootwait";
+		bootargs = "mem=256M console=ttyPS0,115200 root=/dev/mmcblk0p2 rw earlyprintk rootfstype=ext4 rootwait";
 		linux,stdout-path = &ps7_uart_1;
 	} ;
 	aliases {
