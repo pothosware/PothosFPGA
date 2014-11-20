@@ -151,6 +151,7 @@ proc create_root_design { parentCell } {
 
   # Create instance: axi_dma_0, and set properties
   set axi_dma_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_dma:7.1 axi_dma_0 ]
+  set_property -dict [ list CONFIG.c_sg_include_stscntrl_strm {0}  ] $axi_dma_0
 
   # Create instance: axi_mem_intercon, and set properties
   set axi_mem_intercon [ create_bd_cell -type ip -vlnv xilinx.com:ip:axi_interconnect:2.1 axi_mem_intercon ]
@@ -158,6 +159,7 @@ proc create_root_design { parentCell } {
 
   # Create instance: axis_data_fifo_0, and set properties
   set axis_data_fifo_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:axis_data_fifo:1.1 axis_data_fifo_0 ]
+  set_property -dict [ list CONFIG.FIFO_DEPTH {4096} CONFIG.FIFO_MODE {2}  ] $axis_data_fifo_0
 
   # Create instance: processing_system7_0, and set properties
   set processing_system7_0 [ create_bd_cell -type ip -vlnv xilinx.com:ip:processing_system7:5.5 processing_system7_0 ]

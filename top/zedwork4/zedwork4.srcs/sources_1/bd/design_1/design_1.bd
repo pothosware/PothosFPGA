@@ -252,6 +252,7 @@
         <spirit:componentRef spirit:library="ip" spirit:name="axi_dma" spirit:vendor="xilinx.com" spirit:version="7.1"/>
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">design_1_axi_dma_0_0</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="c_sg_include_stscntrl_strm">0</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
       <spirit:componentInstance>
@@ -292,6 +293,8 @@
         <spirit:componentRef spirit:library="ip" spirit:name="axis_data_fifo" spirit:vendor="xilinx.com" spirit:version="1.1"/>
         <spirit:configurableElementValues>
           <spirit:configurableElementValue spirit:referenceId="bd:xciName">design_1_axis_data_fifo_0_0</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="FIFO_DEPTH">4096</spirit:configurableElementValue>
+          <spirit:configurableElementValue spirit:referenceId="FIFO_MODE">2</spirit:configurableElementValue>
         </spirit:configurableElementValues>
       </spirit:componentInstance>
     </spirit:componentInstances>

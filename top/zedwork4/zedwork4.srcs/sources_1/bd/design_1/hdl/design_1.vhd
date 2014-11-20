@@ -1,7 +1,7 @@
 --Copyright 1986-2014 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
 --Tool Version: Vivado v.2014.3.1 (lin64) Build 1056140 Thu Oct 30 16:30:39 MDT 2014
---Date        : Tue Nov 18 15:42:40 2014
+--Date        : Thu Nov 20 01:18:54 2014
 --Host        : blarg running 64-bit Ubuntu 14.04.1 LTS
 --Command     : generate_target design_1.bd
 --Design      : design_1
@@ -3094,12 +3094,6 @@ architecture STRUCTURE of design_1 is
     m_axis_mm2s_tvalid : out STD_LOGIC;
     m_axis_mm2s_tready : in STD_LOGIC;
     m_axis_mm2s_tlast : out STD_LOGIC;
-    mm2s_cntrl_reset_out_n : out STD_LOGIC;
-    m_axis_mm2s_cntrl_tdata : out STD_LOGIC_VECTOR ( 31 downto 0 );
-    m_axis_mm2s_cntrl_tkeep : out STD_LOGIC_VECTOR ( 3 downto 0 );
-    m_axis_mm2s_cntrl_tvalid : out STD_LOGIC;
-    m_axis_mm2s_cntrl_tready : in STD_LOGIC;
-    m_axis_mm2s_cntrl_tlast : out STD_LOGIC;
     m_axi_s2mm_awaddr : out STD_LOGIC_VECTOR ( 31 downto 0 );
     m_axi_s2mm_awlen : out STD_LOGIC_VECTOR ( 7 downto 0 );
     m_axi_s2mm_awsize : out STD_LOGIC_VECTOR ( 2 downto 0 );
@@ -3122,12 +3116,6 @@ architecture STRUCTURE of design_1 is
     s_axis_s2mm_tvalid : in STD_LOGIC;
     s_axis_s2mm_tready : out STD_LOGIC;
     s_axis_s2mm_tlast : in STD_LOGIC;
-    s2mm_sts_reset_out_n : out STD_LOGIC;
-    s_axis_s2mm_sts_tdata : in STD_LOGIC_VECTOR ( 31 downto 0 );
-    s_axis_s2mm_sts_tkeep : in STD_LOGIC_VECTOR ( 3 downto 0 );
-    s_axis_s2mm_sts_tvalid : in STD_LOGIC;
-    s_axis_s2mm_sts_tready : out STD_LOGIC;
-    s_axis_s2mm_sts_tlast : in STD_LOGIC;
     mm2s_introut : out STD_LOGIC;
     s2mm_introut : out STD_LOGIC
   );
@@ -3362,15 +3350,8 @@ architecture STRUCTURE of design_1 is
   signal rst_processing_system7_0_100M_interconnect_aresetn : STD_LOGIC_VECTOR ( 0 to 0 );
   signal rst_processing_system7_0_100M_peripheral_aresetn : STD_LOGIC_VECTOR ( 0 to 0 );
   signal xlconcat_0_dout : STD_LOGIC_VECTOR ( 1 downto 0 );
-  signal NLW_axi_dma_0_m_axis_mm2s_cntrl_tlast_UNCONNECTED : STD_LOGIC;
-  signal NLW_axi_dma_0_m_axis_mm2s_cntrl_tvalid_UNCONNECTED : STD_LOGIC;
-  signal NLW_axi_dma_0_mm2s_cntrl_reset_out_n_UNCONNECTED : STD_LOGIC;
   signal NLW_axi_dma_0_mm2s_prmry_reset_out_n_UNCONNECTED : STD_LOGIC;
   signal NLW_axi_dma_0_s2mm_prmry_reset_out_n_UNCONNECTED : STD_LOGIC;
-  signal NLW_axi_dma_0_s2mm_sts_reset_out_n_UNCONNECTED : STD_LOGIC;
-  signal NLW_axi_dma_0_s_axis_s2mm_sts_tready_UNCONNECTED : STD_LOGIC;
-  signal NLW_axi_dma_0_m_axis_mm2s_cntrl_tdata_UNCONNECTED : STD_LOGIC_VECTOR ( 31 downto 0 );
-  signal NLW_axi_dma_0_m_axis_mm2s_cntrl_tkeep_UNCONNECTED : STD_LOGIC_VECTOR ( 3 downto 0 );
   signal NLW_axis_data_fifo_0_axis_data_count_UNCONNECTED : STD_LOGIC_VECTOR ( 31 downto 0 );
   signal NLW_axis_data_fifo_0_axis_rd_data_count_UNCONNECTED : STD_LOGIC_VECTOR ( 31 downto 0 );
   signal NLW_axis_data_fifo_0_axis_wr_data_count_UNCONNECTED : STD_LOGIC_VECTOR ( 31 downto 0 );
@@ -3472,22 +3453,15 @@ axi_dma_0: component design_1_axi_dma_0_0
       m_axi_sg_wready => axi_dma_0_M_AXI_SG_WREADY,
       m_axi_sg_wstrb(3 downto 0) => axi_dma_0_M_AXI_SG_WSTRB(3 downto 0),
       m_axi_sg_wvalid => axi_dma_0_M_AXI_SG_WVALID,
-      m_axis_mm2s_cntrl_tdata(31 downto 0) => NLW_axi_dma_0_m_axis_mm2s_cntrl_tdata_UNCONNECTED(31 downto 0),
-      m_axis_mm2s_cntrl_tkeep(3 downto 0) => NLW_axi_dma_0_m_axis_mm2s_cntrl_tkeep_UNCONNECTED(3 downto 0),
-      m_axis_mm2s_cntrl_tlast => NLW_axi_dma_0_m_axis_mm2s_cntrl_tlast_UNCONNECTED,
-      m_axis_mm2s_cntrl_tready => GND_1,
-      m_axis_mm2s_cntrl_tvalid => NLW_axi_dma_0_m_axis_mm2s_cntrl_tvalid_UNCONNECTED,
       m_axis_mm2s_tdata(31 downto 0) => axi_dma_0_M_AXIS_MM2S_TDATA(31 downto 0),
       m_axis_mm2s_tkeep(3 downto 0) => axi_dma_0_M_AXIS_MM2S_TKEEP(3 downto 0),
       m_axis_mm2s_tlast => axi_dma_0_M_AXIS_MM2S_TLAST,
       m_axis_mm2s_tready => axi_dma_0_M_AXIS_MM2S_TREADY,
       m_axis_mm2s_tvalid => axi_dma_0_M_AXIS_MM2S_TVALID,
-      mm2s_cntrl_reset_out_n => NLW_axi_dma_0_mm2s_cntrl_reset_out_n_UNCONNECTED,
       mm2s_introut => axi_dma_0_mm2s_introut,
       mm2s_prmry_reset_out_n => NLW_axi_dma_0_mm2s_prmry_reset_out_n_UNCONNECTED,
       s2mm_introut => axi_dma_0_s2mm_introut,
       s2mm_prmry_reset_out_n => NLW_axi_dma_0_s2mm_prmry_reset_out_n_UNCONNECTED,
-      s2mm_sts_reset_out_n => NLW_axi_dma_0_s2mm_sts_reset_out_n_UNCONNECTED,
       s_axi_lite_aclk => processing_system7_0_FCLK_CLK0,
       s_axi_lite_araddr(9 downto 0) => processing_system7_0_axi_periph_M00_AXI_ARADDR(9 downto 0),
       s_axi_lite_arready => processing_system7_0_axi_periph_M00_AXI_ARREADY,
@@ -3505,45 +3479,6 @@ axi_dma_0: component design_1_axi_dma_0_0
       s_axi_lite_wdata(31 downto 0) => processing_system7_0_axi_periph_M00_AXI_WDATA(31 downto 0),
       s_axi_lite_wready => processing_system7_0_axi_periph_M00_AXI_WREADY,
       s_axi_lite_wvalid => processing_system7_0_axi_periph_M00_AXI_WVALID,
-      s_axis_s2mm_sts_tdata(31) => GND_1,
-      s_axis_s2mm_sts_tdata(30) => GND_1,
-      s_axis_s2mm_sts_tdata(29) => GND_1,
-      s_axis_s2mm_sts_tdata(28) => GND_1,
-      s_axis_s2mm_sts_tdata(27) => GND_1,
-      s_axis_s2mm_sts_tdata(26) => GND_1,
-      s_axis_s2mm_sts_tdata(25) => GND_1,
-      s_axis_s2mm_sts_tdata(24) => GND_1,
-      s_axis_s2mm_sts_tdata(23) => GND_1,
-      s_axis_s2mm_sts_tdata(22) => GND_1,
-      s_axis_s2mm_sts_tdata(21) => GND_1,
-      s_axis_s2mm_sts_tdata(20) => GND_1,
-      s_axis_s2mm_sts_tdata(19) => GND_1,
-      s_axis_s2mm_sts_tdata(18) => GND_1,
-      s_axis_s2mm_sts_tdata(17) => GND_1,
-      s_axis_s2mm_sts_tdata(16) => GND_1,
-      s_axis_s2mm_sts_tdata(15) => GND_1,
-      s_axis_s2mm_sts_tdata(14) => GND_1,
-      s_axis_s2mm_sts_tdata(13) => GND_1,
-      s_axis_s2mm_sts_tdata(12) => GND_1,
-      s_axis_s2mm_sts_tdata(11) => GND_1,
-      s_axis_s2mm_sts_tdata(10) => GND_1,
-      s_axis_s2mm_sts_tdata(9) => GND_1,
-      s_axis_s2mm_sts_tdata(8) => GND_1,
-      s_axis_s2mm_sts_tdata(7) => GND_1,
-      s_axis_s2mm_sts_tdata(6) => GND_1,
-      s_axis_s2mm_sts_tdata(5) => GND_1,
-      s_axis_s2mm_sts_tdata(4) => GND_1,
-      s_axis_s2mm_sts_tdata(3) => GND_1,
-      s_axis_s2mm_sts_tdata(2) => GND_1,
-      s_axis_s2mm_sts_tdata(1) => GND_1,
-      s_axis_s2mm_sts_tdata(0) => GND_1,
-      s_axis_s2mm_sts_tkeep(3) => VCC_1,
-      s_axis_s2mm_sts_tkeep(2) => VCC_1,
-      s_axis_s2mm_sts_tkeep(1) => VCC_1,
-      s_axis_s2mm_sts_tkeep(0) => VCC_1,
-      s_axis_s2mm_sts_tlast => GND_1,
-      s_axis_s2mm_sts_tready => NLW_axi_dma_0_s_axis_s2mm_sts_tready_UNCONNECTED,
-      s_axis_s2mm_sts_tvalid => GND_1,
       s_axis_s2mm_tdata(31 downto 0) => axis_data_fifo_0_M_AXIS_TDATA(31 downto 0),
       s_axis_s2mm_tkeep(3 downto 0) => axis_data_fifo_0_M_AXIS_TKEEP(3 downto 0),
       s_axis_s2mm_tlast => axis_data_fifo_0_M_AXIS_TLAST,

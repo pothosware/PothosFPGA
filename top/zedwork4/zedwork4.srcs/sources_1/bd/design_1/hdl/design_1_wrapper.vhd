@@ -1,7 +1,7 @@
 --Copyright 1986-2014 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
 --Tool Version: Vivado v.2014.3.1 (lin64) Build 1056140 Thu Oct 30 16:30:39 MDT 2014
---Date        : Tue Nov 18 15:42:40 2014
+--Date        : Thu Nov 20 01:18:54 2014
 --Host        : blarg running 64-bit Ubuntu 14.04.1 LTS
 --Command     : generate_target design_1_wrapper.bd
 --Design      : design_1_wrapper
