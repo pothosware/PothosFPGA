@@ -64,7 +64,14 @@ static inline int xudma_create(xudma_t *self);
 static inline int xudma_destroy(xudma_t *self);
 
 /*!
- * Initialize and reset the DMA engine.
+ * Reset the DMA engine.
+ * \param self the user dma instance structure
+ * \return the error code or 0 for success
+ */
+static inline int xudma_reset(xudma_t *self);
+
+/*!
+ * Initialize the DMA engine for streaming.
  * The engine will be ready to receive streams.
  * \param self the user dma instance structure
  * \return the error code or 0 for success
@@ -72,7 +79,7 @@ static inline int xudma_destroy(xudma_t *self);
 static inline int xudma_s2mm_init(xudma_t *self);
 
 /*!
- * Initialize and reset the DMA engine.
+ * Initialize the DMA engine for streaming.
  * The engine will be ready to send streams.
  * \param self the user dma instance structure
  * \return the error code or 0 for success
@@ -271,6 +278,8 @@ static inline int xudma_create(xudma_t *self)
         size_t next = (size_t)(self->mm2s_descs + next_index);
         desc->next_desc = xudma_virt_to_phys(self, next);
         desc->buf_addr = alloc_off + self->hardware_shared_base;
+        desc->control = 0;
+        desc->status = 0;
         alloc_off += self->mm2s_buffer_size;
     }
 
@@ -281,6 +290,8 @@ static inline int xudma_create(xudma_t *self)
         size_t next = (size_t)(self->s2mm_descs + next_index);
         desc->next_desc = xudma_virt_to_phys(self, next);
         desc->buf_addr = alloc_off + self->hardware_shared_base;
+        desc->control = 0;
+        desc->status = 0;
         alloc_off += self->s2mm_buffer_size;
     }
 
@@ -317,22 +328,44 @@ static inline int xudma_destroy(xudma_t *self)
 }
 
 /***********************************************************************
- * initialize engine for use
+ * reset engine
  **********************************************************************/
-static inline int xudma_s2mm_init(xudma_t *self)
+static inline int xudma_reset(xudma_t *self)
 {
     void *base = self->mapped_register_base;
+    int loop = 0;
 
     //a simple test to check for an expected bit in the first register
     if ((xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) & 0x2) == 0) return XUDMA_ERROR_COMMS;
 
     //perform a soft reset and wait for done
     xudma_poke32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | XILINX_DMA_CR_RESET_MASK);
-    int loop = XILINX_DMA_RESET_LOOP;
+    loop = XILINX_DMA_RESET_LOOP;
     while ((xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) & XILINX_DMA_CR_RESET_MASK) != 0)
     {
         if (--loop == 0) return XUDMA_ERROR_TIMEOUT;
     }
+
+    //a simple test to check for an expected bit in the first register
+    if ((xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & 0x2) == 0) return XUDMA_ERROR_COMMS;
+
+    //perform a soft reset and wait for done
+    xudma_poke32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | XILINX_DMA_CR_RESET_MASK);
+    loop = XILINX_DMA_RESET_LOOP;
+    while ((xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & XILINX_DMA_CR_RESET_MASK) != 0)
+    {
+        if (--loop == 0) return XUDMA_ERROR_TIMEOUT;
+    }
+
+    return XUDMA_OK;
+}
+
+/***********************************************************************
+ * initialize engine for use
+ **********************************************************************/
+static inline int xudma_s2mm_init(xudma_t *self)
+{
+    void *base = self->mapped_register_base;
 
     //load desc pointers
     size_t head = (size_t)(self->s2mm_descs + self->s2mm_head_index);
@@ -356,21 +389,10 @@ static inline int xudma_mm2s_init(xudma_t *self)
 {
     void *base = self->mapped_register_base;
 
-    //a simple test to check for an expected bit in the first register
-    if ((xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & 0x2) == 0) return XUDMA_ERROR_COMMS;
-
-    //perform a soft reset and wait for done
-    xudma_poke32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | XILINX_DMA_CR_RESET_MASK);
-    int loop = XILINX_DMA_RESET_LOOP;
-    while ((xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & XILINX_DMA_CR_RESET_MASK) != 0)
-    {
-        if (--loop == 0) return XUDMA_ERROR_TIMEOUT;
-    }
-
     //load desc pointers
-    size_t head = (size_t)(self->s2mm_descs + self->mm2s_head_index);
+    size_t head = (size_t)(self->mm2s_descs + self->mm2s_head_index);
     xudma_poke32(base, XILINX_DMA_MM2S_CURDESC_OFFSET, xudma_virt_to_phys(self, head));
-    size_t tail = (size_t)(self->s2mm_descs + self->mm2s_tail_index);
+    size_t tail = (size_t)(self->mm2s_descs + self->mm2s_tail_index);
     xudma_poke32(base, XILINX_DMA_MM2S_TAILDESC_OFFSET, xudma_virt_to_phys(self, tail));
 
     //start the engine
@@ -428,6 +450,13 @@ static inline int xudma_s2mm_acquire(xudma_t *self, xudma_buffer_t *buffer, long
     xilinx_dma_desc_t *desc = self->s2mm_descs+self->s2mm_head_index;
     xudma_clear_cache(desc, sizeof(xilinx_dma_desc_t));
 
+    printf("XILINX_DMA_S2MM_DMACR_OFFSET 0x%x\n", xudma_peek32(self->mapped_register_base, XILINX_DMA_S2MM_DMACR_OFFSET));
+    printf("XILINX_DMA_S2MM_DMASR_OFFSET 0x%x\n", xudma_peek32(self->mapped_register_base, XILINX_DMA_S2MM_DMASR_OFFSET));
+    for (size_t i = 0; i < 4; i++)
+    {
+        printf("s2mm d[%d] = 0x%x\n", i, self->s2mm_descs[i].status);
+    }
+
     //check completion status of the buffer
     if ((desc->status & (1 << 31)) == 0) return XUDMA_ERROR_TIMEOUT;
 
@@ -469,6 +498,13 @@ static inline int xudma_mm2s_acquire(xudma_t *self, xudma_buffer_t *buffer, long
 
     xilinx_dma_desc_t *desc = self->mm2s_descs+self->mm2s_head_index;
     xudma_clear_cache(desc, sizeof(xilinx_dma_desc_t));
+
+    printf("XILINX_DMA_MM2S_DMACR_OFFSET 0x%x\n", xudma_peek32(self->mapped_register_base, XILINX_DMA_MM2S_DMACR_OFFSET));
+    printf("XILINX_DMA_MM2S_DMASR_OFFSET 0x%x\n", xudma_peek32(self->mapped_register_base, XILINX_DMA_MM2S_DMASR_OFFSET));
+    for (size_t i = 0; i < 4; i++)
+    {
+        printf("mm2s d[%d] = 0x%x\n", i, self->mm2s_descs[i].status);
+    }
 
     //check completion status of the buffer
     if ((desc->status & (1 << 31)) == 0) return XUDMA_ERROR_TIMEOUT;

@@ -37,6 +37,14 @@ int main(void)
         return -1;
     }
 
+    printf("---- xudma_reset() ----\n");
+    ret = xudma_reset(&user);
+    if (ret != XUDMA_OK)
+    {
+        printf("xudma_reset() failed %d\n", ret);
+        return -1;
+    }
+
     printf("---- xudma_s2mm_init() ----\n");
     ret = xudma_s2mm_init(&user);
     if (ret != XUDMA_OK)
@@ -56,25 +64,36 @@ int main(void)
     /*******************************************************************
      * stream test
      ******************************************************************/
-    xudma_buffer_t buff0;
-    ret = xudma_mm2s_acquire(&user, &buff0, 0);
-    if (ret != XUDMA_OK)
+    printf("---- stream test ----\n");
+    for (size_t j = 0; j < 2; j++)
     {
-        printf("xudma_mm2s_acquire() failed %d\n", ret);
-        return -1;
-    }
-    xudma_mm2s_release(&user, buff0.handle, 16);
+        for (size_t i = 0; i < 3; i++)
+        {
+            xudma_buffer_t buff0;
+            ret = xudma_mm2s_acquire(&user, &buff0, 0);
+            if (ret != XUDMA_OK)
+            {
+                printf("xudma_mm2s_acquire() failed %d\n", ret);
+                return -1;
+            }
+            xudma_mm2s_release(&user, buff0.handle, 128);
+        }
 
-    sleep(1);
-    xudma_buffer_t buff1;
-    ret = xudma_s2mm_acquire(&user, &buff1, 0);
-    if (ret != XUDMA_OK)
-    {
-        printf("xudma_s2mm_acquire() failed %d\n", ret);
-        return -1;
+            sleep(1);
+
+        for (size_t i = 0; i < 3; i++)
+        {
+            xudma_buffer_t buff1;
+            ret = xudma_s2mm_acquire(&user, &buff1, 0);
+            if (ret != XUDMA_OK)
+            {
+                printf("xudma_s2mm_acquire() failed %d\n", ret);
+                return -1;
+            }
+            printf("buff1 length = %d\n", buff1.length);
+            xudma_s2mm_release(&user, buff1.handle);
+        }
     }
-    printf("buff1 length = %d\n", buff1.length);
-    xudma_s2mm_release(&user, buff1.handle);
 
     /*******************************************************************
      * cleanup
