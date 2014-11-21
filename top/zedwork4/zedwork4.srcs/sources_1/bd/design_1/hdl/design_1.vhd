@@ -1,7 +1,7 @@
 --Copyright 1986-2014 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
 --Tool Version: Vivado v.2014.3.1 (lin64) Build 1056140 Thu Oct 30 16:30:39 MDT 2014
---Date        : Thu Nov 20 01:18:54 2014
+--Date        : Fri Nov 21 00:04:03 2014
 --Host        : blarg running 64-bit Ubuntu 14.04.1 LTS
 --Command     : generate_target design_1.bd
 --Design      : design_1
@@ -2551,8 +2551,8 @@ xbar: component design_1_xbar_0
       s_axi_wdata(106) => GND_1,
       s_axi_wdata(105) => GND_1,
       s_axi_wdata(104) => GND_1,
-      s_axi_wdata(103) => VCC_1,
-      s_axi_wdata(102) => GND_1,
+      s_axi_wdata(103) => GND_1,
+      s_axi_wdata(102) => VCC_1,
       s_axi_wdata(101) => GND_1,
       s_axi_wdata(100) => GND_1,
       s_axi_wdata(99) => GND_1,
@@ -2907,6 +2907,9 @@ architecture STRUCTURE of design_1 is
     ENET0_PTP_SYNC_FRAME_TX : out STD_LOGIC;
     ENET0_SOF_RX : out STD_LOGIC;
     ENET0_SOF_TX : out STD_LOGIC;
+    GPIO_I : in STD_LOGIC_VECTOR ( 1 downto 0 );
+    GPIO_O : out STD_LOGIC_VECTOR ( 1 downto 0 );
+    GPIO_T : out STD_LOGIC_VECTOR ( 1 downto 0 );
     TTC0_WAVE0_OUT : out STD_LOGIC;
     TTC0_WAVE1_OUT : out STD_LOGIC;
     TTC0_WAVE2_OUT : out STD_LOGIC;
@@ -3369,6 +3372,8 @@ architecture STRUCTURE of design_1 is
   signal NLW_processing_system7_0_TTC0_WAVE1_OUT_UNCONNECTED : STD_LOGIC;
   signal NLW_processing_system7_0_TTC0_WAVE2_OUT_UNCONNECTED : STD_LOGIC;
   signal NLW_processing_system7_0_USB0_VBUS_PWRSELECT_UNCONNECTED : STD_LOGIC;
+  signal NLW_processing_system7_0_GPIO_O_UNCONNECTED : STD_LOGIC_VECTOR ( 1 downto 0 );
+  signal NLW_processing_system7_0_GPIO_T_UNCONNECTED : STD_LOGIC_VECTOR ( 1 downto 0 );
   signal NLW_processing_system7_0_S_AXI_HP0_ARID_UNCONNECTED : STD_LOGIC_VECTOR ( 5 downto 2 );
   signal NLW_processing_system7_0_S_AXI_HP0_AWID_UNCONNECTED : STD_LOGIC_VECTOR ( 5 downto 2 );
   signal NLW_processing_system7_0_S_AXI_HP0_RACOUNT_UNCONNECTED : STD_LOGIC_VECTOR ( 2 downto 0 );
@@ -3643,6 +3648,9 @@ processing_system7_0: component design_1_processing_system7_0_0
       ENET0_SOF_TX => NLW_processing_system7_0_ENET0_SOF_TX_UNCONNECTED,
       FCLK_CLK0 => processing_system7_0_FCLK_CLK0,
       FCLK_RESET0_N => processing_system7_0_FCLK_RESET0_N,
+      GPIO_I(1 downto 0) => xlconcat_0_dout(1 downto 0),
+      GPIO_O(1 downto 0) => NLW_processing_system7_0_GPIO_O_UNCONNECTED(1 downto 0),
+      GPIO_T(1 downto 0) => NLW_processing_system7_0_GPIO_T_UNCONNECTED(1 downto 0),
       IRQ_F2P(1 downto 0) => xlconcat_0_dout(1 downto 0),
       MIO(53 downto 0) => FIXED_IO_mio(53 downto 0),
       M_AXI_GP0_ACLK => processing_system7_0_FCLK_CLK0,

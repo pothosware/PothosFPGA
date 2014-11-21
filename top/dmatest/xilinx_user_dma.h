@@ -173,6 +173,29 @@ static inline void xudma_mm2s_release(xudma_t *self, size_t handle, size_t lengt
 #define XILINX_DMA_CR_RUNSTOP_MASK	0x00000001 /* Start/stop DMA engine */
 #define XILINX_DMA_SR_HALTED_MASK	0x00000001 /* DMA channel halted */
 #define XILINX_DMA_SR_IDLE_MASK	0x00000002 /* DMA channel idle */
+#define XILINX_DMA_XR_IRQ_IOC_MASK	0x00001000 /* Completion interrupt */
+#define XILINX_DMA_XR_IRQ_DELAY_MASK	0x00002000 /* Delay interrupt */
+#define XILINX_DMA_XR_IRQ_ERROR_MASK	0x00004000 /* Error interrupt */
+#define XILINX_DMA_XR_IRQ_ALL_MASK	0x00007000 /* All interrupts */
+#define XILINX_DMA_XR_DELAY_MASK	0xFF000000 /* Delay timeout counter */
+#define XILINX_DMA_XR_COALESCE_MASK	0x00FF0000 /* Coalesce counter */
+#define XILINX_DMA_DELAY_SHIFT	24 /* Delay timeout counter shift */
+#define XILINX_DMA_COALESCE_SHIFT	16 /* Coalesce counter shift */
+#define XILINX_DMA_DELAY_MAX	0xFF /* Maximum delay counter value */
+#define XILINX_DMA_COALESCE_MAX	0xFF /* Max coalescing counter value */
+#define XILINX_DMA_RX_CHANNEL_OFFSET	0x30 /* S2MM Channel Offset */
+
+/* BD definitions for AXI Dma */
+#define XILINX_DMA_BD_STS_ALL_MASK	0xF0000000
+#define XILINX_DMA_BD_SOP	0x08000000 /* Start of packet bit */
+#define XILINX_DMA_BD_EOP	0x04000000 /* End of packet bit */
+
+/* Feature encodings */
+#define XILINX_DMA_FTR_HAS_SG	0x00000100 /* Has SG */
+#define XILINX_DMA_FTR_HAS_SG_SHIFT	8 /* Has SG shift */
+
+/* Optional feature for dma */
+#define XILINX_DMA_FTR_STSCNTRL_STRM	0x00010000
 
 /* Delay loop counter to prevent hardware failure */
 #define XILINX_DMA_RESET_LOOP	1000000
@@ -486,6 +509,7 @@ static inline void xudma_s2mm_release(xudma_t *self, size_t handle)
     {
         xilinx_dma_desc_t *tail = self->s2mm_descs + self->s2mm_tail_index;
         if (tail->status != 0) break;
+        xudma_poke32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | XILINX_DMA_XR_IRQ_IOC_MASK);
         xudma_poke32(base, XILINX_DMA_S2MM_TAILDESC_OFFSET, xudma_virt_to_phys(self, (size_t)tail));
 
         self->s2mm_tail_index = (self->s2mm_tail_index + 1) % self->s2mm_num_buffers;
@@ -524,7 +548,7 @@ static inline void xudma_mm2s_release(xudma_t *self, size_t handle, size_t lengt
 
     void *base = self->mapped_register_base;
     xilinx_dma_desc_t *desc = self->mm2s_descs+handle;
-    desc->control = length | (1 << 26) | (1 << 27); //length + EOF + SOF
+    desc->control = length | XILINX_DMA_BD_SOP | XILINX_DMA_BD_EOP;
     desc->status = 0; //clear status
     xudma_clear_cache(desc, sizeof(xilinx_dma_desc_t));
 
@@ -533,6 +557,7 @@ static inline void xudma_mm2s_release(xudma_t *self, size_t handle, size_t lengt
     {
         xilinx_dma_desc_t *tail = self->mm2s_descs + self->mm2s_tail_index;
         if (tail->status != 0) break;
+        xudma_poke32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | XILINX_DMA_XR_IRQ_IOC_MASK);
         xudma_poke32(base, XILINX_DMA_MM2S_TAILDESC_OFFSET, xudma_virt_to_phys(self, (size_t)tail));
 
         self->mm2s_tail_index = (self->mm2s_tail_index + 1) % self->mm2s_num_buffers;

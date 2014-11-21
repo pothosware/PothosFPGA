@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Thu Nov 20 01:18:50 2014" VIVADOVERSION="2014.3.1">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Fri Nov 21 00:03:59 2014" VIVADOVERSION="2014.3.1">
 
   <SYSTEMINFO ARCH="zynq" BOARD="em.avnet.com:microzed_7020:part0:1.0" DEVICE="7z020" NAME="design_1_imp" PACKAGE="clg400" SPEEDGRADE="-1"/>
 
@@ -541,11 +541,13 @@
         </PORT>
         <PORT DIR="O" IRQID="61" NAME="mm2s_introut" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT" SIGNAME="axi_dma_0_mm2s_introut">
           <CONNECTIONS>
+            <CONNECTION INSTANCE="processing_system7_0" PORT="GPIO_I"/>
             <CONNECTION INSTANCE="ps7_scugic_0" PORT="IRQ_F2P"/>
           </CONNECTIONS>
         </PORT>
         <PORT DIR="O" IRQID="62" NAME="s2mm_introut" SENSITIVITY="LEVEL_HIGH" SIGIS="INTERRUPT" SIGNAME="axi_dma_0_s2mm_introut">
           <CONNECTIONS>
+            <CONNECTION INSTANCE="processing_system7_0" PORT="GPIO_I"/>
             <CONNECTION INSTANCE="ps7_scugic_0" PORT="IRQ_F2P"/>
           </CONNECTIONS>
         </PORT>
@@ -7973,7 +7975,7 @@
     </MODULE>
     <MODULE HWVERSION="1.00.a" INSTANCE="ps7_gpio_0" IPTYPE="PERIPHERAL" IS_ENABLE="1" IS_PL="FALSE" MODCLASS="PERIPHERAL" MODTYPE="ps7_gpio">
       <PARAMETERS>
-        <PARAMETER NAME="C_EMIO_GPIO_WIDTH" VALUE="64"/>
+        <PARAMETER NAME="C_EMIO_GPIO_WIDTH" VALUE="2"/>
         <PARAMETER NAME="C_INTERCONNECT_S_AXI_MASTERS" VALUE="ps7_cortexa9_0.M_AXI_DP &amp; ps7_cortexa9_1.M_AXI_DP"/>
         <PARAMETER NAME="C_MIO_GPIO_MASK" VALUE="0x5600"/>
         <PARAMETER NAME="C_S_AXI_BASEADDR" VALUE="0xE000A000"/>
