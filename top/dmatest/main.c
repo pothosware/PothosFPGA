@@ -65,39 +65,41 @@ int main(void)
      * stream test
      ******************************************************************/
     printf("---- stream test ----\n");
-    for (size_t i = 0; i < 5; i++)
+    for (size_t i = 0; i < 50; i++)
     {
         for (size_t j = 0; j < 5; j++)
         {
-            xudma_buffer_t buff0;
-            ret = xudma_mm2s_acquire(&user, &buff0, 0);
-            if (ret != XUDMA_OK)
+            void *buff0;
+            size_t length0;
+            ret = xudma_mm2s_acquire(&user, &buff0, &length0);
+            if (ret < 0)
             {
                 printf("xudma_mm2s_acquire() failed %d\n", ret);
                 return -1;
             }
-            int *p = (int *)buff0.buff;
+            int *p = (int *)buff0;
             for (size_t k = 0; k < 128; k++)
             {
                 p[k] = (i << 16) | (j << 8) | k;
             }
-            xudma_mm2s_release(&user, buff0.handle, 1024);
+            xudma_mm2s_release(&user, ret, 1024);
         }
 
         for (size_t j = 0; j < 5; j++)
         {
-            xudma_buffer_t buff1;
-            ret = xudma_s2mm_acquire(&user, &buff1, 0);
-            if (ret != XUDMA_OK)
+            void *buff1;
+            size_t length1;
+            ret = xudma_s2mm_acquire(&user, &buff1, &length1);
+            if (ret < 0)
             {
                 printf("xudma_s2mm_acquire() failed %d\n", ret);
                 return -1;
             }
-            if (buff1.length != 1024)
+            if (length1 != 1024)
             {
-                printf("error buff1 length = %d\n", buff1.length);
+                printf("error buff1 length = %d\n", length1);
             }
-            const int *p = (const int *)buff1.buff;
+            const int *p = (const int *)buff1;
             for (size_t k = 0; k < 128; k++)
             {
                 if (p[k] != ((i << 16) | (j << 8) | k))
@@ -105,7 +107,7 @@ int main(void)
                     printf("error got %d @ i = %d, j = %d, k = %d \n", p[k], i, j, k);
                 }
             }
-            xudma_s2mm_release(&user, buff1.handle);
+            xudma_s2mm_release(&user, ret);
         }
     }
 
