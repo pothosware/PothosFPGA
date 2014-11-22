@@ -28,12 +28,16 @@ architecture test of LoopbackTb is
     signal ready : std_ulogic;
 
     -- control test signals
+    signal paddr : std_ulogic_vector(31 downto 0);
+    signal pwrite : std_ulogic;
+    signal psel : std_ulogic;
+    signal penable : std_ulogic;
+    signal pwdata : std_ulogic_vector(31 downto 0);
+    signal pready : std_ulogic;
+    signal prdata : std_ulogic_vector(31 downto 0);
+    signal ctrl_addr_num : natural;
     signal ctrl_wr : std_ulogic;
     signal ctrl_rd : std_ulogic;
-    signal ctrl_addr : std_ulogic_vector(31 downto 0);
-    signal ctrl_out_data : std_ulogic_vector(31 downto 0);
-    signal ctrl_in_data : std_ulogic_vector(31 downto 0);
-    signal ctrl_addr_num : natural;
 
 begin
 
@@ -75,11 +79,15 @@ begin
     --------------------------------------------------------------------
     -- test1: basic control loopback
     --------------------------------------------------------------------
-    process (ctrl_wr, ctrl_rd) begin
-        if (ctrl_wr = '1' or ctrl_rd = '1') then
-            ctrl_addr_num <= to_integer(signed(ctrl_addr));
+    process (psel, paddr) begin
+        if (psel = '1') then
+            ctrl_addr_num <= to_integer(signed(paddr));
         end if;
     end process;
+
+    ctrl_wr <= psel and pwrite;
+    ctrl_rd <= psel and not pwrite;
+    pready <= penable;
 
     ctrl0: entity PothosSimulation.ExternalControl
     generic map (
@@ -88,11 +96,13 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        wr => ctrl_wr,
-        rd => ctrl_rd,
-        addr => ctrl_addr,
-        out_data => ctrl_out_data,
-        in_data => ctrl_in_data
+        paddr => paddr,
+        pwrite => pwrite,
+        psel => psel,
+        penable => penable,
+        pwdata => pwdata,
+        pready => pready,
+        prdata => prdata
     );
 
     ram0: entity extras.dual_port_ram
@@ -104,11 +114,11 @@ begin
         Wr_clock => clk,
         We => ctrl_wr,
         Wr_addr => ctrl_addr_num,
-        Wr_data => ctrl_out_data,
+        Wr_data => pwdata,
         Rd_clock => clk,
         Re => ctrl_rd,
         Rd_addr => ctrl_addr_num,
-        Rd_data => ctrl_in_data
+        Rd_data => prdata
     );
 
     process begin

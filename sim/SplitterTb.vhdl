@@ -42,10 +42,13 @@ architecture test of SplitterTb is
     signal dst1_ready : std_ulogic_vector(1 downto 0);
 
     -- ctrl signals
-    signal ctrl1_wr : std_ulogic;
-    signal ctrl1_addr : std_ulogic_vector(31 downto 0);
-    signal ctrl1_out_data : std_ulogic_vector(31 downto 0);
-    signal ctrl1_in_data : std_ulogic_vector(31 downto 0);
+    signal ctrl1_paddr : std_ulogic_vector(31 downto 0);
+    signal ctrl1_pwrite : std_ulogic;
+    signal ctrl1_psel : std_ulogic;
+    signal ctrl1_penable : std_ulogic;
+    signal ctrl1_pwdata : std_ulogic_vector(31 downto 0);
+    signal ctrl1_pready : std_ulogic;
+    signal ctrl1_prdata : std_ulogic_vector(31 downto 0);
 
 begin
 
@@ -119,12 +122,13 @@ begin
     );
 
     --simple process to register a new enable setting for the splitter
-    ctrl1_in_data <= (others => '0');
+    ctrl1_prdata <= (others => '0');
+    ctrl1_pready <= ctrl1_penable;
     process (clk) begin
         if (rst = '1') then
             enables1 <= (others => '0');
-        elsif (ctrl1_wr = '1' and to_integer(signed(ctrl1_addr)) = 1) then
-            enables1 <= ctrl1_out_data(1 downto 0);
+        elsif (ctrl1_psel = '1' and ctrl1_pwrite = '1' and to_integer(signed(ctrl1_paddr)) = 1) then
+            enables1 <= ctrl1_pwdata(1 downto 0);
         end if;
     end process;
 
@@ -135,10 +139,13 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        wr => ctrl1_wr,
-        addr => ctrl1_addr,
-        out_data => ctrl1_out_data,
-        in_data => ctrl1_in_data
+        paddr => ctrl1_paddr,
+        pwrite => ctrl1_pwrite,
+        psel => ctrl1_psel,
+        penable => ctrl1_penable,
+        pwdata => ctrl1_pwdata,
+        pready => ctrl1_pready,
+        prdata => ctrl1_prdata
     );
 
     test1_splitter: entity PothosInterconnect.StreamSplitter

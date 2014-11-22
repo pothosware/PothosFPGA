@@ -22,23 +22,27 @@ entity ExternalControl is
         clk : in std_ulogic;
         rst : in std_ulogic;
 
-        --perform a control write
-        --address and data out are valid on the write cycle
-        wr : out std_ulogic;
-
-        --perform a control read
-        --address is valid on the read cycle
-        --in data is read on the read cycle
-        rd : out std_ulogic;
-
         --bus address
-        addr : out std_ulogic_vector;
+        paddr : out std_ulogic_vector;
 
-        --data output
-        out_data : out std_ulogic_vector;
+        --peripheral select
+        psel : out std_ulogic;
 
-        --data input
-        in_data : in std_ulogic_vector
+        --transaction enable (high on second and subsequent cycles)
+        penable : out std_ulogic;
+
+        --perform a control write
+        --address and write data are valid on the write cycle
+        pwrite : out std_ulogic;
+
+        --write data
+        pwdata : out std_ulogic_vector;
+
+        --slave perif ready
+        pready : in std_ulogic;
+
+        --read data
+        prdata : in std_ulogic_vector
     );
 end entity ExternalControl;
 
@@ -51,27 +55,34 @@ architecture sim of ExternalControl is begin
 
         if (rising_edge(clk)) then
             if (rst = '1') then
-                addr <= std_ulogic_vector(to_signed(0, addr'length));
-                out_data <= std_ulogic_vector(to_signed(0, out_data'length));
-                wr <= '0';
-                rd <= '0';
+                paddr <= std_ulogic_vector(to_signed(0, paddr'length));
+                pwdata <= std_ulogic_vector(to_signed(0, pwdata'length));
+                psel <= '0';
+                pwrite <= '0';
+                penable <= '0';
+                action := 0;
             else
-                --complete read from previous cycle
-                if (action = 2) then
-                    controlPutData(handle, to_integer(signed(in_data)));
-                end if;
-                action := controlGetAction(handle);
-                if (action = 1) then
-                    wr <= '1';
-                    addr <= std_ulogic_vector(to_signed(controlGetAddr(handle), addr'length));
-                    out_data <= std_ulogic_vector(to_signed(controlGetData(handle), out_data'length));
-                    controlPutData(handle, 0);
-                elsif (action = 2) then
-                    rd <= '1';
-                    addr <= std_ulogic_vector(to_signed(controlGetAddr(handle), addr'length));
+                if (action = 0) then
+                    action := controlGetAction(handle);
+                    penable <= '0';
+                    if (action = 1) then
+                        pwrite <= '1';
+                        paddr <= std_ulogic_vector(to_signed(controlGetAddr(handle), paddr'length));
+                        pwdata <= std_ulogic_vector(to_signed(controlGetData(handle), pwdata'length));
+                        psel <= '1';
+                    elsif (action = 2) then
+                        paddr <= std_ulogic_vector(to_signed(controlGetAddr(handle), paddr'length));
+                        psel <= '1';
+                    end if;
                 else
-                    wr <= '0';
-                    rd <= '0';
+                    penable <= '1';
+                    if (pready = '1') then
+                        controlPutData(handle, to_integer(signed(prdata)));
+                        psel <= '0';
+                        pwrite <= '0';
+                        penable <= '0';
+                        action := controlGetAction(handle);
+                    end if;
                 end if;
             end if;
         end if;

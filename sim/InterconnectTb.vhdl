@@ -41,11 +41,13 @@ architecture test of InterconnectTb is
     signal out_ready : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
 
     --control signals
-    signal ctrl_wr : std_ulogic;
-    signal ctrl_rd : std_ulogic;
-    signal ctrl_addr : std_ulogic_vector(31 downto 0);
-    signal ctrl_wr_data : std_ulogic_vector(31 downto 0);
-    signal ctrl_rd_data : std_ulogic_vector(31 downto 0);
+    signal paddr : std_ulogic_vector(31 downto 0);
+    signal pwrite : std_ulogic;
+    signal psel : std_ulogic;
+    signal penable : std_ulogic;
+    signal pwdata : std_ulogic_vector(31 downto 0);
+    signal pready : std_ulogic;
+    signal prdata : std_ulogic_vector(31 downto 0);
 
 begin
 
@@ -63,11 +65,13 @@ begin
     port map (
         clk => clk,
         rst => rst,
-        wr => ctrl_wr,
-        rd => ctrl_rd,
-        addr => ctrl_addr,
-        out_data => ctrl_wr_data,
-        in_data => ctrl_rd_data
+        paddr => paddr,
+        pwrite => pwrite,
+        psel => psel,
+        penable => penable,
+        pwdata => pwdata,
+        pready => pready,
+        prdata => prdata
     );
 
     --------------------------------------------------------------------
@@ -125,11 +129,13 @@ begin
         clk => clk,
         rst => rst,
 
-        config_write => ctrl_wr,
-        config_read => ctrl_rd,
-        config_addr => ctrl_addr,
-        config_in_data => ctrl_wr_data,
-        config_out_data => ctrl_rd_data,
+        paddr => paddr,
+        pwrite => pwrite,
+        psel => psel,
+        penable => penable,
+        pwdata => pwdata,
+        pready => pready,
+        prdata => prdata,
 
         in_data => in_data,
         in_meta => in_meta,

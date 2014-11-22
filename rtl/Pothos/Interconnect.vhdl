@@ -17,7 +17,7 @@
 -- are allotted to the available ports to optimize resource usage.
 --
 -- The configuration bus:
--- This is a very simple read and write bus for settings and configuration.
+-- This is a very simple APB3 bus for settings and configuration.
 -- The interconnect is receptive to configuration reads and writes
 -- at specific addresses specified by InterconnectPkg IC_* constants.
 --
@@ -95,11 +95,13 @@ entity Interconnect is
         rst : in std_ulogic;
 
         -- configuration channel
-        config_write : in std_ulogic;
-        config_read : in std_ulogic;
-        config_addr : in std_ulogic_vector(31 downto 0);
-        config_in_data : in std_ulogic_vector(31 downto 0);
-        config_out_data : out std_ulogic_vector(31 downto 0);
+        paddr : in std_ulogic_vector(31 downto 0);
+        psel : in std_ulogic;
+        penable : in std_ulogic;
+        pwrite : in std_ulogic;
+        pwdata : in std_ulogic_vector(31 downto 0);
+        pready : out std_ulogic;
+        prdata : out std_ulogic_vector(31 downto 0);
 
         -- all ports into the interconnect
         in_data : in std_ulogic_vector;
@@ -125,7 +127,7 @@ architecture rtl of Interconnect is
     constant DATA_WIDTH : positive := in_data'length/NUM_INPUTS;
 
     --selection registers set by the config bus
-    signal config_addr_num : natural;
+    signal paddr_num : natural;
     signal test_loopback_reg : std_ulogic_vector(31 downto 0);
     signal lane_select_reg : natural range 0 to NUM_LANES-1;
     signal input_select_reg : natural range 0 to NUM_INPUTS-1;
@@ -159,13 +161,14 @@ begin
     --------------------------------------------------------------------
     -- configuration readback mux
     --------------------------------------------------------------------
-    config_addr_num <= to_integer(unsigned(config_addr));
-    config_out_data <=
-        std_ulogic_vector(to_unsigned(IC_VERSION, 32)) when (config_addr_num = IC_VERSION_ADDR) else
-        std_ulogic_vector(to_unsigned(NUM_LANES, 32)) when (config_addr_num = IC_NUM_LANES_ADDR) else
-        std_ulogic_vector(to_unsigned(NUM_INPUTS, 32)) when (config_addr_num = IC_NUM_INPUTS_ADDR) else
-        std_ulogic_vector(to_unsigned(NUM_OUTPUTS, 32)) when (config_addr_num = IC_NUM_OUTPUTS_ADDR) else
-        test_loopback_reg when (config_addr_num = IC_TEST_LOOPBACK_ADDR) else (others => '0');
+    paddr_num <= to_integer(unsigned(paddr));
+    prdata <=
+        std_ulogic_vector(to_unsigned(IC_VERSION, 32)) when (paddr_num = IC_VERSION_ADDR) else
+        std_ulogic_vector(to_unsigned(NUM_LANES, 32)) when (paddr_num = IC_NUM_LANES_ADDR) else
+        std_ulogic_vector(to_unsigned(NUM_INPUTS, 32)) when (paddr_num = IC_NUM_INPUTS_ADDR) else
+        std_ulogic_vector(to_unsigned(NUM_OUTPUTS, 32)) when (paddr_num = IC_NUM_OUTPUTS_ADDR) else
+        test_loopback_reg when (paddr_num = IC_TEST_LOOPBACK_ADDR) else (others => '0');
+    pready <= penable;
 
     --------------------------------------------------------------------
     -- record configuration selections
@@ -176,13 +179,13 @@ begin
                 test_loopback_reg <= (others => '0');
                 lane_select_reg <= 0;
                 input_select_reg <= 0;
-            elsif (config_write = '1') then
-                if (config_addr_num = IC_TEST_LOOPBACK_ADDR) then
-                    test_loopback_reg <= config_in_data;
-                elsif (config_addr_num = IC_LANE_SELECT_ADDR) then
-                    lane_select_reg <= to_integer(unsigned(config_in_data));
-                elsif (config_addr_num = IC_INPUT_SELECT_ADDR) then
-                    input_select_reg <= to_integer(unsigned(config_in_data));
+            elsif (pwrite = '1' and psel = '1') then
+                if (paddr_num = IC_TEST_LOOPBACK_ADDR) then
+                    test_loopback_reg <= pwdata;
+                elsif (paddr_num = IC_LANE_SELECT_ADDR) then
+                    lane_select_reg <= to_integer(unsigned(pwdata));
+                elsif (paddr_num = IC_INPUT_SELECT_ADDR) then
+                    input_select_reg <= to_integer(unsigned(pwdata));
                 end if;
             end if;
         end if;
@@ -216,15 +219,15 @@ begin
                     lane_mask <= (others => '0');
                     flow_mask <= (others => '0');
                     egress_masks <= (others => '0');
-                elsif (config_write = '1' and i = input_select_reg) then
-                    if (config_addr_num = IC_LANE_DEST_MASK_ADDR) then
-                        lane_mask <= config_in_data(lane_mask'range);
-                    elsif (config_addr_num = IC_OUTPUT_FLOW_MASK_ADDR) then
-                        flow_mask <= config_in_data(flow_mask'range);
-                    elsif (config_addr_num = IC_OUTPUT_DEST_MASK_ADDR) then
+                elsif (pwrite = '1' and psel = '1' and i = input_select_reg) then
+                    if (paddr_num = IC_LANE_DEST_MASK_ADDR) then
+                        lane_mask <= pwdata(lane_mask'range);
+                    elsif (paddr_num = IC_OUTPUT_FLOW_MASK_ADDR) then
+                        flow_mask <= pwdata(flow_mask'range);
+                    elsif (paddr_num = IC_OUTPUT_DEST_MASK_ADDR) then
                         for j in 0 to NUM_LANES-1 loop
                             if (j = lane_select_reg) then
-                                egress_masks(((j+1)*NUM_OUTPUTS)-1 downto j*NUM_OUTPUTS) <= config_in_data(NUM_OUTPUTS-1 downto 0);
+                                egress_masks(((j+1)*NUM_OUTPUTS)-1 downto j*NUM_OUTPUTS) <= pwdata(NUM_OUTPUTS-1 downto 0);
                             end if;
                         end loop;
                     end if;
