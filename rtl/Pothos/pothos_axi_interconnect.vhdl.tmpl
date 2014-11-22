@@ -1,0 +1,168 @@
+------------------------------------------------------------------------
+-- Pothos Interconnect AXI wrapper
+--
+-- Copyright (c) 2014-2014 Josh Blum
+-- SPDX-License-Identifier: BSL-1.0
+--
+-- Xilinx Vivado style wrapper
+------------------------------------------------------------------------
+
+library ieee;
+use ieee.std_logic_1164.all;
+
+library work;
+
+entity pothos_axi_interconnect is
+    generic(
+
+        -- the data port widths
+        DATA_WIDTH : positive;
+
+        -- the number of input ports
+        NUM_INPUTS : positive;
+
+        -- the number of output ports
+        NUM_OUTPUTS : positive;
+
+        -- The number of internal lanes to generate:
+        -- Additional lanes provide dedicated paths of data flow
+        -- at the expense of increasing resource utilization.
+        NUM_LANES : positive;
+
+        -- Buffer depth for lane entry and exit:
+        -- Small buffers are used within the interconnect to ease timing,
+        -- and to prevent minor contention within the lane in/outgress.
+        FIFO_SIZE : positive := 4
+    );
+    port(
+        aclk : in std_logic;
+        aresetn : in std_logic;
+
+        -- configuration channel
+        s_apb_paddr : in std_logic_vector(31 downto 0);
+        s_apb_psel : in std_logic;
+        s_apb_penable : in std_logic;
+        s_apb_pwrite : in std_logic;
+        s_apb_pwdata : in std_logic_vector(31 downto 0);
+        s_apb_pready : out std_logic;
+        s_apb_prdata : out std_logic_vector(31 downto 0);
+        s_apb_pslverr : out std_logic;
+
+        #for $i in range(32)
+        --slave $i axi stream
+        s$(i)_axis_tvalid : in std_logic;
+        s$(i)_axis_tready : out std_logic;
+        s$(i)_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s$(i)_axis_tlast : in std_logic := '1';
+        s$(i)_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+
+        --master $i axi stream
+        m$(i)_axis_tvalid : out std_logic;
+        m$(i)_axis_tready : in std_logic;
+        m$(i)_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m$(i)_axis_tlast : out std_logic;
+        m$(i)_axis_tuser : out std_logic_vector(0 downto 0);
+
+        #end for
+        --flow control signal bus for masters
+        m_axis_tbegin : out std_logic_vector(NUM_INPUTS-1 downto 0);
+
+        --flow control signal bus for slaves
+        s_axis_tbegin : in std_logic_vector(NUM_INPUTS-1 downto 0) := (others => '1')
+    );
+end entity pothos_axi_interconnect;
+
+architecture rtl of pothos_axi_interconnect is
+    signal arst : std_ulogic;
+
+    signal paddr : std_ulogic_vector(31 downto 0);
+    signal pwdata : std_ulogic_vector(31 downto 0);
+    signal prdata : std_ulogic_vector(31 downto 0);
+
+    signal in_data : std_ulogic_vector((DATA_WIDTH*NUM_INPUTS)-1 downto 0);
+    signal in_meta : std_ulogic_vector(NUM_INPUTS-1 downto 0);
+    signal in_last : std_ulogic_vector(NUM_INPUTS-1 downto 0);
+    signal in_valid : std_ulogic_vector(NUM_INPUTS-1 downto 0);
+    signal in_ready : std_ulogic_vector(NUM_INPUTS-1 downto 0);
+    signal in_begin : std_ulogic_vector(NUM_INPUTS-1 downto 0);
+
+    signal out_data : std_ulogic_vector((DATA_WIDTH*NUM_OUTPUTS)-1 downto 0);
+    signal out_meta : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_last : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_valid : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_ready : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_begin : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+
+begin
+
+    --unused
+    s_apb_pslverr <= '0';
+
+    --activate high reset
+    arst <= not aresetn;
+
+    --control bus
+    paddr <= std_ulogic_vector(s_apb_paddr);
+    pwdata <= std_ulogic_vector(s_apb_pwdata);
+    s_apb_prdata <= std_logic_vector(prdata);
+
+    --flow control
+    out_begin <= std_ulogic_vector(s_axis_tbegin);
+    m_axis_tbegin <= std_logic_vector(in_begin);
+
+    --multi bus signals
+    #for $i in range(32)
+    gen_slave_bus$i:
+    if $i < NUM_INPUTS generate
+        in_data(((DATA_WIDTH*($i+1))-1) downto DATA_WIDTH*$i) <= std_ulogic_vector(s$(i)_axis_tdata);
+        in_meta($i) <= s$(i)_axis_tuser(0);
+        in_last($i) <= s$(i)_axis_tlast;
+        in_valid($i) <= s$(i)_axis_tvalid;
+        s$(i)_axis_tready <= in_ready($i);
+    end generate gen_slave_bus$i;
+
+    gen_master_bus$i:
+    if $i < NUM_INPUTS generate
+        m$(i)_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*($i+1))-1) downto DATA_WIDTH*$i));
+        m$(i)_axis_tuser(0) <= out_meta($i);
+        m$(i)_axis_tlast <= out_last($i);
+        m$(i)_axis_tvalid <= out_valid($i);
+        out_ready($i) <= m$(i)_axis_tready;
+    end generate gen_master_bus$i;
+
+    #end for
+    interconnect: entity work.Interconnect
+    generic map (
+        NUM_INPUTS => NUM_INPUTS,
+        NUM_OUTPUTS => NUM_OUTPUTS,
+        NUM_LANES => NUM_LANES,
+        FIFO_SIZE => FIFO_SIZE
+    )
+    port map (
+        clk => aclk,
+        rst => arst,
+
+        paddr => paddr,
+        psel => s_apb_psel,
+        penable => s_apb_penable,
+        pwrite => s_apb_pwrite,
+        pwdata => pwdata,
+        pready => s_apb_pready,
+        prdata => prdata,
+
+        in_data => in_data,
+        in_meta => in_meta,
+        in_last => in_last,
+        in_valid => in_valid,
+        in_ready => in_ready,
+        in_begin => in_begin,
+
+        out_data => out_data,
+        out_meta => out_meta,
+        out_last => out_last,
+        out_valid => out_valid,
+        out_ready => out_ready,
+        out_begin => out_begin
+    );
+
+end architecture rtl;

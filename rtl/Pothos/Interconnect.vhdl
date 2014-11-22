@@ -62,8 +62,8 @@ use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
 --use interconnect configuration constants
-library PothosInterconnect;
-use PothosInterconnect.InterconnectPkg.all;
+library work;
+use work.InterconnectPkg.all;
 
 entity Interconnect is
     generic(
