@@ -10,7 +10,7 @@ use ieee.numeric_std.all;
 library PothosSimulation;
 use PothosSimulation.ExternalFunctionsPkg.all;
 
-library extras;
+library PothosInterconnect;
 
 entity LoopbackTb is
 end entity LoopbackTb;
@@ -105,7 +105,7 @@ begin
         prdata => prdata
     );
 
-    ram0: entity extras.dual_port_ram
+    ram0: entity PothosInterconnect.dual_port_ram
     generic map (
         MEM_SIZE => 4,
         SYNC_READ => false

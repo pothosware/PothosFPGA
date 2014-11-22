@@ -152,8 +152,8 @@ use ieee.std_logic_textio.all;
 
 use std.textio.all;
 
-library extras;
-use extras.memory.all;
+library work;
+use work.memory.all;
 
 entity rom is
   generic (

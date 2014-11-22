@@ -173,8 +173,8 @@ end architecture;
 library ieee;
 use ieee.std_logic_1164.all;
 
-library extras;
-use extras.synchronizing.bit_synchronizer;
+library work;
+use work.synchronizing.bit_synchronizer;
 
 --## A handshaking synchronizer for sending an array between clock domains
 --#  This uses the four-phase handshake protocol.

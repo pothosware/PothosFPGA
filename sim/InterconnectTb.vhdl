@@ -12,8 +12,6 @@ use PothosSimulation.ExternalFunctionsPkg.all;
 
 library PothosInterconnect;
 
-library extras;
-
 entity InterconnectTb is
 end entity InterconnectTb;
 

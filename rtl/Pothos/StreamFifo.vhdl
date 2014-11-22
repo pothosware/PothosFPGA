@@ -13,7 +13,7 @@
 library ieee;
 use ieee.std_logic_1164.all;
 
-library extras;
+library work;
 
 entity StreamFifo is
     generic(
@@ -72,7 +72,7 @@ begin
         end if;
     end process;
 
-    fifo: entity extras.simple_fifo
+    fifo: entity work.simple_fifo
     generic map (
         MEM_SIZE => MEM_SIZE,
         SYNC_READ => SYNC_READ

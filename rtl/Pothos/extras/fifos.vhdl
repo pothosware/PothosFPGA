@@ -206,8 +206,8 @@ end package;
 library ieee;
 use ieee.std_logic_1164.all;
 
-library extras;
-use extras.memory.dual_port_ram;
+library work;
+use work.memory.dual_port_ram;
 
 entity simple_fifo is
   generic (
@@ -353,10 +353,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library extras;
-use extras.sizing.bit_size;
-use extras.synchronizing.all;
-use extras.memory.dual_port_ram;
+library work;
+use work.sizing.bit_size;
+use work.synchronizing.all;
+use work.memory.dual_port_ram;
 
 entity fifo is
   generic (
@@ -634,10 +634,10 @@ library ieee;
 use ieee.std_logic_1164.all;
 use ieee.numeric_std.all;
 
-library extras;
-use extras.sizing.bit_size;
-use extras.synchronizing.all;
-use extras.memory.dual_port_ram;
+library work;
+use work.sizing.bit_size;
+use work.synchronizing.all;
+use work.memory.dual_port_ram;
 
 entity packet_fifo is
   generic (

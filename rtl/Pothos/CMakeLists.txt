@@ -5,6 +5,10 @@ GHDL_ELABORATE(
     TARGET PothosInterconnect
     LIBRARY PothosInterconnect
     SOURCES
+        extras/sizing.vhdl
+        extras/synchronizing.vhdl
+        extras/memory.vhdl
+        extras/fifos.vhdl
         InterconnectPkg.vhdl
         StreamFifo.vhdl
         StreamInspector.vhdl
@@ -14,7 +18,7 @@ GHDL_ELABORATE(
         LaneOutgress.vhdl
         LaneIngress.vhdl
         Interconnect.vhdl
-    DEPENDS vhdl-extras
+    IEEE synopsys
     ANALYZE_ONLY
     WORKING_DIRECTORY ${PROJECT_BINARY_DIR}
 )
