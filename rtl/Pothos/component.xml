@@ -3593,7 +3593,9 @@
       <spirit:name>S_APB</spirit:name>
       <spirit:busType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="apb" spirit:version="1.0"/>
       <spirit:abstractionType spirit:vendor="xilinx.com" spirit:library="interface" spirit:name="apb_rtl" spirit:version="1.0"/>
-      <spirit:slave/>
+      <spirit:slave>
+        <spirit:memoryMapRef spirit:memoryMapRef="S_APB"/>
+      </spirit:slave>
       <spirit:portMaps>
         <spirit:portMap>
           <spirit:logicalPort>
@@ -3679,7 +3681,7 @@
       <spirit:parameters>
         <spirit:parameter>
           <spirit:name>ASSOCIATED_BUSIF</spirit:name>
-          <spirit:value spirit:format="string" spirit:resolve="immediate" spirit:id="BUSIFPARAM_VALUE.SIGNAL_CLOCK.ASSOCIATED_BUSIF">m00_axis:m10_axis:m11_axis:m12_axis:m13_axis:m14_axis:m15_axis:m16_axis:m17_axis:m18_axis:m19_axis:m01_axis:m20_axis:m21_axis:m22_axis:m23_axis:m24_axis:m25_axis:m26_axis:m27_axis:m28_axis:m29_axis:m02_axis:m30_axis:m31_axis:m03_axis:m04_axis:m05_axis:m06_axis:m07_axis:m08_axis:m09_axis:s00_axis:s10_axis:s11_axis:s12_axis:s13_axis:s14_axis:s15_axis:s16_axis:s17_axis:s18_axis:s19_axis:s01_axis:s20_axis:s21_axis:s22_axis:s23_axis:s24_axis:s25_axis:s26_axis:s27_axis:s28_axis:s29_axis:s02_axis:s30_axis:s31_axis:s03_axis:s04_axis:s05_axis:s06_axis:s07_axis:s08_axis:s09_axis</spirit:value>
+          <spirit:value spirit:format="string" spirit:resolve="immediate" spirit:id="BUSIFPARAM_VALUE.SIGNAL_CLOCK.ASSOCIATED_BUSIF">s_apb:m00_axis:s00_axis:m01_axis:s01_axis:m02_axis:s02_axis:m03_axis:s03_axis:m04_axis:s04_axis:m05_axis:s05_axis:m06_axis:s06_axis:m07_axis:s07_axis:m08_axis:s08_axis:m09_axis:s09_axis:m10_axis:s10_axis:m11_axis:s11_axis:m12_axis:s12_axis:m13_axis:s13_axis:m14_axis:s14_axis:m15_axis:s15_axis:m16_axis:s16_axis:m17_axis:s17_axis:m18_axis:s18_axis:m19_axis:s19_axis:m20_axis:s20_axis:m21_axis:s21_axis:m22_axis:s22_axis:m23_axis:s23_axis:m24_axis:s24_axis:m25_axis:s25_axis:m26_axis:s26_axis:m27_axis:s27_axis:m28_axis:s28_axis:m29_axis:s29_axis:m30_axis:s30_axis:m31_axis:s31_axis</spirit:value>
         </spirit:parameter>
         <spirit:parameter>
           <spirit:name>ASSOCIATED_RESET</spirit:name>
@@ -3710,6 +3712,13 @@
       </spirit:parameters>
     </spirit:busInterface>
   </spirit:busInterfaces>
+  <spirit:memoryMaps>
+    <spirit:memoryMap>
+      <spirit:name>S_APB</spirit:name>
+      <spirit:displayName>Slave APB</spirit:displayName>
+      <spirit:description>Slave configuration interface</spirit:description>
+    </spirit:memoryMap>
+  </spirit:memoryMaps>
   <spirit:model>
     <spirit:views>
       <spirit:view>
@@ -8987,7 +8996,7 @@
       </spirit:file>
     </spirit:fileSet>
   </spirit:fileSets>
-  <spirit:description>pothos_axi_interconnect_v1_0</spirit:description>
+  <spirit:description>Streaming interconnect for Pothos FPGA support</spirit:description>
   <spirit:parameters>
     <spirit:parameter>
       <spirit:name>FIFO_SIZE</spirit:name>
@@ -9026,11 +9035,12 @@
         <xilinx:family xilinx:lifeCycle="Production">zynq</xilinx:family>
       </xilinx:supportedFamilies>
       <xilinx:taxonomies>
+        <xilinx:taxonomy>/AXI_Infrastructure</xilinx:taxonomy>
         <xilinx:taxonomy>/UserIP</xilinx:taxonomy>
       </xilinx:taxonomies>
       <xilinx:displayName>pothos_axi_interconnect_v1_0</xilinx:displayName>
-      <xilinx:coreRevision>2</xilinx:coreRevision>
-      <xilinx:coreCreationDateTime>2014-11-23T02:13:00Z</xilinx:coreCreationDateTime>
+      <xilinx:coreRevision>4</xilinx:coreRevision>
+      <xilinx:coreCreationDateTime>2014-11-23T20:49:06Z</xilinx:coreCreationDateTime>
       <xilinx:tags>
         <xilinx:tag xilinx:name="user.org:user:pothos_axi_interconnect:1.0_ARCHIVE_LOCATION">/home/jblum/src/pothos-fpga/rtl/Pothos</xilinx:tag>
         <xilinx:tag xilinx:name="(none):user:pothos_axi_interconnect:1.0_ARCHIVE_LOCATION">/home/jblum/src/pothos-fpga/rtl/Pothos</xilinx:tag>
@@ -9040,7 +9050,8 @@
     </xilinx:coreExtensions>
     <xilinx:packagingInfo>
       <xilinx:xilinxVersion>2014.3.1</xilinx:xilinxVersion>
-      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="6f689ed3"/>
+      <xilinx:checksum xilinx:scope="busInterfaces" xilinx:value="3c052ea3"/>
+      <xilinx:checksum xilinx:scope="memoryMaps" xilinx:value="25a3a11c"/>
       <xilinx:checksum xilinx:scope="fileGroups" xilinx:value="18df64b1"/>
       <xilinx:checksum xilinx:scope="ports" xilinx:value="ebd7cb1e"/>
       <xilinx:checksum xilinx:scope="hdlParameters" xilinx:value="e9bacc63"/>
