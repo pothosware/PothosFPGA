@@ -16,18 +16,18 @@ entity pothos_axi_interconnect is
     generic(
 
         -- the data port widths
-        DATA_WIDTH : positive;
+        DATA_WIDTH : positive := 32;
 
         -- the number of input ports
-        NUM_INPUTS : positive;
+        NUM_INPUTS : positive := 2;
 
         -- the number of output ports
-        NUM_OUTPUTS : positive;
+        NUM_OUTPUTS : positive := 2;
 
         -- The number of internal lanes to generate:
         -- Additional lanes provide dedicated paths of data flow
         -- at the expense of increasing resource utilization.
-        NUM_LANES : positive;
+        NUM_LANES : positive := 2;
 
         -- Buffer depth for lane entry and exit:
         -- Small buffers are used within the interconnect to ease timing,
@@ -48,145 +48,145 @@ entity pothos_axi_interconnect is
         s_apb_prdata : out std_logic_vector(31 downto 0);
         s_apb_pslverr : out std_logic;
 
-        --slave 0 axi stream
-        s0_axis_tvalid : in std_logic;
-        s0_axis_tready : out std_logic;
-        s0_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s0_axis_tlast : in std_logic := '1';
-        s0_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 00 axi stream
+        s00_axis_tvalid : in std_logic;
+        s00_axis_tready : out std_logic;
+        s00_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s00_axis_tlast : in std_logic := '1';
+        s00_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 0 axi stream
-        m0_axis_tvalid : out std_logic;
-        m0_axis_tready : in std_logic;
-        m0_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m0_axis_tlast : out std_logic;
-        m0_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 00 axi stream
+        m00_axis_tvalid : out std_logic;
+        m00_axis_tready : in std_logic;
+        m00_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m00_axis_tlast : out std_logic;
+        m00_axis_tuser : out std_logic_vector(0 downto 0);
 
-        --slave 1 axi stream
-        s1_axis_tvalid : in std_logic;
-        s1_axis_tready : out std_logic;
-        s1_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s1_axis_tlast : in std_logic := '1';
-        s1_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 01 axi stream
+        s01_axis_tvalid : in std_logic;
+        s01_axis_tready : out std_logic;
+        s01_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s01_axis_tlast : in std_logic := '1';
+        s01_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 1 axi stream
-        m1_axis_tvalid : out std_logic;
-        m1_axis_tready : in std_logic;
-        m1_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m1_axis_tlast : out std_logic;
-        m1_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 01 axi stream
+        m01_axis_tvalid : out std_logic;
+        m01_axis_tready : in std_logic;
+        m01_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m01_axis_tlast : out std_logic;
+        m01_axis_tuser : out std_logic_vector(0 downto 0);
 
-        --slave 2 axi stream
-        s2_axis_tvalid : in std_logic;
-        s2_axis_tready : out std_logic;
-        s2_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s2_axis_tlast : in std_logic := '1';
-        s2_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 02 axi stream
+        s02_axis_tvalid : in std_logic;
+        s02_axis_tready : out std_logic;
+        s02_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s02_axis_tlast : in std_logic := '1';
+        s02_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 2 axi stream
-        m2_axis_tvalid : out std_logic;
-        m2_axis_tready : in std_logic;
-        m2_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m2_axis_tlast : out std_logic;
-        m2_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 02 axi stream
+        m02_axis_tvalid : out std_logic;
+        m02_axis_tready : in std_logic;
+        m02_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m02_axis_tlast : out std_logic;
+        m02_axis_tuser : out std_logic_vector(0 downto 0);
 
-        --slave 3 axi stream
-        s3_axis_tvalid : in std_logic;
-        s3_axis_tready : out std_logic;
-        s3_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s3_axis_tlast : in std_logic := '1';
-        s3_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 03 axi stream
+        s03_axis_tvalid : in std_logic;
+        s03_axis_tready : out std_logic;
+        s03_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s03_axis_tlast : in std_logic := '1';
+        s03_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 3 axi stream
-        m3_axis_tvalid : out std_logic;
-        m3_axis_tready : in std_logic;
-        m3_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m3_axis_tlast : out std_logic;
-        m3_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 03 axi stream
+        m03_axis_tvalid : out std_logic;
+        m03_axis_tready : in std_logic;
+        m03_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m03_axis_tlast : out std_logic;
+        m03_axis_tuser : out std_logic_vector(0 downto 0);
 
-        --slave 4 axi stream
-        s4_axis_tvalid : in std_logic;
-        s4_axis_tready : out std_logic;
-        s4_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s4_axis_tlast : in std_logic := '1';
-        s4_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 04 axi stream
+        s04_axis_tvalid : in std_logic;
+        s04_axis_tready : out std_logic;
+        s04_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s04_axis_tlast : in std_logic := '1';
+        s04_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 4 axi stream
-        m4_axis_tvalid : out std_logic;
-        m4_axis_tready : in std_logic;
-        m4_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m4_axis_tlast : out std_logic;
-        m4_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 04 axi stream
+        m04_axis_tvalid : out std_logic;
+        m04_axis_tready : in std_logic;
+        m04_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m04_axis_tlast : out std_logic;
+        m04_axis_tuser : out std_logic_vector(0 downto 0);
 
-        --slave 5 axi stream
-        s5_axis_tvalid : in std_logic;
-        s5_axis_tready : out std_logic;
-        s5_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s5_axis_tlast : in std_logic := '1';
-        s5_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 05 axi stream
+        s05_axis_tvalid : in std_logic;
+        s05_axis_tready : out std_logic;
+        s05_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s05_axis_tlast : in std_logic := '1';
+        s05_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 5 axi stream
-        m5_axis_tvalid : out std_logic;
-        m5_axis_tready : in std_logic;
-        m5_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m5_axis_tlast : out std_logic;
-        m5_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 05 axi stream
+        m05_axis_tvalid : out std_logic;
+        m05_axis_tready : in std_logic;
+        m05_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m05_axis_tlast : out std_logic;
+        m05_axis_tuser : out std_logic_vector(0 downto 0);
 
-        --slave 6 axi stream
-        s6_axis_tvalid : in std_logic;
-        s6_axis_tready : out std_logic;
-        s6_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s6_axis_tlast : in std_logic := '1';
-        s6_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 06 axi stream
+        s06_axis_tvalid : in std_logic;
+        s06_axis_tready : out std_logic;
+        s06_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s06_axis_tlast : in std_logic := '1';
+        s06_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 6 axi stream
-        m6_axis_tvalid : out std_logic;
-        m6_axis_tready : in std_logic;
-        m6_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m6_axis_tlast : out std_logic;
-        m6_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 06 axi stream
+        m06_axis_tvalid : out std_logic;
+        m06_axis_tready : in std_logic;
+        m06_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m06_axis_tlast : out std_logic;
+        m06_axis_tuser : out std_logic_vector(0 downto 0);
 
-        --slave 7 axi stream
-        s7_axis_tvalid : in std_logic;
-        s7_axis_tready : out std_logic;
-        s7_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s7_axis_tlast : in std_logic := '1';
-        s7_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 07 axi stream
+        s07_axis_tvalid : in std_logic;
+        s07_axis_tready : out std_logic;
+        s07_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s07_axis_tlast : in std_logic := '1';
+        s07_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 7 axi stream
-        m7_axis_tvalid : out std_logic;
-        m7_axis_tready : in std_logic;
-        m7_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m7_axis_tlast : out std_logic;
-        m7_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 07 axi stream
+        m07_axis_tvalid : out std_logic;
+        m07_axis_tready : in std_logic;
+        m07_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m07_axis_tlast : out std_logic;
+        m07_axis_tuser : out std_logic_vector(0 downto 0);
 
-        --slave 8 axi stream
-        s8_axis_tvalid : in std_logic;
-        s8_axis_tready : out std_logic;
-        s8_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s8_axis_tlast : in std_logic := '1';
-        s8_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 08 axi stream
+        s08_axis_tvalid : in std_logic;
+        s08_axis_tready : out std_logic;
+        s08_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s08_axis_tlast : in std_logic := '1';
+        s08_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 8 axi stream
-        m8_axis_tvalid : out std_logic;
-        m8_axis_tready : in std_logic;
-        m8_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m8_axis_tlast : out std_logic;
-        m8_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 08 axi stream
+        m08_axis_tvalid : out std_logic;
+        m08_axis_tready : in std_logic;
+        m08_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m08_axis_tlast : out std_logic;
+        m08_axis_tuser : out std_logic_vector(0 downto 0);
 
-        --slave 9 axi stream
-        s9_axis_tvalid : in std_logic;
-        s9_axis_tready : out std_logic;
-        s9_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s9_axis_tlast : in std_logic := '1';
-        s9_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+        --slave 09 axi stream
+        s09_axis_tvalid : in std_logic;
+        s09_axis_tready : out std_logic;
+        s09_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s09_axis_tlast : in std_logic := '1';
+        s09_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master 9 axi stream
-        m9_axis_tvalid : out std_logic;
-        m9_axis_tready : in std_logic;
-        m9_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m9_axis_tlast : out std_logic;
-        m9_axis_tuser : out std_logic_vector(0 downto 0);
+        --master 09 axi stream
+        m09_axis_tvalid : out std_logic;
+        m09_axis_tready : in std_logic;
+        m09_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m09_axis_tlast : out std_logic;
+        m09_axis_tuser : out std_logic_vector(0 downto 0);
 
         --slave 10 axi stream
         s10_axis_tvalid : in std_logic;
@@ -543,185 +543,185 @@ begin
     m_axis_tbegin <= std_logic_vector(in_begin);
 
     --multi bus signals
-    gen_slave_bus0:
+    gen_slave_bus00:
     if 0 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(0+1))-1) downto DATA_WIDTH*0) <= std_ulogic_vector(s0_axis_tdata);
-        in_meta(0) <= s0_axis_tuser(0);
-        in_last(0) <= s0_axis_tlast;
-        in_valid(0) <= s0_axis_tvalid;
-        s0_axis_tready <= in_ready(0);
-    end generate gen_slave_bus0;
+        in_data(((DATA_WIDTH*(0+1))-1) downto DATA_WIDTH*0) <= std_ulogic_vector(s00_axis_tdata);
+        in_meta(0) <= s00_axis_tuser(0);
+        in_last(0) <= s00_axis_tlast;
+        in_valid(0) <= s00_axis_tvalid;
+        s00_axis_tready <= in_ready(0);
+    end generate gen_slave_bus00;
 
-    gen_master_bus0:
+    gen_master_bus00:
     if 0 < NUM_INPUTS generate
-        m0_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(0+1))-1) downto DATA_WIDTH*0));
-        m0_axis_tuser(0) <= out_meta(0);
-        m0_axis_tlast <= out_last(0);
-        m0_axis_tvalid <= out_valid(0);
-        out_ready(0) <= m0_axis_tready;
-    end generate gen_master_bus0;
+        m00_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(0+1))-1) downto DATA_WIDTH*0));
+        m00_axis_tuser(0) <= out_meta(0);
+        m00_axis_tlast <= out_last(0);
+        m00_axis_tvalid <= out_valid(0);
+        out_ready(0) <= m00_axis_tready;
+    end generate gen_master_bus00;
 
-    gen_slave_bus1:
+    gen_slave_bus01:
     if 1 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(1+1))-1) downto DATA_WIDTH*1) <= std_ulogic_vector(s1_axis_tdata);
-        in_meta(1) <= s1_axis_tuser(0);
-        in_last(1) <= s1_axis_tlast;
-        in_valid(1) <= s1_axis_tvalid;
-        s1_axis_tready <= in_ready(1);
-    end generate gen_slave_bus1;
+        in_data(((DATA_WIDTH*(1+1))-1) downto DATA_WIDTH*1) <= std_ulogic_vector(s01_axis_tdata);
+        in_meta(1) <= s01_axis_tuser(0);
+        in_last(1) <= s01_axis_tlast;
+        in_valid(1) <= s01_axis_tvalid;
+        s01_axis_tready <= in_ready(1);
+    end generate gen_slave_bus01;
 
-    gen_master_bus1:
+    gen_master_bus01:
     if 1 < NUM_INPUTS generate
-        m1_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(1+1))-1) downto DATA_WIDTH*1));
-        m1_axis_tuser(0) <= out_meta(1);
-        m1_axis_tlast <= out_last(1);
-        m1_axis_tvalid <= out_valid(1);
-        out_ready(1) <= m1_axis_tready;
-    end generate gen_master_bus1;
+        m01_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(1+1))-1) downto DATA_WIDTH*1));
+        m01_axis_tuser(0) <= out_meta(1);
+        m01_axis_tlast <= out_last(1);
+        m01_axis_tvalid <= out_valid(1);
+        out_ready(1) <= m01_axis_tready;
+    end generate gen_master_bus01;
 
-    gen_slave_bus2:
+    gen_slave_bus02:
     if 2 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(2+1))-1) downto DATA_WIDTH*2) <= std_ulogic_vector(s2_axis_tdata);
-        in_meta(2) <= s2_axis_tuser(0);
-        in_last(2) <= s2_axis_tlast;
-        in_valid(2) <= s2_axis_tvalid;
-        s2_axis_tready <= in_ready(2);
-    end generate gen_slave_bus2;
+        in_data(((DATA_WIDTH*(2+1))-1) downto DATA_WIDTH*2) <= std_ulogic_vector(s02_axis_tdata);
+        in_meta(2) <= s02_axis_tuser(0);
+        in_last(2) <= s02_axis_tlast;
+        in_valid(2) <= s02_axis_tvalid;
+        s02_axis_tready <= in_ready(2);
+    end generate gen_slave_bus02;
 
-    gen_master_bus2:
+    gen_master_bus02:
     if 2 < NUM_INPUTS generate
-        m2_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(2+1))-1) downto DATA_WIDTH*2));
-        m2_axis_tuser(0) <= out_meta(2);
-        m2_axis_tlast <= out_last(2);
-        m2_axis_tvalid <= out_valid(2);
-        out_ready(2) <= m2_axis_tready;
-    end generate gen_master_bus2;
+        m02_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(2+1))-1) downto DATA_WIDTH*2));
+        m02_axis_tuser(0) <= out_meta(2);
+        m02_axis_tlast <= out_last(2);
+        m02_axis_tvalid <= out_valid(2);
+        out_ready(2) <= m02_axis_tready;
+    end generate gen_master_bus02;
 
-    gen_slave_bus3:
+    gen_slave_bus03:
     if 3 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(3+1))-1) downto DATA_WIDTH*3) <= std_ulogic_vector(s3_axis_tdata);
-        in_meta(3) <= s3_axis_tuser(0);
-        in_last(3) <= s3_axis_tlast;
-        in_valid(3) <= s3_axis_tvalid;
-        s3_axis_tready <= in_ready(3);
-    end generate gen_slave_bus3;
+        in_data(((DATA_WIDTH*(3+1))-1) downto DATA_WIDTH*3) <= std_ulogic_vector(s03_axis_tdata);
+        in_meta(3) <= s03_axis_tuser(0);
+        in_last(3) <= s03_axis_tlast;
+        in_valid(3) <= s03_axis_tvalid;
+        s03_axis_tready <= in_ready(3);
+    end generate gen_slave_bus03;
 
-    gen_master_bus3:
+    gen_master_bus03:
     if 3 < NUM_INPUTS generate
-        m3_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(3+1))-1) downto DATA_WIDTH*3));
-        m3_axis_tuser(0) <= out_meta(3);
-        m3_axis_tlast <= out_last(3);
-        m3_axis_tvalid <= out_valid(3);
-        out_ready(3) <= m3_axis_tready;
-    end generate gen_master_bus3;
+        m03_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(3+1))-1) downto DATA_WIDTH*3));
+        m03_axis_tuser(0) <= out_meta(3);
+        m03_axis_tlast <= out_last(3);
+        m03_axis_tvalid <= out_valid(3);
+        out_ready(3) <= m03_axis_tready;
+    end generate gen_master_bus03;
 
-    gen_slave_bus4:
+    gen_slave_bus04:
     if 4 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(4+1))-1) downto DATA_WIDTH*4) <= std_ulogic_vector(s4_axis_tdata);
-        in_meta(4) <= s4_axis_tuser(0);
-        in_last(4) <= s4_axis_tlast;
-        in_valid(4) <= s4_axis_tvalid;
-        s4_axis_tready <= in_ready(4);
-    end generate gen_slave_bus4;
+        in_data(((DATA_WIDTH*(4+1))-1) downto DATA_WIDTH*4) <= std_ulogic_vector(s04_axis_tdata);
+        in_meta(4) <= s04_axis_tuser(0);
+        in_last(4) <= s04_axis_tlast;
+        in_valid(4) <= s04_axis_tvalid;
+        s04_axis_tready <= in_ready(4);
+    end generate gen_slave_bus04;
 
-    gen_master_bus4:
+    gen_master_bus04:
     if 4 < NUM_INPUTS generate
-        m4_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(4+1))-1) downto DATA_WIDTH*4));
-        m4_axis_tuser(0) <= out_meta(4);
-        m4_axis_tlast <= out_last(4);
-        m4_axis_tvalid <= out_valid(4);
-        out_ready(4) <= m4_axis_tready;
-    end generate gen_master_bus4;
+        m04_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(4+1))-1) downto DATA_WIDTH*4));
+        m04_axis_tuser(0) <= out_meta(4);
+        m04_axis_tlast <= out_last(4);
+        m04_axis_tvalid <= out_valid(4);
+        out_ready(4) <= m04_axis_tready;
+    end generate gen_master_bus04;
 
-    gen_slave_bus5:
+    gen_slave_bus05:
     if 5 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(5+1))-1) downto DATA_WIDTH*5) <= std_ulogic_vector(s5_axis_tdata);
-        in_meta(5) <= s5_axis_tuser(0);
-        in_last(5) <= s5_axis_tlast;
-        in_valid(5) <= s5_axis_tvalid;
-        s5_axis_tready <= in_ready(5);
-    end generate gen_slave_bus5;
+        in_data(((DATA_WIDTH*(5+1))-1) downto DATA_WIDTH*5) <= std_ulogic_vector(s05_axis_tdata);
+        in_meta(5) <= s05_axis_tuser(0);
+        in_last(5) <= s05_axis_tlast;
+        in_valid(5) <= s05_axis_tvalid;
+        s05_axis_tready <= in_ready(5);
+    end generate gen_slave_bus05;
 
-    gen_master_bus5:
+    gen_master_bus05:
     if 5 < NUM_INPUTS generate
-        m5_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(5+1))-1) downto DATA_WIDTH*5));
-        m5_axis_tuser(0) <= out_meta(5);
-        m5_axis_tlast <= out_last(5);
-        m5_axis_tvalid <= out_valid(5);
-        out_ready(5) <= m5_axis_tready;
-    end generate gen_master_bus5;
+        m05_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(5+1))-1) downto DATA_WIDTH*5));
+        m05_axis_tuser(0) <= out_meta(5);
+        m05_axis_tlast <= out_last(5);
+        m05_axis_tvalid <= out_valid(5);
+        out_ready(5) <= m05_axis_tready;
+    end generate gen_master_bus05;
 
-    gen_slave_bus6:
+    gen_slave_bus06:
     if 6 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(6+1))-1) downto DATA_WIDTH*6) <= std_ulogic_vector(s6_axis_tdata);
-        in_meta(6) <= s6_axis_tuser(0);
-        in_last(6) <= s6_axis_tlast;
-        in_valid(6) <= s6_axis_tvalid;
-        s6_axis_tready <= in_ready(6);
-    end generate gen_slave_bus6;
+        in_data(((DATA_WIDTH*(6+1))-1) downto DATA_WIDTH*6) <= std_ulogic_vector(s06_axis_tdata);
+        in_meta(6) <= s06_axis_tuser(0);
+        in_last(6) <= s06_axis_tlast;
+        in_valid(6) <= s06_axis_tvalid;
+        s06_axis_tready <= in_ready(6);
+    end generate gen_slave_bus06;
 
-    gen_master_bus6:
+    gen_master_bus06:
     if 6 < NUM_INPUTS generate
-        m6_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(6+1))-1) downto DATA_WIDTH*6));
-        m6_axis_tuser(0) <= out_meta(6);
-        m6_axis_tlast <= out_last(6);
-        m6_axis_tvalid <= out_valid(6);
-        out_ready(6) <= m6_axis_tready;
-    end generate gen_master_bus6;
+        m06_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(6+1))-1) downto DATA_WIDTH*6));
+        m06_axis_tuser(0) <= out_meta(6);
+        m06_axis_tlast <= out_last(6);
+        m06_axis_tvalid <= out_valid(6);
+        out_ready(6) <= m06_axis_tready;
+    end generate gen_master_bus06;
 
-    gen_slave_bus7:
+    gen_slave_bus07:
     if 7 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(7+1))-1) downto DATA_WIDTH*7) <= std_ulogic_vector(s7_axis_tdata);
-        in_meta(7) <= s7_axis_tuser(0);
-        in_last(7) <= s7_axis_tlast;
-        in_valid(7) <= s7_axis_tvalid;
-        s7_axis_tready <= in_ready(7);
-    end generate gen_slave_bus7;
+        in_data(((DATA_WIDTH*(7+1))-1) downto DATA_WIDTH*7) <= std_ulogic_vector(s07_axis_tdata);
+        in_meta(7) <= s07_axis_tuser(0);
+        in_last(7) <= s07_axis_tlast;
+        in_valid(7) <= s07_axis_tvalid;
+        s07_axis_tready <= in_ready(7);
+    end generate gen_slave_bus07;
 
-    gen_master_bus7:
+    gen_master_bus07:
     if 7 < NUM_INPUTS generate
-        m7_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(7+1))-1) downto DATA_WIDTH*7));
-        m7_axis_tuser(0) <= out_meta(7);
-        m7_axis_tlast <= out_last(7);
-        m7_axis_tvalid <= out_valid(7);
-        out_ready(7) <= m7_axis_tready;
-    end generate gen_master_bus7;
+        m07_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(7+1))-1) downto DATA_WIDTH*7));
+        m07_axis_tuser(0) <= out_meta(7);
+        m07_axis_tlast <= out_last(7);
+        m07_axis_tvalid <= out_valid(7);
+        out_ready(7) <= m07_axis_tready;
+    end generate gen_master_bus07;
 
-    gen_slave_bus8:
+    gen_slave_bus08:
     if 8 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(8+1))-1) downto DATA_WIDTH*8) <= std_ulogic_vector(s8_axis_tdata);
-        in_meta(8) <= s8_axis_tuser(0);
-        in_last(8) <= s8_axis_tlast;
-        in_valid(8) <= s8_axis_tvalid;
-        s8_axis_tready <= in_ready(8);
-    end generate gen_slave_bus8;
+        in_data(((DATA_WIDTH*(8+1))-1) downto DATA_WIDTH*8) <= std_ulogic_vector(s08_axis_tdata);
+        in_meta(8) <= s08_axis_tuser(0);
+        in_last(8) <= s08_axis_tlast;
+        in_valid(8) <= s08_axis_tvalid;
+        s08_axis_tready <= in_ready(8);
+    end generate gen_slave_bus08;
 
-    gen_master_bus8:
+    gen_master_bus08:
     if 8 < NUM_INPUTS generate
-        m8_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(8+1))-1) downto DATA_WIDTH*8));
-        m8_axis_tuser(0) <= out_meta(8);
-        m8_axis_tlast <= out_last(8);
-        m8_axis_tvalid <= out_valid(8);
-        out_ready(8) <= m8_axis_tready;
-    end generate gen_master_bus8;
+        m08_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(8+1))-1) downto DATA_WIDTH*8));
+        m08_axis_tuser(0) <= out_meta(8);
+        m08_axis_tlast <= out_last(8);
+        m08_axis_tvalid <= out_valid(8);
+        out_ready(8) <= m08_axis_tready;
+    end generate gen_master_bus08;
 
-    gen_slave_bus9:
+    gen_slave_bus09:
     if 9 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(9+1))-1) downto DATA_WIDTH*9) <= std_ulogic_vector(s9_axis_tdata);
-        in_meta(9) <= s9_axis_tuser(0);
-        in_last(9) <= s9_axis_tlast;
-        in_valid(9) <= s9_axis_tvalid;
-        s9_axis_tready <= in_ready(9);
-    end generate gen_slave_bus9;
+        in_data(((DATA_WIDTH*(9+1))-1) downto DATA_WIDTH*9) <= std_ulogic_vector(s09_axis_tdata);
+        in_meta(9) <= s09_axis_tuser(0);
+        in_last(9) <= s09_axis_tlast;
+        in_valid(9) <= s09_axis_tvalid;
+        s09_axis_tready <= in_ready(9);
+    end generate gen_slave_bus09;
 
-    gen_master_bus9:
+    gen_master_bus09:
     if 9 < NUM_INPUTS generate
-        m9_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(9+1))-1) downto DATA_WIDTH*9));
-        m9_axis_tuser(0) <= out_meta(9);
-        m9_axis_tlast <= out_last(9);
-        m9_axis_tvalid <= out_valid(9);
-        out_ready(9) <= m9_axis_tready;
-    end generate gen_master_bus9;
+        m09_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*(9+1))-1) downto DATA_WIDTH*9));
+        m09_axis_tuser(0) <= out_meta(9);
+        m09_axis_tlast <= out_last(9);
+        m09_axis_tvalid <= out_valid(9);
+        out_ready(9) <= m09_axis_tready;
+    end generate gen_master_bus09;
 
     gen_slave_bus10:
     if 10 < NUM_INPUTS generate

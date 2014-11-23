@@ -16,18 +16,18 @@ entity pothos_axi_interconnect is
     generic(
 
         -- the data port widths
-        DATA_WIDTH : positive;
+        DATA_WIDTH : positive := 32;
 
         -- the number of input ports
-        NUM_INPUTS : positive;
+        NUM_INPUTS : positive := 2;
 
         -- the number of output ports
-        NUM_OUTPUTS : positive;
+        NUM_OUTPUTS : positive := 2;
 
         -- The number of internal lanes to generate:
         -- Additional lanes provide dedicated paths of data flow
         -- at the expense of increasing resource utilization.
-        NUM_LANES : positive;
+        NUM_LANES : positive := 2;
 
         -- Buffer depth for lane entry and exit:
         -- Small buffers are used within the interconnect to ease timing,
@@ -49,19 +49,20 @@ entity pothos_axi_interconnect is
         s_apb_pslverr : out std_logic;
 
         #for $i in range(32)
-        --slave $i axi stream
-        s$(i)_axis_tvalid : in std_logic;
-        s$(i)_axis_tready : out std_logic;
-        s$(i)_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
-        s$(i)_axis_tlast : in std_logic := '1';
-        s$(i)_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
+            #set $n = str($i).zfill(2)
+        --slave $n axi stream
+        s$(n)_axis_tvalid : in std_logic;
+        s$(n)_axis_tready : out std_logic;
+        s$(n)_axis_tdata : in std_logic_vector(DATA_WIDTH-1 downto 0);
+        s$(n)_axis_tlast : in std_logic := '1';
+        s$(n)_axis_tuser : in std_logic_vector(0 downto 0) := (others => '0');
 
-        --master $i axi stream
-        m$(i)_axis_tvalid : out std_logic;
-        m$(i)_axis_tready : in std_logic;
-        m$(i)_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
-        m$(i)_axis_tlast : out std_logic;
-        m$(i)_axis_tuser : out std_logic_vector(0 downto 0);
+        --master $n axi stream
+        m$(n)_axis_tvalid : out std_logic;
+        m$(n)_axis_tready : in std_logic;
+        m$(n)_axis_tdata : out std_logic_vector(DATA_WIDTH-1 downto 0);
+        m$(n)_axis_tlast : out std_logic;
+        m$(n)_axis_tuser : out std_logic_vector(0 downto 0);
 
         #end for
         --flow control signal bus for masters
@@ -112,23 +113,24 @@ begin
 
     --multi bus signals
     #for $i in range(32)
-    gen_slave_bus$i:
+        #set $n = str($i).zfill(2)
+    gen_slave_bus$n:
     if $i < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*($i+1))-1) downto DATA_WIDTH*$i) <= std_ulogic_vector(s$(i)_axis_tdata);
-        in_meta($i) <= s$(i)_axis_tuser(0);
-        in_last($i) <= s$(i)_axis_tlast;
-        in_valid($i) <= s$(i)_axis_tvalid;
-        s$(i)_axis_tready <= in_ready($i);
-    end generate gen_slave_bus$i;
+        in_data(((DATA_WIDTH*($i+1))-1) downto DATA_WIDTH*$i) <= std_ulogic_vector(s$(n)_axis_tdata);
+        in_meta($i) <= s$(n)_axis_tuser(0);
+        in_last($i) <= s$(n)_axis_tlast;
+        in_valid($i) <= s$(n)_axis_tvalid;
+        s$(n)_axis_tready <= in_ready($i);
+    end generate gen_slave_bus$n;
 
-    gen_master_bus$i:
+    gen_master_bus$n:
     if $i < NUM_INPUTS generate
-        m$(i)_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*($i+1))-1) downto DATA_WIDTH*$i));
-        m$(i)_axis_tuser(0) <= out_meta($i);
-        m$(i)_axis_tlast <= out_last($i);
-        m$(i)_axis_tvalid <= out_valid($i);
-        out_ready($i) <= m$(i)_axis_tready;
-    end generate gen_master_bus$i;
+        m$(n)_axis_tdata <= std_logic_vector(out_data(((DATA_WIDTH*($i+1))-1) downto DATA_WIDTH*$i));
+        m$(n)_axis_tuser(0) <= out_meta($i);
+        m$(n)_axis_tlast <= out_last($i);
+        m$(n)_axis_tvalid <= out_valid($i);
+        out_ready($i) <= m$(n)_axis_tready;
+    end generate gen_master_bus$n;
 
     #end for
     interconnect: entity work.Interconnect
