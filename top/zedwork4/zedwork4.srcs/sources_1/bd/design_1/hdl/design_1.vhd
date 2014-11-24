@@ -1,7 +1,7 @@
 --Copyright 1986-2014 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
 --Tool Version: Vivado v.2014.3.1 (lin64) Build 1056140 Thu Oct 30 16:30:39 MDT 2014
---Date        : Sun Nov 23 17:10:24 2014
+--Date        : Sun Nov 23 18:11:56 2014
 --Host        : blarg running 64-bit Ubuntu 14.04.1 LTS
 --Command     : generate_target design_1.bd
 --Design      : design_1
@@ -1926,7 +1926,6 @@ architecture STRUCTURE of design_1_axi_mem_intercon_0 is
   signal S01_ARESETN_1 : STD_LOGIC_VECTOR ( 0 to 0 );
   signal S02_ACLK_1 : STD_LOGIC;
   signal S02_ARESETN_1 : STD_LOGIC_VECTOR ( 0 to 0 );
-  signal VCC_1 : STD_LOGIC;
   signal axi_mem_intercon_ACLK_net : STD_LOGIC;
   signal axi_mem_intercon_ARESETN_net : STD_LOGIC_VECTOR ( 0 to 0 );
   signal axi_mem_intercon_to_s00_couplers_ARADDR : STD_LOGIC_VECTOR ( 31 downto 0 );
@@ -2251,10 +2250,6 @@ begin
 GND: unisim.vcomponents.GND
     port map (
       G => GND_1
-    );
-VCC: unisim.vcomponents.VCC
-    port map (
-      P => VCC_1
     );
 m00_couplers: entity work.m00_couplers_imp_1R706YB
     port map (
@@ -2749,7 +2744,7 @@ xbar: component design_1_xbar_0
       s_axi_wdata(106) => GND_1,
       s_axi_wdata(105) => GND_1,
       s_axi_wdata(104) => GND_1,
-      s_axi_wdata(103) => VCC_1,
+      s_axi_wdata(103) => GND_1,
       s_axi_wdata(102) => GND_1,
       s_axi_wdata(101) => GND_1,
       s_axi_wdata(100) => GND_1,
