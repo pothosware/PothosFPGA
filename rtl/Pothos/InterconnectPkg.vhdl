@@ -64,17 +64,17 @@ end InterconnectPkg;
 package body InterconnectPkg is
 
     --increment on breaking changes
-    constant IC_VERSION : natural := 1;
+    constant IC_VERSION : natural := 16#00010000#;
 
-    constant IC_VERSION_ADDR : natural := 5;
-    constant IC_NUM_LANES_ADDR : natural := 6;
-    constant IC_NUM_INPUTS_ADDR : natural := 7;
-    constant IC_NUM_OUTPUTS_ADDR : natural := 8;
-    constant IC_TEST_LOOPBACK_ADDR : natural := 9;
-    constant IC_LANE_SELECT_ADDR : natural := 10;
-    constant IC_INPUT_SELECT_ADDR : natural := 11;
-    constant IC_LANE_DEST_MASK_ADDR : natural := 12;
-    constant IC_OUTPUT_DEST_MASK_ADDR : natural := 13;
-    constant IC_OUTPUT_FLOW_MASK_ADDR : natural := 14;
+    constant IC_VERSION_ADDR : natural := 20;
+    constant IC_NUM_LANES_ADDR : natural :=24;
+    constant IC_NUM_INPUTS_ADDR : natural := 28;
+    constant IC_NUM_OUTPUTS_ADDR : natural := 32;
+    constant IC_TEST_LOOPBACK_ADDR : natural := 36;
+    constant IC_LANE_SELECT_ADDR : natural := 40;
+    constant IC_INPUT_SELECT_ADDR : natural := 44;
+    constant IC_LANE_DEST_MASK_ADDR : natural := 48;
+    constant IC_OUTPUT_DEST_MASK_ADDR : natural := 52;
+    constant IC_OUTPUT_FLOW_MASK_ADDR : natural := 56;
 
 end InterconnectPkg;

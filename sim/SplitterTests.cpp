@@ -8,6 +8,8 @@
 #include <Poco/JSON/Object.h>
 #include <iostream>
 
+static const int ENABLE_ADDR = 20;
+
 POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_1x)
 {
     //create client environment
@@ -106,7 +108,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_2x)
         auto collector1 = registry.callProxy("/blocks/collector_sink", "int");
 
         //write the enables register at addr = 1
-        SimulationHarness.callVoid("writeControl", 0, 1, enables);
+        SimulationHarness.callVoid("writeControl", 0, ENABLE_ADDR, enables);
 
         //create a test plan
         Poco::JSON::Object::Ptr testPlan(new Poco::JSON::Object());
@@ -160,7 +162,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_packet_splitter_2x)
         auto p2s1 = registry.callProxy("/blocks/packet_to_stream");
 
         //write the enables register at addr = 1
-        SimulationHarness.callVoid("writeControl", 0, 1, enables);
+        SimulationHarness.callVoid("writeControl", 0, ENABLE_ADDR, enables);
 
         //create a test plan
         Poco::JSON::Object::Ptr testPlan(new Poco::JSON::Object());

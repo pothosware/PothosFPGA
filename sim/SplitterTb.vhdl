@@ -127,7 +127,7 @@ begin
     process (clk) begin
         if (rst = '1') then
             enables1 <= (others => '0');
-        elsif (ctrl1_psel = '1' and ctrl1_pwrite = '1' and to_integer(signed(ctrl1_paddr)) = 1) then
+        elsif (ctrl1_psel = '1' and ctrl1_pwrite = '1' and to_integer(signed(ctrl1_paddr)) = 20) then
             enables1 <= ctrl1_pwdata(1 downto 0);
         end if;
     end process;

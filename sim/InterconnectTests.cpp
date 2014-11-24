@@ -9,16 +9,17 @@
 #include <iostream>
 #include <cstdlib>
 
-static const int IC_VERSION = 1;
-static const int IC_VERSION_ADDR = 5;
-static const int IC_NUM_LANES_ADDR = 6;
-static const int IC_NUM_INPUTS_ADDR = 7;
-static const int IC_NUM_OUTPUTS_ADDR = 8;
-static const int IC_TEST_LOOPBACK_ADDR = 9;
-static const int IC_LANE_SELECT_ADDR = 10;
-static const int IC_INPUT_SELECT_ADDR = 11;
-static const int IC_LANE_DEST_MASK_ADDR = 12;
-static const int IC_OUTPUT_DEST_MASK_ADDR = 13;
+static const int IC_VERSION = 0x00010000;
+static const int IC_VERSION_ADDR = 20;
+static const int IC_NUM_LANES_ADDR = 24;
+static const int IC_NUM_INPUTS_ADDR = 28;
+static const int IC_NUM_OUTPUTS_ADDR = 32;
+static const int IC_TEST_LOOPBACK_ADDR = 36;
+static const int IC_LANE_SELECT_ADDR = 40;
+static const int IC_INPUT_SELECT_ADDR = 44;
+static const int IC_LANE_DEST_MASK_ADDR = 48;
+static const int IC_OUTPUT_DEST_MASK_ADDR = 52;
+static const int IC_OUTPUT_FLOW_MASK_ADDR = 56;
 
 POTHOS_TEST_BLOCK("/fpga/tests", test_interconnect_121)
 {
