@@ -2,6 +2,7 @@
  * AXI DMA v7.1 userspace driver for Scatter/Gather mode
  **********************************************************************/
 
+#pragma once
 #include <stddef.h>
 #include <stdint.h>
 
@@ -30,7 +31,6 @@ typedef struct
     //-- state variables below, do not touch!
     //------------------------------------------------------------------
 
-    int memfd; //!< /dev/mem fd
     void *mapped_register_base;
     void *mapped_shared_base;
     struct xilinx_dma_desc_sg *mm2s_descs;
@@ -47,8 +47,7 @@ typedef struct
 #define XUDMA_OK 0
 #define XUDMA_ERROR_COMMS -1 //!< cant communicate with engine
 #define XUDMA_ERROR_TIMEOUT -2 //!< wait timeout or loop timeout
-#define XUDMA_ERROR_OPEN -3 //!< error calling open()/close()
-#define XUDMA_ERROR_MMAP -4 //!< error calling mmap()/munmap()
+#define XUDMA_ERROR_MAP -4 //!< error calling mmap()/munmap()
 #define XUDMA_ERROR_ALLOC -5 //!< error allocating DMA buffers
 #define XUDMA_ERROR_CLAIMED -6 //!< all buffers claimed by the user
 #define XUDMA_ERROR_COMPLETE -7 //!< no completed buffer transactions
@@ -112,8 +111,8 @@ static inline int xudma_mm2s_halt(xudma_t *self);
  * Otherwise return a handle that can be used to release the buffer.
  *
  * \param self the user dma instance structure
- * \param buffer [out] the buffer pointer
- * \param length [out] the buffer length in bytes
+ * \param [out] buffer the buffer pointer
+ * \param [out] length the buffer length in bytes
  * \return the handle or negative error code
  */
 static inline int xudma_s2mm_acquire(xudma_t *self, void **buffer, size_t *length);
@@ -134,8 +133,8 @@ static inline void xudma_s2mm_release(xudma_t *self, size_t handle);
  * Otherwise return a handle that can be used to release the buffer.
  *
  * \param self the user dma instance structure
- * \param buffer [out] the buffer pointer
- * \param length [out] the buffer length in bytes
+ * \param [out] buffer the buffer pointer
+ * \param [out] length the buffer length in bytes
  * \return the handle or negative error code
  */
 static inline int xudma_mm2s_acquire(xudma_t *self, void **buffer, size_t *length);
@@ -222,18 +221,6 @@ typedef struct xilinx_dma_desc_sg
 /***********************************************************************
  * private helpers
  **********************************************************************/
-static inline void xudma_poke32(char *base, int offset, uint32_t val)
-{
-    volatile uint32_t *p = (volatile uint32_t *)(base + offset);
-    *p = val;
-}
-
-static inline uint32_t xudma_peek32(char *base, int offset)
-{
-    volatile uint32_t *p = (volatile uint32_t *)(base + offset);
-    return *p;
-}
-
 static inline size_t xudma_virt_to_phys(xudma_t *self, size_t virt)
 {
     size_t offset = virt - (size_t)self->mapped_shared_base;
@@ -254,12 +241,8 @@ static inline void xudma_clear_cache(void *buff, size_t len)
 /***********************************************************************
  * implementation
  **********************************************************************/
-#include <sys/types.h> //open
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/mman.h> //mmap
-#include <unistd.h> //close
 #include <stdio.h>
+#include "xilinx_user_mem.h"
 
 /***********************************************************************
  * creation/initialization/allocation
@@ -267,23 +250,18 @@ static inline void xudma_clear_cache(void *buff, size_t len)
 static inline int xudma_create(xudma_t *self)
 {
     //clear structure
-    self->memfd = -1;
     self->mapped_register_base = NULL;
     self->mapped_shared_base = NULL;
     self->mm2s_descs = NULL;
     self->s2mm_descs = NULL;
 
-    //open /dev/mem so we can map physical addresses
-    self->memfd = open("/dev/mem", O_RDWR | O_SYNC);
-    if (self->memfd < 0) return XUDMA_ERROR_OPEN;
-
     //map physical addresses into virtual userspace memory
-    self->mapped_register_base = mmap(NULL, XILINX_DMA_REGISTER_SIZE,   PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, self->memfd, self->hardware_register_base);
-    self->mapped_shared_base   = mmap(NULL, self->hardware_shared_size, PROT_READ | PROT_WRITE | PROT_EXEC, MAP_SHARED, self->memfd, self->hardware_shared_base);
+    self->mapped_register_base = xumem_map_phys(self->hardware_register_base, XILINX_DMA_REGISTER_SIZE);
+    self->mapped_shared_base = xumem_map_phys(self->hardware_shared_base, self->hardware_shared_size);
 
     //check for map error
-    if (self->mapped_register_base == NULL) return XUDMA_ERROR_MMAP;
-    if (self->mapped_shared_base == NULL) return XUDMA_ERROR_MMAP;
+    if (self->mapped_register_base == NULL) return XUDMA_ERROR_MAP;
+    if (self->mapped_shared_base == NULL) return XUDMA_ERROR_MAP;
 
     //setup scatter gather descriptors
     size_t alloc_off = 0;
@@ -331,20 +309,14 @@ static inline int xudma_destroy(xudma_t *self)
 {
     if (self->mapped_register_base != NULL)
     {
-        if (munmap(self->mapped_register_base, XILINX_DMA_REGISTER_SIZE != 0))
-            return XUDMA_ERROR_MMAP;
+        if (xumem_unmap_phys(self->mapped_register_base, XILINX_DMA_REGISTER_SIZE != 0))
+            return XUDMA_ERROR_MAP;
     }
 
     if (self->mapped_shared_base != NULL)
     {
-        if (munmap(self->mapped_shared_base, self->hardware_shared_size) != 0)
-            return XUDMA_ERROR_MMAP;
-    }
-
-    if (self->memfd >= 0)
-    {
-        if (close(self->memfd) != 0)
-            return XUDMA_ERROR_OPEN;
+        if (xumem_unmap_phys(self->mapped_shared_base, self->hardware_shared_size) != 0)
+            return XUDMA_ERROR_MAP;
     }
 
     return XUDMA_OK;
@@ -359,23 +331,23 @@ static inline int xudma_reset(xudma_t *self)
     int loop = 0;
 
     //a simple test to check for an expected bit in the first register
-    if ((xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) & 0x2) == 0) return XUDMA_ERROR_COMMS;
+    if ((xumem_read32(base, XILINX_DMA_S2MM_DMACR_OFFSET) & 0x2) == 0) return XUDMA_ERROR_COMMS;
 
     //perform a soft reset and wait for done
-    xudma_poke32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | XILINX_DMA_CR_RESET_MASK);
+    xumem_write32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xumem_read32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | XILINX_DMA_CR_RESET_MASK);
     loop = XILINX_DMA_RESET_LOOP;
-    while ((xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) & XILINX_DMA_CR_RESET_MASK) != 0)
+    while ((xumem_read32(base, XILINX_DMA_S2MM_DMACR_OFFSET) & XILINX_DMA_CR_RESET_MASK) != 0)
     {
         if (--loop == 0) return XUDMA_ERROR_TIMEOUT;
     }
 
     //a simple test to check for an expected bit in the first register
-    if ((xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & 0x2) == 0) return XUDMA_ERROR_COMMS;
+    if ((xumem_read32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & 0x2) == 0) return XUDMA_ERROR_COMMS;
 
     //perform a soft reset and wait for done
-    xudma_poke32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | XILINX_DMA_CR_RESET_MASK);
+    xumem_write32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xumem_read32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | XILINX_DMA_CR_RESET_MASK);
     loop = XILINX_DMA_RESET_LOOP;
-    while ((xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & XILINX_DMA_CR_RESET_MASK) != 0)
+    while ((xumem_read32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & XILINX_DMA_CR_RESET_MASK) != 0)
     {
         if (--loop == 0) return XUDMA_ERROR_TIMEOUT;
     }
@@ -395,12 +367,12 @@ static inline int xudma_s2mm_init(xudma_t *self)
 
     //load desc pointers
     size_t head = (size_t)(self->s2mm_descs + self->s2mm_head_index);
-    xudma_poke32(base, XILINX_DMA_S2MM_CURDESC_OFFSET, xudma_virt_to_phys(self, head));
+    xumem_write32(base, XILINX_DMA_S2MM_CURDESC_OFFSET, xudma_virt_to_phys(self, head));
     size_t tail = (size_t)(self->s2mm_descs + self->s2mm_tail_index);
-    xudma_poke32(base, XILINX_DMA_S2MM_TAILDESC_OFFSET, xudma_virt_to_phys(self, tail));
+    xumem_write32(base, XILINX_DMA_S2MM_TAILDESC_OFFSET, xudma_virt_to_phys(self, tail));
 
     //start the engine
-    xudma_poke32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | XILINX_DMA_CR_RUNSTOP_MASK);
+    xumem_write32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xumem_read32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | XILINX_DMA_CR_RUNSTOP_MASK);
 
     //release all the buffers into the engine
     for (size_t i = 0; i < self->s2mm_num_buffers; i++)
@@ -421,12 +393,12 @@ static inline int xudma_mm2s_init(xudma_t *self)
 
     //load desc pointers
     size_t head = (size_t)(self->mm2s_descs + self->mm2s_head_index);
-    xudma_poke32(base, XILINX_DMA_MM2S_CURDESC_OFFSET, xudma_virt_to_phys(self, head));
+    xumem_write32(base, XILINX_DMA_MM2S_CURDESC_OFFSET, xudma_virt_to_phys(self, head));
     size_t tail = (size_t)(self->mm2s_descs + self->mm2s_tail_index);
-    xudma_poke32(base, XILINX_DMA_MM2S_TAILDESC_OFFSET, xudma_virt_to_phys(self, tail));
+    xumem_write32(base, XILINX_DMA_MM2S_TAILDESC_OFFSET, xudma_virt_to_phys(self, tail));
 
     //start the engine
-    xudma_poke32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | XILINX_DMA_CR_RUNSTOP_MASK);
+    xumem_write32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xumem_read32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | XILINX_DMA_CR_RUNSTOP_MASK);
 
     //mark all buffers completed
     for (size_t i = 0; i < self->mm2s_num_buffers; i++)
@@ -445,9 +417,9 @@ static inline int xudma_s2mm_halt(xudma_t *self)
     void *base = self->mapped_register_base;
 
     //perform a halt and wait for done
-    xudma_poke32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | ~XILINX_DMA_CR_RUNSTOP_MASK);
+    xumem_write32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xumem_read32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | ~XILINX_DMA_CR_RUNSTOP_MASK);
     int loop = XILINX_DMA_HALT_LOOP;
-    while ((xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) & XILINX_DMA_CR_RUNSTOP_MASK) != 0)
+    while ((xumem_read32(base, XILINX_DMA_S2MM_DMACR_OFFSET) & XILINX_DMA_CR_RUNSTOP_MASK) != 0)
     {
         if (--loop == 0) return XUDMA_ERROR_TIMEOUT;
     }
@@ -460,9 +432,9 @@ static inline int xudma_mm2s_halt(xudma_t *self)
     void *base = self->mapped_register_base;
 
     //perform a halt and wait for done
-    xudma_poke32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | ~XILINX_DMA_CR_RUNSTOP_MASK);
+    xumem_write32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xumem_read32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | ~XILINX_DMA_CR_RUNSTOP_MASK);
     int loop = XILINX_DMA_HALT_LOOP;
-    while ((xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & XILINX_DMA_CR_RUNSTOP_MASK) != 0)
+    while ((xumem_read32(base, XILINX_DMA_MM2S_DMACR_OFFSET) & XILINX_DMA_CR_RUNSTOP_MASK) != 0)
     {
         if (--loop == 0) return XUDMA_ERROR_TIMEOUT;
     }
@@ -509,8 +481,8 @@ static inline void xudma_s2mm_release(xudma_t *self, size_t handle)
     {
         xilinx_dma_desc_t *tail = self->s2mm_descs + self->s2mm_tail_index;
         if (tail->status != 0) break;
-        xudma_poke32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | XILINX_DMA_XR_IRQ_IOC_MASK);
-        xudma_poke32(base, XILINX_DMA_S2MM_TAILDESC_OFFSET, xudma_virt_to_phys(self, (size_t)tail));
+        xumem_write32(base, XILINX_DMA_S2MM_DMACR_OFFSET, xumem_read32(base, XILINX_DMA_S2MM_DMACR_OFFSET) | XILINX_DMA_XR_IRQ_IOC_MASK);
+        xumem_write32(base, XILINX_DMA_S2MM_TAILDESC_OFFSET, xudma_virt_to_phys(self, (size_t)tail));
 
         self->s2mm_tail_index = (self->s2mm_tail_index + 1) % self->s2mm_num_buffers;
         self->s2mm_num_acquired--;
@@ -557,8 +529,8 @@ static inline void xudma_mm2s_release(xudma_t *self, size_t handle, size_t lengt
     {
         xilinx_dma_desc_t *tail = self->mm2s_descs + self->mm2s_tail_index;
         if (tail->status != 0) break;
-        xudma_poke32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xudma_peek32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | XILINX_DMA_XR_IRQ_IOC_MASK);
-        xudma_poke32(base, XILINX_DMA_MM2S_TAILDESC_OFFSET, xudma_virt_to_phys(self, (size_t)tail));
+        xumem_write32(base, XILINX_DMA_MM2S_DMACR_OFFSET, xumem_read32(base, XILINX_DMA_MM2S_DMACR_OFFSET) | XILINX_DMA_XR_IRQ_IOC_MASK);
+        xumem_write32(base, XILINX_DMA_MM2S_TAILDESC_OFFSET, xudma_virt_to_phys(self, (size_t)tail));
 
         self->mm2s_tail_index = (self->mm2s_tail_index + 1) % self->mm2s_num_buffers;
         self->mm2s_num_acquired--;

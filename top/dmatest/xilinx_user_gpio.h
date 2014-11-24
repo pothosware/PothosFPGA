@@ -1,3 +1,80 @@
+/***********************************************************************
+ * Userspace GPIO interface (uses sysfs)
+ **********************************************************************/
+
+#pragma once
+
+/*!
+ * Register a GPIO under sysfs.
+ * \param gpio the GPIO index
+ * \return 0 to indicate success
+ */
+static inline int gpio_export(unsigned int gpio);
+
+/*!
+ * Remove a GPIO from sysfs.
+ * \param gpio the GPIO index
+ * \return 0 to indicate success
+ */
+static inline int gpio_unexport(unsigned int gpio);
+
+/*!
+ * Set the GPIO direction (input or output).
+ * \param gpio the GPIO index
+ * \param out_flag 0=input, 1=output
+ * \return 0 to indicate success
+ */
+static inline int gpio_set_dir(unsigned int gpio, unsigned int out_flag);
+
+/*!
+ * Set the value of the GPIO (high or low).
+ * \param gpio the GPIO index
+ * \param value 0=low, 1=high
+ * \return 0 to indicate success
+ */
+static inline int gpio_set_value(unsigned int gpio, unsigned int value);
+
+/*!
+ * Read the value of the GPIO (high or low).
+ * \param gpio the GPIO index
+ * \param [out] value 0=low, 1=high
+ * \return 0 to indicate success
+ */
+static inline int gpio_get_value(unsigned int gpio, unsigned int *value);
+
+/*!
+ * Set the GPIO interrupt edge.
+ * \param gpio the GPIO index
+ * \param edge "rising" or "falling"
+ * \return 0 to indicate success
+ */
+static inline int gpio_set_edge(unsigned int gpio, const char *edge);
+
+/*!
+ * Open the GPIO to get a file descriptor.
+ * The descriptor can be used for interrupts.
+ * \param gpio the GPIO index
+ * \return a file descriptor or error code
+ */
+static inline int gpio_fd_open(unsigned int gpio);
+
+/*!
+ * Close the GPIO file descriptor.
+ * \param fd the descriptor from gpio_fd_open()
+ */
+static inline int gpio_fd_close(int fd);
+
+/*!
+ * Poll the GPIO for an interrupt request.
+ * \param fd the descriptor from gpio_fd_open()
+ * \param timeout_ms the timeout in ms
+ * \return the result of poll() 0=timeout, 1=IRQ, or error
+ */
+static inline int gpio_poll_irq(int fd, long timeout_ms);
+
+/***********************************************************************
+ * Implementation details
+ **********************************************************************/
 /* Copyright (c) 2011, RidgeRun
  * All rights reserved.
  * 
@@ -40,13 +117,12 @@
  ****************************************************************/
  
 #define SYSFS_GPIO_DIR "/sys/class/gpio"
-#define POLL_TIMEOUT (3 * 1000) /* 3 seconds */
 #define MAX_BUF 64
 
 /****************************************************************
  * gpio_export
  ****************************************************************/
-int gpio_export(unsigned int gpio)
+static inline int gpio_export(unsigned int gpio)
 {
 	int fd, len;
 	char buf[MAX_BUF];
@@ -67,7 +143,7 @@ int gpio_export(unsigned int gpio)
 /****************************************************************
  * gpio_unexport
  ****************************************************************/
-int gpio_unexport(unsigned int gpio)
+static inline int gpio_unexport(unsigned int gpio)
 {
 	int fd, len;
 	char buf[MAX_BUF];
@@ -87,7 +163,7 @@ int gpio_unexport(unsigned int gpio)
 /****************************************************************
  * gpio_set_dir
  ****************************************************************/
-int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
+static inline int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
 {
 	int fd, len;
 	char buf[MAX_BUF];
@@ -112,7 +188,7 @@ int gpio_set_dir(unsigned int gpio, unsigned int out_flag)
 /****************************************************************
  * gpio_set_value
  ****************************************************************/
-int gpio_set_value(unsigned int gpio, unsigned int value)
+static inline int gpio_set_value(unsigned int gpio, unsigned int value)
 {
 	int fd, len;
 	char buf[MAX_BUF];
@@ -137,7 +213,7 @@ int gpio_set_value(unsigned int gpio, unsigned int value)
 /****************************************************************
  * gpio_get_value
  ****************************************************************/
-int gpio_get_value(unsigned int gpio, unsigned int *value)
+static inline int gpio_get_value(unsigned int gpio, unsigned int *value)
 {
 	int fd, len;
 	char buf[MAX_BUF];
@@ -168,7 +244,7 @@ int gpio_get_value(unsigned int gpio, unsigned int *value)
  * gpio_set_edge
  ****************************************************************/
 
-int gpio_set_edge(unsigned int gpio, char *edge)
+static inline int gpio_set_edge(unsigned int gpio, const char *edge)
 {
 	int fd, len;
 	char buf[MAX_BUF];
@@ -190,7 +266,7 @@ int gpio_set_edge(unsigned int gpio, char *edge)
  * gpio_fd_open
  ****************************************************************/
 
-int gpio_fd_open(unsigned int gpio)
+static inline int gpio_fd_open(unsigned int gpio)
 {
 	int fd, len;
 	char buf[MAX_BUF];
@@ -208,74 +284,30 @@ int gpio_fd_open(unsigned int gpio)
  * gpio_fd_close
  ****************************************************************/
 
-int gpio_fd_close(int fd)
+static inline int gpio_fd_close(int fd)
 {
 	return close(fd);
 }
 
 /****************************************************************
- * Main
+ * gpio_poll_irq
  ****************************************************************/
-int main(int argc, char **argv, char **envp)
+
+static inline int gpio_poll_irq(int fd, long timeout_ms)
 {
-	struct pollfd fdset[2];
-	int nfds = 2;
-	int gpio_fd, timeout, rc;
-	char *buf[MAX_BUF];
-	unsigned int gpio;
-	int len;
+    char buf[MAX_BUF];
+    struct pollfd fdset[1];
+    fdset[0].fd = fd;
+    fdset[0].events = POLLPRI;
+    fdset[0].revents = 0;
+    int r = poll(fdset, 1, timeout_ms);
 
+    //reset for next poll with a read + seek
+    if (fdset[0].revents & POLLPRI)
+    {
+        read(fd, buf, MAX_BUF);
+        lseek(fd, 0, SEEK_SET);
+    }
 
-
-	if (argc < 2) {
-		printf("Usage: gpio-int <gpio-pin>\n\n");
-		printf("Waits for a change in the GPIO pin voltage level or input on stdin\n");
-		exit(-1);
-	}
-
-	gpio = atoi(argv[1]);
-
-	gpio_export(gpio);
-	gpio_set_dir(gpio, 0);
-	gpio_set_edge(gpio, "rising");
-	gpio_fd = gpio_fd_open(gpio);
-
-	timeout = POLL_TIMEOUT;
- 
-	while (1) {
-		memset((void*)fdset, 0, sizeof(fdset));
-
-		fdset[0].fd = STDIN_FILENO;
-		fdset[0].events = POLLIN;
-      
-		fdset[1].fd = gpio_fd;
-		fdset[1].events = POLLPRI;
-
-		rc = poll(fdset, nfds, timeout);      
-
-		if (rc < 0) {
-			printf("\npoll() failed!\n");
-			return -1;
-		}
-      
-		if (rc == 0) {
-			printf(".");
-		}
-            
-		if (fdset[1].revents & POLLPRI) {
-			len = read(fdset[1].fd, buf, MAX_BUF);
-            lseek(fdset[1].fd, 0, SEEK_SET);
-			printf("\npoll() GPIO %d interrupt occurred\n", gpio);
-		}
-
-		if (fdset[0].revents & POLLIN) {
-			(void)read(fdset[0].fd, buf, 1);
-			printf("\npoll() stdin read 0x%2.2X\n", (unsigned int) buf[0]);
-		}
-
-		fflush(stdout);
-	}
-
-	gpio_fd_close(gpio_fd);
-	return 0;
+    return r;
 }
