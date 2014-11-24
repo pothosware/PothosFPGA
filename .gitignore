@@ -6,3 +6,4 @@
 *.sdk/
 *.jou
 *.log
+*.out
