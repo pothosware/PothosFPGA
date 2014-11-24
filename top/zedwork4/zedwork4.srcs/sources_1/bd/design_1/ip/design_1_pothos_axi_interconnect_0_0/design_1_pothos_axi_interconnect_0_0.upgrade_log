@@ -1,0 +1,16 @@
+Copyright 1986-2014 Xilinx, Inc. All Rights Reserved.
+--------------------------------------------------------------------------------------
+| Tool Version : Vivado v.2014.3.1 (lin64) Build 1056140 Thu Oct 30 16:30:39 MDT 2014
+| Date         : Sun Nov 23 17:09:14 2014
+| Host         : blarg running 64-bit Ubuntu 14.04.1 LTS
+| Command      : upgrade_ip
+| Device       : xc7z020clg400-1
+--------------------------------------------------------------------------------------
+
+Upgrade Log for IP 'design_1_pothos_axi_interconnect_0_0'
+
+1. Summary
+----------
+
+SUCCESS in the upgrade of design_1_pothos_axi_interconnect_0_0 (Pothosware:Pothos:pothos_axi_interconnect:1.0) from (Rev. 8) to (Rev. 9)
+
