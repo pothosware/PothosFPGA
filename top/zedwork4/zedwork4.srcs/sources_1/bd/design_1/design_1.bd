@@ -364,14 +364,14 @@
         <spirit:activeInterface spirit:busRef="AXI4_LITE" spirit:componentRef="axi_apb_bridge_0"/>
       </spirit:interconnection>
       <spirit:interconnection>
-        <spirit:name>axi_apb_bridge_0_APB_M</spirit:name>
-        <spirit:activeInterface spirit:busRef="APB_M" spirit:componentRef="axi_apb_bridge_0"/>
-        <spirit:activeInterface spirit:busRef="S_APB" spirit:componentRef="pothos_axi_interconnect_0"/>
-      </spirit:interconnection>
-      <spirit:interconnection>
         <spirit:name>pothos_axi_interconnect_0_M00_AXIS</spirit:name>
         <spirit:activeInterface spirit:busRef="M00_AXIS" spirit:componentRef="pothos_axi_interconnect_0"/>
         <spirit:activeInterface spirit:busRef="S00_AXIS" spirit:componentRef="pothos_axi_interconnect_0"/>
+      </spirit:interconnection>
+      <spirit:interconnection>
+        <spirit:name>axi_apb_bridge_0_APB_M</spirit:name>
+        <spirit:activeInterface spirit:busRef="APB_M" spirit:componentRef="axi_apb_bridge_0"/>
+        <spirit:activeInterface spirit:busRef="S_APB" spirit:componentRef="pothos_axi_interconnect_0"/>
       </spirit:interconnection>
     </spirit:interconnections>
     <spirit:adHocConnections>

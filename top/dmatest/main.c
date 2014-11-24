@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "xilinx_user_dma.h"
 #include "xilinx_user_gpio.h"
+#include "xilinx_user_mem.h"
 
 /***********************************************************************
  * main entry point
@@ -14,6 +15,12 @@
 int main(void)
 {
     printf("========== Begin DMA Test =============\n");
+
+    //! simple test for pothos interconnect
+    void *regs = xumem_map_phys(0x43C00000, 4096);
+    if (regs == NULL) return -1;
+    printf("Pothos interconnect ver = 0x%x\n", xumem_read32(regs, 20));
+    xumem_unmap_phys(regs, 4096);
 
     //! Physical memory constants based on boot config (device tree and bootargs)
     xudma_t user;

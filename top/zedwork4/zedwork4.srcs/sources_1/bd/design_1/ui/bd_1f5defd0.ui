@@ -1,38 +1,38 @@
 {
    guistr: "# # String gsaved with Nlview 6.4.7  2014-07-30 bk=1.3165 VDI=35 GEI=35 GUI=JA:1.8
 #  -string -flagsOSRD
-preplace port DDR -pg 1 -y 770 -defaultsOSRD
-preplace port FIXED_IO -pg 1 -y 790 -defaultsOSRD
-preplace inst axi_dma_0 -pg 1 -lvl 3 -y 130 -defaultsOSRD
-preplace inst pothos_axi_interconnect_0 -pg 1 -lvl 4 -y 580 -defaultsOSRD
-preplace inst rst_processing_system7_0_100M -pg 1 -lvl 1 -y 560 -defaultsOSRD
-preplace inst xlconcat_0 -pg 1 -lvl 4 -y 400 -defaultsOSRD
-preplace inst axi_apb_bridge_0 -pg 1 -lvl 3 -y 560 -defaultsOSRD
-preplace inst axi_mem_intercon -pg 1 -lvl 4 -y 180 -defaultsOSRD
-preplace inst axis_data_fifo_0 -pg 1 -lvl 2 -y 120 -defaultsOSRD
-preplace inst processing_system7_0_axi_periph -pg 1 -lvl 2 -y 800 -defaultsOSRD
-preplace inst processing_system7_0 -pg 1 -lvl 5 -y 820 -defaultsOSRD
+preplace port DDR -pg 1 -y 780 -defaultsOSRD
+preplace port FIXED_IO -pg 1 -y 800 -defaultsOSRD
+preplace inst axi_dma_0 -pg 1 -lvl 3 -y 290 -defaultsOSRD
+preplace inst pothos_axi_interconnect_0 -pg 1 -lvl 4 -y 670 -defaultsOSRD
+preplace inst rst_processing_system7_0_100M -pg 1 -lvl 1 -y 570 -defaultsOSRD
+preplace inst xlconcat_0 -pg 1 -lvl 4 -y 410 -defaultsOSRD
+preplace inst axi_apb_bridge_0 -pg 1 -lvl 3 -y 930 -defaultsOSRD
+preplace inst axi_mem_intercon -pg 1 -lvl 4 -y 190 -defaultsOSRD
+preplace inst axis_data_fifo_0 -pg 1 -lvl 2 -y 130 -defaultsOSRD
+preplace inst processing_system7_0_axi_periph -pg 1 -lvl 2 -y 810 -defaultsOSRD
+preplace inst processing_system7_0 -pg 1 -lvl 5 -y 830 -defaultsOSRD
 preplace netloc processing_system7_0_DDR 1 5 1 N
-preplace netloc pothos_axi_interconnect_0_M00_AXIS 1 3 2 1150 490 1450
-preplace netloc axi_apb_bridge_0_APB_M 1 3 1 N
-preplace netloc processing_system7_0_axi_periph_M00_AXI 1 2 1 720
-preplace netloc processing_system7_0_M_AXI_GP0 1 1 5 400 660 NJ 680 NJ 680 NJ 650 1950
-preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 6 30 470 NJ 470 NJ 470 NJ 470 NJ 470 1970
-preplace netloc axi_mem_intercon_M00_AXI 1 4 1 1480
-preplace netloc axi_dma_0_M_AXI_SG 1 3 1 N
-preplace netloc axi_dma_0_s2mm_introut 1 3 1 1110
-preplace netloc rst_processing_system7_0_100M_peripheral_aresetn 1 1 3 380 200 740 250 1150
-preplace netloc axi_dma_0_M_AXI_MM2S 1 3 1 N
-preplace netloc xlconcat_0_dout 1 4 2 1460 460 1960
+preplace netloc axi_apb_bridge_0_APB_M 1 3 1 1210
+preplace netloc pothos_axi_interconnect_0_M00_AXIS 1 3 2 1260 500 1610
+preplace netloc processing_system7_0_axi_periph_M00_AXI 1 2 1 730
+preplace netloc processing_system7_0_M_AXI_GP0 1 1 5 400 670 NJ 670 NJ 850 NJ 660 2110
+preplace netloc processing_system7_0_FCLK_RESET0_N 1 0 6 30 480 NJ 570 NJ 570 NJ 490 NJ 490 2130
+preplace netloc axi_mem_intercon_M00_AXI 1 4 1 1640
+preplace netloc axi_dma_0_M_AXI_SG 1 3 1 1200
+preplace netloc axi_dma_0_s2mm_introut 1 3 1 1200
+preplace netloc rst_processing_system7_0_100M_peripheral_aresetn 1 1 3 380 510 720 20 1230
+preplace netloc axi_dma_0_M_AXI_MM2S 1 3 1 1210
+preplace netloc xlconcat_0_dout 1 4 2 1620 480 2120
 preplace netloc processing_system7_0_FIXED_IO 1 5 1 N
-preplace netloc axi_dma_0_mm2s_introut 1 3 1 1140
-preplace netloc axi_dma_0_M_AXI_S2MM 1 3 1 N
-preplace netloc axis_data_fifo_0_M_AXIS 1 2 1 N
-preplace netloc rst_processing_system7_0_100M_interconnect_aresetn 1 1 3 370 940 750 630 1130
-preplace netloc processing_system7_0_FCLK_CLK0 1 0 6 20 460 390 560 730 490 1120 670 1490 660 1940
-preplace netloc axi_dma_0_M_AXIS_MM2S 1 1 3 370 10 NJ 10 1110
-preplace netloc processing_system7_0_axi_periph_M01_AXI 1 2 1 740
-levelinfo -pg 1 0 200 560 940 1300 1720 1990
+preplace netloc axi_dma_0_mm2s_introut 1 3 1 1220
+preplace netloc axi_dma_0_M_AXI_S2MM 1 3 1 1220
+preplace netloc axis_data_fifo_0_M_AXIS 1 2 1 740
+preplace netloc rst_processing_system7_0_100M_interconnect_aresetn 1 1 3 370 950 730 1060 1240
+preplace netloc processing_system7_0_FCLK_CLK0 1 0 6 20 470 390 430 740 560 1250 840 1650 670 2100
+preplace netloc axi_dma_0_M_AXIS_MM2S 1 1 3 370 10 NJ 10 1190
+preplace netloc processing_system7_0_axi_periph_M01_AXI 1 2 1 730
+levelinfo -pg 1 0 200 560 1000 1440 1880 2150
 ",
 }
 {

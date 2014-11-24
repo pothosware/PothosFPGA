@@ -39,7 +39,7 @@ entity pothos_axi_interconnect is
         aresetn : in std_logic;
 
         -- configuration channel
-        s_apb_paddr : in std_logic_vector(31 downto 0);
+        s_apb_paddr : in std_logic_vector(9 downto 0);
         s_apb_psel : in std_logic;
         s_apb_penable : in std_logic;
         s_apb_pwrite : in std_logic;
@@ -534,7 +534,8 @@ begin
     arst <= not aresetn;
 
     --control bus
-    paddr <= std_ulogic_vector(s_apb_paddr);
+    paddr(9 downto 0) <= std_ulogic_vector(s_apb_paddr);
+    paddr(31 downto 10) <= (others => '0');
     pwdata <= std_ulogic_vector(s_apb_pwdata);
     s_apb_prdata <= std_logic_vector(prdata);
 

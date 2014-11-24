@@ -47,7 +47,7 @@
 -- DO NOT MODIFY THIS FILE.
 
 -- IP VLNV: Pothosware:Pothos:pothos_axi_interconnect:1.0
--- IP Revision: 10
+-- IP Revision: 12
 
 LIBRARY ieee;
 USE ieee.std_logic_1164.ALL;
@@ -60,7 +60,7 @@ ENTITY design_1_pothos_axi_interconnect_0_0 IS
   PORT (
     aclk : IN STD_LOGIC;
     aresetn : IN STD_LOGIC;
-    s_apb_paddr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+    s_apb_paddr : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
     s_apb_psel : IN STD_LOGIC;
     s_apb_penable : IN STD_LOGIC;
     s_apb_pwrite : IN STD_LOGIC;
@@ -98,7 +98,7 @@ ARCHITECTURE design_1_pothos_axi_interconnect_0_0_arch OF design_1_pothos_axi_in
     PORT (
       aclk : IN STD_LOGIC;
       aresetn : IN STD_LOGIC;
-      s_apb_paddr : IN STD_LOGIC_VECTOR(31 DOWNTO 0);
+      s_apb_paddr : IN STD_LOGIC_VECTOR(9 DOWNTO 0);
       s_apb_psel : IN STD_LOGIC;
       s_apb_penable : IN STD_LOGIC;
       s_apb_pwrite : IN STD_LOGIC;

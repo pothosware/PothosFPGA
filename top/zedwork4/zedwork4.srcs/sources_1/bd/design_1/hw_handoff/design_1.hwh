@@ -1,5 +1,5 @@
 ﻿<?xml version="1.0" encoding="UTF-8" standalone="no" ?>
-<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sun Nov 23 18:11:52 2014" VIVADOVERSION="2014.3.1">
+<EDKSYSTEM EDWVERSION="1.2" TIMESTAMP="Sun Nov 23 20:32:28 2014" VIVADOVERSION="2014.3.1">
 
   <SYSTEMINFO ARCH="zynq" BOARD="em.avnet.com:microzed_7020:part0:1.0" DEVICE="7z020" NAME="design_1_imp" PACKAGE="clg400" SPEEDGRADE="-1"/>
 
@@ -4386,7 +4386,7 @@
             <CONNECTION INSTANCE="rst_processing_system7_0_100M" PORT="interconnect_aresetn"/>
           </CONNECTIONS>
         </PORT>
-        <PORT DIR="I" LEFT="31" NAME="s_apb_paddr" RIGHT="0" SIGIS="undef" SIGNAME="axi_apb_bridge_0_m_apb_paddr">
+        <PORT DIR="I" LEFT="9" NAME="s_apb_paddr" RIGHT="0" SIGIS="undef" SIGNAME="axi_apb_bridge_0_m_apb_paddr">
           <CONNECTIONS>
             <CONNECTION INSTANCE="axi_apb_bridge_0" PORT="m_apb_paddr"/>
           </CONNECTIONS>

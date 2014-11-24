@@ -1,7 +1,7 @@
 --Copyright 1986-2014 Xilinx, Inc. All Rights Reserved.
 ----------------------------------------------------------------------------------
 --Tool Version: Vivado v.2014.3.1 (lin64) Build 1056140 Thu Oct 30 16:30:39 MDT 2014
---Date        : Sun Nov 23 18:11:56 2014
+--Date        : Sun Nov 23 20:32:31 2014
 --Host        : blarg running 64-bit Ubuntu 14.04.1 LTS
 --Command     : generate_target design_1.bd
 --Design      : design_1
@@ -3686,7 +3686,7 @@ architecture STRUCTURE of design_1 is
   port (
     aclk : in STD_LOGIC;
     aresetn : in STD_LOGIC;
-    s_apb_paddr : in STD_LOGIC_VECTOR ( 31 downto 0 );
+    s_apb_paddr : in STD_LOGIC_VECTOR ( 9 downto 0 );
     s_apb_psel : in STD_LOGIC;
     s_apb_penable : in STD_LOGIC;
     s_apb_pwrite : in STD_LOGIC;
@@ -4236,7 +4236,7 @@ pothos_axi_interconnect_0: component design_1_pothos_axi_interconnect_0_0
       s00_axis_tready => pothos_axi_interconnect_0_M00_AXIS_TREADY,
       s00_axis_tuser(0) => pothos_axi_interconnect_0_M00_AXIS_TUSER(0),
       s00_axis_tvalid => pothos_axi_interconnect_0_M00_AXIS_TVALID,
-      s_apb_paddr(31 downto 0) => axi_apb_bridge_0_APB_M_PADDR(31 downto 0),
+      s_apb_paddr(9 downto 0) => axi_apb_bridge_0_APB_M_PADDR(9 downto 0),
       s_apb_penable => axi_apb_bridge_0_APB_M_PENABLE,
       s_apb_prdata(31 downto 0) => axi_apb_bridge_0_APB_M_PRDATA(31 downto 0),
       s_apb_pready => axi_apb_bridge_0_APB_M_PREADY,
