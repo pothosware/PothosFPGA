@@ -1,7 +1,7 @@
 // Copyright (c) 2014-2014 Josh Blum
 // SPDX-License-Identifier: BSL-1.0
 
-#include "pothos_axis_dma.h"
+#include "pothos_axis_dma_module.h"
 #include <linux/module.h> //module registration
 #include <linux/device.h> //class/device calls
 #include <linux/cdev.h> //character device
@@ -15,6 +15,7 @@ static struct cdev c_dev; // Global variable for the character device structure
 static struct class *cl = NULL; // Global variable for the device class
 static struct file_operations fops = {
     poll: pothos_axis_dma_poll,
+    unlocked_ioctl: pothos_axis_dma_ioctl,
     mmap: pothos_axis_dma_mmap,
     open: pothos_axis_dma_open,
     release: pothos_axis_dma_release
