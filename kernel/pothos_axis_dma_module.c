@@ -14,7 +14,10 @@ static dev_t dev_num = 0; // Global variable for the device number
 static struct cdev c_dev; // Global variable for the character device structure
 static struct class *cl = NULL; // Global variable for the device class
 static struct file_operations fops = {
-    poll: pothos_axis_dma_poll
+    poll: pothos_axis_dma_poll,
+    mmap: pothos_axis_dma_mmap,
+    open: pothos_axis_dma_open,
+    release: pothos_axis_dma_release
 };
 
 /***********************************************************************
@@ -25,6 +28,9 @@ static struct file_operations fops = {
 static int pothos_axis_dma_init(void)
 {
     printk(KERN_INFO MODULE_NAME " init: registering\n");
+
+    pothos_axis_dma_probe();
+
     if (alloc_chrdev_region(&dev_num, 0, 1, MODULE_NAME) < 0)
     {
         return -1;
@@ -58,6 +64,7 @@ static void pothos_axis_dma_exit(void)
     device_destroy(cl, dev_num);
     class_destroy(cl);
     unregister_chrdev_region(dev_num, 1);
+    pothos_axis_dma_unprobe();
     printk(KERN_INFO MODULE_NAME " exit: unregistered\n");
 }
 
@@ -65,5 +72,7 @@ static void pothos_axis_dma_exit(void)
  * register module
  **********************************************************************/
 MODULE_LICENSE("Dual BSD/GPL");
+MODULE_AUTHOR("Josh Blum");
+MODULE_DESCRIPTION("Pothos AXI DMA");
 module_init(pothos_axis_dma_init);
 module_exit(pothos_axis_dma_exit);

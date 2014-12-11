@@ -10,7 +10,9 @@ endif
 ########################################################################
 POTHOS_AXIS_DMA_SOURCES = \
 	pothos_axis_dma_interrupts.c \
-	pothos_axis_dma_module.c
+	pothos_axis_dma_module.c \
+	pothos_axis_dma_probe.c \
+	pothos_axis_dma_mmap.c
 
 pothos_axis_dma-objs = $(POTHOS_AXIS_DMA_SOURCES:.c=.o)
 
@@ -19,7 +21,7 @@ pothos_axis_dma-objs = $(POTHOS_AXIS_DMA_SOURCES:.c=.o)
 ########################################################################
 obj-m := pothos_axis_dma.o
 
-ccflags-y := -std=gnu99 -Wdeclaration-after-statement
+ccflags-y := -std=gnu99 -Wno-declaration-after-statement
 
 ########################################################################
 ## build and clean targets
