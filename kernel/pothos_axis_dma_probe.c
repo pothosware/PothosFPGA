@@ -49,7 +49,7 @@ static int pothos_axis_dma_probe(struct platform_device *pdev)
 
     //format a device name from the index
     char device_name[1024];
-    if (snprintf(device_name, sizeof(device_name), "%s%d", MODULE_NAME, index) <= 0)
+    if (snprintf(device_name, sizeof(device_name), "pothos_axis_dma%d", index) <= 0)
     {
         dev_err(&pdev->dev, "Failed to format a device name\n");
         return -EIO;
@@ -84,6 +84,10 @@ static int pothos_axis_dma_probe(struct platform_device *pdev)
     if (data == NULL) return -ENOMEM;
     data->pdev = pdev;
     dev_set_drvdata(&pdev->dev, data);
+
+    //store registers into data
+    data->regs_phys_addr = res->start;
+    data->regs_phys_size = resource_size(res);
 
     //create character device
     if (alloc_chrdev_region(&data->dev_num, 0, 1, device_name) < 0)

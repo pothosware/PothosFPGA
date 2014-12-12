@@ -2,11 +2,13 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #include "pothos_axis_dma_module.h"
-#include <linux/kernel.h>
 #include <linux/io.h> //ioctl
 #include <linux/mm.h> //mmap
 #include <linux/of_irq.h> //irq_of_parse_and_map
 #include <linux/platform_device.h>
+
+//! A known point where the axi dma registers alias
+#define PAD_REG_ALIAS 4096
 
 long pothos_axis_dma_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
@@ -19,10 +21,13 @@ int pothos_axis_dma_mmap(struct file *filp, struct vm_area_struct *vma)
 {
     pothos_axi_dma_device_t *data = filp->private_data;
 
+    //use vma->vm_pgoff to indicate which index
+
+    //use a register alias point to map the registers in to user-space
+    //as the kernel has already iomapped the registers at offset 0
     vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-    return remap_pfn_range(
-        vma, vma->vm_start, data->regs_phys_addr >> PAGE_SHIFT,
-        vma->vm_end - vma->vm_start, vma->vm_page_prot);
+    const size_t register_alias = data->regs_phys_addr + PAD_REG_ALIAS;
+    return io_remap_pfn_range(vma, vma->vm_start, register_alias >> PAGE_SHIFT, vma->vm_end - vma->vm_start, vma->vm_page_prot);
 }
 
 int pothos_axis_dma_open(struct inode *inode, struct file *filp)
@@ -49,24 +54,15 @@ int pothos_axis_dma_open(struct inode *inode, struct file *filp)
         }
     }
 
-    //io map the device register space (we dont unmap)
-    struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-    if (res == NULL)
-    {
-        dev_err(&pdev->dev, "Error getting register resource.\n");
-        return -EIO;
-    }
-    data->regs_phys_addr = res->start;
-    data->regs_phys_size = resource_size(res);
-    /*
-    data->regs_virt_addr = devm_ioremap_resource(&pdev->dev, res);
+    //io map the device register space
+    //note, we ignore the register size and use the smaller constant below
+    //so we can map an alias to the registers again in the mmap routine
+    data->regs_virt_addr = ioremap_nocache(data->regs_phys_addr, PAD_REG_ALIAS);
     if (data->regs_virt_addr == NULL)
     {
         dev_err(&pdev->dev, "Error mapping register resource.\n");
         return -EIO;
     }
-    dev_info(&pdev->dev, "reg0 = 0x%x\n", ioread32(data->regs_virt_addr));
-    */
 
     return 0;
 }
@@ -84,6 +80,9 @@ int pothos_axis_dma_release(struct inode *inode, struct file *filp)
         if (irq == 0) break;
         pothos_axis_dma_register_irq(irq, data);
     }
+
+    //unmap registers
+    iounmap(data->regs_virt_addr);
 
     return 0;
 }

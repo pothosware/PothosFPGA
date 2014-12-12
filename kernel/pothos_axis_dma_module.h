@@ -6,9 +6,6 @@
 #include <linux/wait.h> //wait_queue_head_t
 #include <linux/cdev.h> //character device
 
-//! The name of this module used in printk
-#define MODULE_NAME "pothos_axis_dma"
-
 /*!
  * Per-device configuration, allocations, mappings...
  */
