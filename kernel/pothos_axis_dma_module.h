@@ -4,6 +4,7 @@
 #pragma once
 #include <linux/poll.h> //poll arguments
 #include <linux/wait.h> //wait_queue_head_t
+#include <linux/cdev.h> //character device
 
 //! The name of this module used in printk
 #define MODULE_NAME "pothos_axis_dma"
@@ -13,6 +14,12 @@
  */
 typedef struct
 {
+    //devfs registration
+    dev_t dev_num;
+    struct cdev c_dev;
+    struct class *cl;
+
+
     struct device_node *node;
     wait_queue_head_t irq_wait;
     phys_addr_t reg_phys_addr; //!< hardware address of the registers from device tree

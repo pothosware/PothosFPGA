@@ -75,5 +75,5 @@ static void pothos_axis_dma_exit(void)
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_AUTHOR("Josh Blum");
 MODULE_DESCRIPTION("Pothos AXI DMA");
-module_init(pothos_axis_dma_init);
-module_exit(pothos_axis_dma_exit);
+//module_init(pothos_axis_dma_init);
+//module_exit(pothos_axis_dma_exit);
