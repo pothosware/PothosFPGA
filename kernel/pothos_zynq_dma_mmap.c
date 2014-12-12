@@ -15,26 +15,38 @@ long pothos_zynq_dma_ioctl(struct file *filp, unsigned int cmd, unsigned long ar
 {
     pothos_zynq_dma_device_t *data = filp->private_data;
 
-    return 0;
+    switch (cmd)
+    {
+    case POTHOS_ZYNQ_DMA_ALLOC: return pothos_zynq_dma_buffs_alloc(data, (pothos_zynq_dma_alloc_t *)arg);
+    case POTHOS_ZYNQ_DMA_FREE: return pothos_zynq_dma_buffs_free(data);
+    }
+
+    return -EINVAL;
 }
 
 int pothos_zynq_dma_mmap(struct file *filp, struct vm_area_struct *vma)
 {
     pothos_zynq_dma_device_t *data = filp->private_data;
-    struct platform_device *pdev = data->pdev;
+    const size_t size = vma->vm_end - vma->vm_start;
 
-    //use vma->vm_pgoff to indicate which index
-    dev_info(&pdev->dev, "mmap with vm_pgoff %lu.\n", vma->vm_pgoff);
-    if (vma->vm_pgoff > 0)
+    //The user passes in the physical address as the offset.
+    //Use vma->vm_pgoff to indicate which DMA allocation.
+    if (data->dma_buffs != NULL) for (size_t i = 0; i < data->num_dma_buffs; i++)
     {
-        return remap_pfn_range(vma, vma->vm_start, (data->test_dma_phys_mem) >> PAGE_SHIFT, 1024, vma->vm_page_prot);
+        const size_t pfn_addr = data->dma_buffs[i].paddr >> PAGE_SHIFT;
+        if (vma->vm_pgoff != pfn_addr) continue;
+        return remap_pfn_range(vma, vma->vm_start, pfn_addr, size, vma->vm_page_prot);
     }
 
-    //use a register alias point to map the registers in to user-space
-    //as the kernel has already iomapped the registers at offset 0
-    vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
-    const size_t register_alias = data->regs_phys_addr + REG_ALIAS_OFFSET;
-    return io_remap_pfn_range(vma, vma->vm_start, register_alias >> PAGE_SHIFT, vma->vm_end - vma->vm_start, vma->vm_page_prot);
+    //Use a register alias point to map the registers in to user-space...
+    //as the kernel has already iomapped the registers at offset 0.
+    if (vma->vm_pgoff == 0) //0 is the register space offset
+    {
+        vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
+        const size_t register_alias = data->regs_phys_addr + REG_ALIAS_OFFSET;
+        return io_remap_pfn_range(vma, vma->vm_start, register_alias >> PAGE_SHIFT, size, vma->vm_page_prot);
+    }
+    return -EINVAL;
 }
 
 int pothos_zynq_dma_open(struct inode *inode, struct file *filp)
@@ -73,6 +85,10 @@ int pothos_zynq_dma_open(struct inode *inode, struct file *filp)
         return -EIO;
     }
 
+    //initialize members
+    data->num_dma_buffs = 0;
+    data->dma_buffs = NULL;
+
     data->test_dma_virt_mem = dma_zalloc_coherent(&pdev->dev, 1024, &data->test_dma_phys_mem, GFP_KERNEL);
     if (data->test_dma_virt_mem == NULL)
     {
@@ -101,6 +117,9 @@ int pothos_zynq_dma_release(struct inode *inode, struct file *filp)
 
     //unmap registers
     iounmap(data->regs_virt_addr);
+
+    //free DMA buffers if not freed by the user
+    pothos_zynq_dma_buffs_free(data);
 
     dma_free_coherent(&pdev->dev, 1024, data->test_dma_virt_mem, data->test_dma_phys_mem);
 

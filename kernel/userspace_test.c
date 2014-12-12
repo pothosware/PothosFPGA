@@ -9,9 +9,12 @@
 #include <sys/mman.h> //mmap
 #include <unistd.h> //close
 #include <stdint.h>
+#include "pothos_zynq_dma_ioctl.h"
+#include <sys/ioctl.h>
 
 int main(int argc, const char* argv[])
 {
+    int ret = 0;
     printf("Begin pothos axi stream userspace test\n");
     if (argc != 2)
     {
@@ -19,7 +22,7 @@ int main(int argc, const char* argv[])
         return EXIT_FAILURE;
     }
 
-    //open the device
+    //////////// open the device  /////////////////////
     int fd = open(argv[1], O_RDWR | O_SYNC);
     if (fd <= 0)
     {
@@ -27,7 +30,7 @@ int main(int argc, const char* argv[])
         return EXIT_FAILURE;
     }
 
-    //try to mmap
+    //////////// try to mmap /////////////////////
     void *p = mmap(NULL, 1024, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
     if (p == MAP_FAILED)
     {
@@ -41,7 +44,8 @@ int main(int argc, const char* argv[])
 
     munmap(p, 1024);
 
-    //try to dma map
+    //////////////// try to dma map /////////////////////
+    /*
     p = mmap(NULL, 1024, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 4096);
     if (p == MAP_FAILED)
     {
@@ -53,8 +57,40 @@ int main(int argc, const char* argv[])
     printf("data0 %d\n", data[0]);
 
     munmap(p, 1024);
+    */
 
-    //close
+    //////////// try to ioctl /////////////////////
+
+    pothos_zynq_dma_buff_t buffs[2];
+    buffs[0].bytes = 2048;
+    buffs[1].bytes = 2048;
+
+    pothos_zynq_dma_alloc_t alloc_args;
+    alloc_args.sentinel = POTHOS_ZYNQ_DMA_SENTINEL;
+    alloc_args.num_buffs = 2;
+    alloc_args.buffs = buffs;
+
+    ret = ioctl(fd, POTHOS_ZYNQ_DMA_ALLOC, (void *)&alloc_args);
+    if (ret != 0)
+    {
+        perror("ioctl - alloc");
+        return EXIT_FAILURE;
+    }
+
+    for (size_t i = 0; i < alloc_args.num_buffs; i++)
+    {
+        buffs[i].uaddr = mmap(NULL, buffs[i].bytes, PROT_READ | PROT_WRITE, MAP_SHARED, fd, buffs[i].paddr);
+        printf("buffer alloc %d: p=0x%x, k=0x%x, u=0x%x\n", i, buffs[i].paddr, (size_t)buffs[i].kaddr, (size_t)buffs[i].uaddr);
+    }
+
+    ret = ioctl(fd, POTHOS_ZYNQ_DMA_FREE);
+    if (ret != 0)
+    {
+        perror("ioctl - free");
+        return EXIT_FAILURE;
+    }
+
+    //////////// close /////////////////////
     close(fd);
 
     printf("Done!\n");

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #pragma once
+#include "pothos_zynq_dma_ioctl.h"
 #include <linux/poll.h> //poll arguments
 #include <linux/wait.h> //wait_queue_head_t
 #include <linux/cdev.h> //character device
@@ -30,6 +31,10 @@ typedef struct
     size_t regs_phys_size; //!< size in bytes of the registers from device tree
     void __iomem *regs_virt_addr; //!< virtual mapping of register space from ioremap
 
+    //dma buffer allocations
+    size_t num_dma_buffs;
+    pothos_zynq_dma_buff_t *dma_buffs;
+
 } pothos_zynq_dma_device_t;
 
 //! Register an interrupt handler -- called by probe
@@ -52,3 +57,9 @@ int pothos_zynq_dma_open(struct inode *inode, struct file *filp);
 
 //! The user calls close on the device node
 int pothos_zynq_dma_release(struct inode *inode, struct file *filp);
+
+//! Allocate DMA buffers from IOCTL configuration struct
+long pothos_zynq_dma_buffs_alloc(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_alloc_t *user_config);
+
+//! Free DMA buffers allocated from buffs alloc
+long pothos_zynq_dma_buffs_free(pothos_zynq_dma_device_t *data);
