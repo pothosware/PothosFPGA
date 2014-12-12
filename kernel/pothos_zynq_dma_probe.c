@@ -130,6 +130,7 @@ static int pothos_zynq_dma_remove(struct platform_device *pdev)
 
     //free the device data
     devm_kfree(&pdev->dev, data);
+    dev_set_drvdata(&pdev->dev, NULL);
 
     return 0;
 }

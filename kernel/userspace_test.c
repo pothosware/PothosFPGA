@@ -29,7 +29,7 @@ int main(int argc, const char* argv[])
 
     //try to mmap
     void *p = mmap(NULL, 1024, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 0);
-    if (p == NULL)
+    if (p == MAP_FAILED)
     {
         perror("mmap");
         return EXIT_FAILURE;
@@ -38,6 +38,19 @@ int main(int argc, const char* argv[])
     volatile uint32_t *regs = (volatile uint32_t *)p;
     printf("regs0 0x%x\n", regs[0]);
     printf("regs1 0x%x\n", regs[1]);
+
+    munmap(p, 1024);
+
+    //try to dma map
+    p = mmap(NULL, 1024, PROT_READ | PROT_WRITE, MAP_SHARED, fd, 4096);
+    if (p == MAP_FAILED)
+    {
+        perror("mmap");
+        return EXIT_FAILURE;
+    }
+    volatile uint32_t *data = (volatile uint32_t *)p;
+    data[0] = 42;
+    printf("data0 %d\n", data[0]);
 
     munmap(p, 1024);
 

@@ -24,10 +24,11 @@ unsigned int pothos_zynq_dma_poll(struct file *filp, struct poll_table_struct *w
 
 int pothos_zynq_dma_register_irq(unsigned int irq, pothos_zynq_dma_device_t *dev)
 {
-    return request_irq(irq, pothos_zynq_dma_irq_handler, IRQF_SHARED, "xilinx-dma-controller", dev);
+    return 0;
+    //return request_irq(irq, pothos_zynq_dma_irq_handler, IRQF_SHARED, "xilinx-dma-controller", dev);
 }
 
 void pothos_zynq_dma_unregister_irq(unsigned int irq, pothos_zynq_dma_device_t *dev)
 {
-    return free_irq(irq, dev);
+    //return free_irq(irq, dev);
 }
