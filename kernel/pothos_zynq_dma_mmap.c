@@ -1,7 +1,7 @@
 // Copyright (c) 2014-2014 Josh Blum
 // SPDX-License-Identifier: BSL-1.0
 
-#include "pothos_axis_dma_module.h"
+#include "pothos_zynq_dma_module.h"
 #include <linux/io.h> //ioctl
 #include <linux/mm.h> //mmap
 #include <linux/of_irq.h> //irq_of_parse_and_map
@@ -10,16 +10,16 @@
 //! A known point where the axi dma registers alias
 #define PAD_REG_ALIAS 4096
 
-long pothos_axis_dma_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
+long pothos_zynq_dma_ioctl(struct file *filp, unsigned int cmd, unsigned long arg)
 {
-    pothos_axi_dma_device_t *data = filp->private_data;
+    pothos_zynq_dma_device_t *data = filp->private_data;
 
     return 0;
 }
 
-int pothos_axis_dma_mmap(struct file *filp, struct vm_area_struct *vma)
+int pothos_zynq_dma_mmap(struct file *filp, struct vm_area_struct *vma)
 {
-    pothos_axi_dma_device_t *data = filp->private_data;
+    pothos_zynq_dma_device_t *data = filp->private_data;
 
     //use vma->vm_pgoff to indicate which index
 
@@ -30,10 +30,10 @@ int pothos_axis_dma_mmap(struct file *filp, struct vm_area_struct *vma)
     return io_remap_pfn_range(vma, vma->vm_start, register_alias >> PAGE_SHIFT, vma->vm_end - vma->vm_start, vma->vm_page_prot);
 }
 
-int pothos_axis_dma_open(struct inode *inode, struct file *filp)
+int pothos_zynq_dma_open(struct inode *inode, struct file *filp)
 {
     //find the base of the data structure by seeing where cdev is stored
-    pothos_axi_dma_device_t *data = container_of(inode->i_cdev, pothos_axi_dma_device_t, c_dev);
+    pothos_zynq_dma_device_t *data = container_of(inode->i_cdev, pothos_zynq_dma_device_t, c_dev);
     filp->private_data = data; /* now store it to private data for other methods */
 
     struct platform_device *pdev = data->pdev;
@@ -46,7 +46,7 @@ int pothos_axis_dma_open(struct inode *inode, struct file *filp)
     {
         unsigned int irq = irq_of_parse_and_map(node, i);
         if (irq == 0) break;
-        int ret = pothos_axis_dma_register_irq(irq, data);
+        int ret = pothos_zynq_dma_register_irq(irq, data);
         if (ret != 0)
         {
             dev_err(&pdev->dev, "Error %d registering IRQ %d.\n", ret, irq);
@@ -67,9 +67,9 @@ int pothos_axis_dma_open(struct inode *inode, struct file *filp)
     return 0;
 }
 
-int pothos_axis_dma_release(struct inode *inode, struct file *filp)
+int pothos_zynq_dma_release(struct inode *inode, struct file *filp)
 {
-    pothos_axi_dma_device_t *data = filp->private_data;
+    pothos_zynq_dma_device_t *data = filp->private_data;
     struct platform_device *pdev = data->pdev;
     struct device_node *node = pdev->dev.of_node;
 
@@ -78,7 +78,7 @@ int pothos_axis_dma_release(struct inode *inode, struct file *filp)
     {
         unsigned int irq = irq_of_parse_and_map(node, i);
         if (irq == 0) break;
-        pothos_axis_dma_register_irq(irq, data);
+        pothos_zynq_dma_register_irq(irq, data);
     }
 
     //unmap registers

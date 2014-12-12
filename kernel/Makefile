@@ -6,19 +6,19 @@ ifndef
 endif
 
 ########################################################################
-## sources for pothos_axis_dma module
+## sources for pothos_zynq_dma module
 ########################################################################
 POTHOS_AXIS_DMA_SOURCES = \
-	pothos_axis_dma_irq.c \
-	pothos_axis_dma_probe.c \
-	pothos_axis_dma_mmap.c
+	pothos_zynq_dma_irq.c \
+	pothos_zynq_dma_probe.c \
+	pothos_zynq_dma_mmap.c
 
-pothos_axis_dma-objs = $(POTHOS_AXIS_DMA_SOURCES:.c=.o)
+pothos_zynq_dma-objs = $(POTHOS_AXIS_DMA_SOURCES:.c=.o)
 
 ########################################################################
 ## list of modules built here
 ########################################################################
-obj-m := pothos_axis_dma.o
+obj-m := pothos_zynq_dma.o
 
 ccflags-y := -std=gnu99 -Wno-declaration-after-statement
 

@@ -1,7 +1,7 @@
 // Copyright (c) 2014-2014 Josh Blum
 // SPDX-License-Identifier: BSL-1.0
 
-#include "pothos_axis_dma_module.h"
+#include "pothos_zynq_dma_module.h"
 #include <linux/slab.h> //kmalloc, kfree
 #include <linux/module.h>
 #include <linux/of.h>
@@ -10,12 +10,12 @@
 #include <linux/io.h> //ioremap
 #include <linux/string.h> //strcmp
 
-static struct file_operations pothos_axis_dma_fops = {
-    poll: pothos_axis_dma_poll,
-    unlocked_ioctl: pothos_axis_dma_ioctl,
-    mmap: pothos_axis_dma_mmap,
-    open: pothos_axis_dma_open,
-    release: pothos_axis_dma_release
+static struct file_operations pothos_zynq_dma_fops = {
+    poll: pothos_zynq_dma_poll,
+    unlocked_ioctl: pothos_zynq_dma_ioctl,
+    mmap: pothos_zynq_dma_mmap,
+    open: pothos_zynq_dma_open,
+    release: pothos_zynq_dma_release
 };
 
 /*!
@@ -34,7 +34,7 @@ static int node_to_index(struct device_node *node)
     return -1;
 }
 
-static int pothos_axis_dma_probe(struct platform_device *pdev)
+static int pothos_zynq_dma_probe(struct platform_device *pdev)
 {
     struct device_node *node = pdev->dev.of_node;
 
@@ -49,7 +49,7 @@ static int pothos_axis_dma_probe(struct platform_device *pdev)
 
     //format a device name from the index
     char device_name[1024];
-    if (snprintf(device_name, sizeof(device_name), "pothos_axis_dma%d", index) <= 0)
+    if (snprintf(device_name, sizeof(device_name), "pothos_zynq_dma%d", index) <= 0)
     {
         dev_err(&pdev->dev, "Failed to format a device name\n");
         return -EIO;
@@ -80,7 +80,7 @@ static int pothos_axis_dma_probe(struct platform_device *pdev)
     }
 
     //allocate data structure for this device
-    pothos_axi_dma_device_t *data = devm_kzalloc(&pdev->dev, sizeof(pothos_axi_dma_device_t), GFP_KERNEL);
+    pothos_zynq_dma_device_t *data = devm_kzalloc(&pdev->dev, sizeof(pothos_zynq_dma_device_t), GFP_KERNEL);
     if (data == NULL) return -ENOMEM;
     data->pdev = pdev;
     dev_set_drvdata(&pdev->dev, data);
@@ -105,7 +105,7 @@ static int pothos_axis_dma_probe(struct platform_device *pdev)
         unregister_chrdev_region(data->dev_num, 1);
         return -1;
     }
-    cdev_init(&data->c_dev, &pothos_axis_dma_fops);
+    cdev_init(&data->c_dev, &pothos_zynq_dma_fops);
     if (cdev_add(&data->c_dev, data->dev_num, 1) == -1)
     {
         device_destroy(data->cl, data->dev_num);
@@ -118,9 +118,9 @@ static int pothos_axis_dma_probe(struct platform_device *pdev)
     return 0;
 }
 
-static int pothos_axis_dma_remove(struct platform_device *pdev)
+static int pothos_zynq_dma_remove(struct platform_device *pdev)
 {
-    pothos_axi_dma_device_t *data = dev_get_drvdata(&pdev->dev);
+    pothos_zynq_dma_device_t *data = dev_get_drvdata(&pdev->dev);
 
     //remove charcter device
     cdev_del(&data->c_dev);
@@ -137,21 +137,21 @@ static int pothos_axis_dma_remove(struct platform_device *pdev)
 /***********************************************************************
  * register this platform driver into the system
  **********************************************************************/
-static const struct of_device_id pothos_axis_dma_of_match[] = {
+static const struct of_device_id pothos_zynq_dma_of_match[] = {
     { .compatible = "pothos,xlnx,axi-dma", },
     {}
 };
-MODULE_DEVICE_TABLE(of, pothos_axis_dma_of_match);
+MODULE_DEVICE_TABLE(of, pothos_zynq_dma_of_match);
 
-static struct platform_driver pothos_axis_dma_driver = {
+static struct platform_driver pothos_zynq_dma_driver = {
     .driver = {
         .name = "pothos-xilinx-dma",
-        .of_match_table = pothos_axis_dma_of_match,
+        .of_match_table = pothos_zynq_dma_of_match,
     },
-    .probe = pothos_axis_dma_probe,
-    .remove = pothos_axis_dma_remove,
+    .probe = pothos_zynq_dma_probe,
+    .remove = pothos_zynq_dma_remove,
 };
-module_platform_driver(pothos_axis_dma_driver);
+module_platform_driver(pothos_zynq_dma_driver);
 
 MODULE_LICENSE("Dual BSD/GPL");
 MODULE_AUTHOR("Josh Blum");

@@ -27,25 +27,25 @@ typedef struct
     size_t regs_phys_size; //!< size in bytes of the registers from device tree
     void __iomem *regs_virt_addr; //!< virtual mapping of register space from ioremap
 
-} pothos_axi_dma_device_t;
+} pothos_zynq_dma_device_t;
 
 //! Register an interrupt handler -- called by probe
-int pothos_axis_dma_register_irq(unsigned int irq, pothos_axi_dma_device_t *dev);
+int pothos_zynq_dma_register_irq(unsigned int irq, pothos_zynq_dma_device_t *dev);
 
 //! Remove an interrupt handler -- called by unprobe
-void pothos_axis_dma_unregister_irq(unsigned int irq, pothos_axi_dma_device_t *dev);
+void pothos_zynq_dma_unregister_irq(unsigned int irq, pothos_zynq_dma_device_t *dev);
 
 //! The poll implementation used to wait on interrupts
-unsigned int pothos_axis_dma_poll(struct file *filp, struct poll_table_struct *wait);
+unsigned int pothos_zynq_dma_poll(struct file *filp, struct poll_table_struct *wait);
 
 //! IOCTL access for user to control allocations
-long pothos_axis_dma_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
+long pothos_zynq_dma_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
 
 //! Map DMA and device registers into userspace
-int pothos_axis_dma_mmap(struct file *filp, struct vm_area_struct *vma);
+int pothos_zynq_dma_mmap(struct file *filp, struct vm_area_struct *vma);
 
 //! The user calls open on the device node
-int pothos_axis_dma_open(struct inode *inode, struct file *filp);
+int pothos_zynq_dma_open(struct inode *inode, struct file *filp);
 
 //! The user calls close on the device node
-int pothos_axis_dma_release(struct inode *inode, struct file *filp);
+int pothos_zynq_dma_release(struct inode *inode, struct file *filp);
