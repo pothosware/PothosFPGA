@@ -5,6 +5,12 @@
 #include <linux/ioctl.h>
 #include <linux/types.h>
 
+//! The mmap offset used to specify the register space
+#define POTHOS_ZYNQ_DMA_REGS_OFF 0
+
+//! The size in bytes of the register space of interest
+#define POTHOS_ZYNQ_DMA_REGS_SIZE 1024
+
 /*!
  * A descriptor for a single DMA buffer.
  */
@@ -21,6 +27,8 @@ typedef struct
 
 /*!
  * The IOCTL structured used to request allocations.
+ * The addresses will be filled in on successful allocations with ioctl.
+ * The user must call mmap with paddr as the offset to fill in the uaddr.
  */
 typedef struct
 {
@@ -36,14 +44,19 @@ typedef struct
 } pothos_zynq_dma_alloc_t;
 
 /*!
- * Used to allocate DMA buffer specified by the pothos_zynq_dma_ioctl_t
- * The addresses will be filled in on successful allocations otherwise 0.
- * A second call will fail unless the user first performs POTHOS_ZYNQ_DMA_FREE.
- * The user must call mmap with paddr as the offset to fill in the uaddr.
+ * Used to allocate stream to memory map buffers specified by the pothos_zynq_dma_ioctl_t
+ * A second call will fail unless the user first performs POTHOS_ZYNQ_DMA_FREE_S2MM.
  */
-#define POTHOS_ZYNQ_DMA_ALLOC _IOWR('p', 1, pothos_zynq_dma_alloc_t *)
+#define POTHOS_ZYNQ_DMA_ALLOC_S2MM _IOWR('p', 1, pothos_zynq_dma_alloc_t *)
 
 /*!
- * Free all allocations performed by POTHOS_ZYNQ_DMA_ALLOC.
+ * Used to allocate memory map to stream buffers specified by the pothos_zynq_dma_ioctl_t
+ * A second call will fail unless the user first performs POTHOS_ZYNQ_DMA_FREE_MM2S.
  */
-#define POTHOS_ZYNQ_DMA_FREE _IO('p', 2)
+#define POTHOS_ZYNQ_DMA_ALLOC_MM2S _IOWR('p', 2, pothos_zynq_dma_alloc_t *)
+
+//! Free all allocations performed by POTHOS_ZYNQ_DMA_ALLOC_S2MM
+#define POTHOS_ZYNQ_DMA_FREE_S2MM _IO('p', 3)
+
+//! Free all allocations performed by POTHOS_ZYNQ_DMA_ALLOC_MM2S
+#define POTHOS_ZYNQ_DMA_FREE_MM2S _IO('p', 4)

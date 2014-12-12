@@ -32,8 +32,8 @@ typedef struct
     void __iomem *regs_virt_addr; //!< virtual mapping of register space from ioremap
 
     //dma buffer allocations
-    size_t num_dma_buffs;
-    pothos_zynq_dma_buff_t *dma_buffs;
+    pothos_zynq_dma_alloc_t s2mm_allocs;
+    pothos_zynq_dma_alloc_t mm2s_allocs;
 
 } pothos_zynq_dma_device_t;
 
@@ -59,7 +59,7 @@ int pothos_zynq_dma_open(struct inode *inode, struct file *filp);
 int pothos_zynq_dma_release(struct inode *inode, struct file *filp);
 
 //! Allocate DMA buffers from IOCTL configuration struct
-long pothos_zynq_dma_buffs_alloc(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_alloc_t *user_config);
+long pothos_zynq_dma_buffs_alloc(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_alloc_t *user_config, pothos_zynq_dma_alloc_t *allocs);
 
 //! Free DMA buffers allocated from buffs alloc
-long pothos_zynq_dma_buffs_free(pothos_zynq_dma_device_t *data);
+long pothos_zynq_dma_buffs_free(pothos_zynq_dma_device_t *data, pothos_zynq_dma_alloc_t *allocs);
