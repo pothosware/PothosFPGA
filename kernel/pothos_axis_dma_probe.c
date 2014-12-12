@@ -34,7 +34,7 @@ static int node_to_index(struct device_node *node)
     return -1;
 }
 
-static int pothos_axis_dma_probe1(struct platform_device *pdev)
+static int pothos_axis_dma_probe(struct platform_device *pdev)
 {
     struct device_node *node = pdev->dev.of_node;
 
@@ -56,13 +56,13 @@ static int pothos_axis_dma_probe1(struct platform_device *pdev)
     }
 
     //inspect register entry
-    struct resource *regs = platform_get_resource(pdev, IORESOURCE_MEM, 0);
-    if (regs == NULL)
+    struct resource *res = platform_get_resource(pdev, IORESOURCE_MEM, 0);
+    if (res == NULL)
     {
         dev_err(&pdev->dev, "Error getting regs resource from devicetree.\nExample 'reg = <0x40400000 0x10000>;'\n");
         return -EIO;
     }
-    dev_info(&pdev->dev, "Register start 0x%x\n", regs->start);
+    dev_info(&pdev->dev, "Register start 0x%x\n", res->start);
 
     //inspect interrupts
     size_t irqno = 0;
@@ -82,6 +82,7 @@ static int pothos_axis_dma_probe1(struct platform_device *pdev)
     //allocate data structure for this device
     pothos_axi_dma_device_t *data = devm_kzalloc(&pdev->dev, sizeof(pothos_axi_dma_device_t), GFP_KERNEL);
     if (data == NULL) return -ENOMEM;
+    data->pdev = pdev;
     dev_set_drvdata(&pdev->dev, data);
 
     //create character device
@@ -94,7 +95,7 @@ static int pothos_axis_dma_probe1(struct platform_device *pdev)
         unregister_chrdev_region(data->dev_num, 1);
         return -1;
     }
-    if (device_create(data->cl, NULL, data->dev_num, data, device_name) == NULL)
+    if (device_create(data->cl, NULL, data->dev_num, NULL, device_name) == NULL)
     {
         class_destroy(data->cl);
         unregister_chrdev_region(data->dev_num, 1);
@@ -143,82 +144,11 @@ static struct platform_driver pothos_axis_dma_driver = {
         .name = "pothos-xilinx-dma",
         .of_match_table = pothos_axis_dma_of_match,
     },
-    .probe = pothos_axis_dma_probe1,
+    .probe = pothos_axis_dma_probe,
     .remove = pothos_axis_dma_remove,
 };
 module_platform_driver(pothos_axis_dma_driver);
 
-/*
-
-static pothos_axi_dma_device_t *devices = NULL;
-static size_t num_devices = 0;
-
-void pothos_axis_dma_probe(void)
-{
-    //allocate space for all of the devices
-    num_devices = 0;
-    struct device_node *node = NULL;
-    for_each_compatible_node(node, NULL, "xlnx,axi-dma")
-    {
-        num_devices++;
-        devices = (pothos_axi_dma_device_t *)krealloc(devices, num_devices*sizeof(pothos_axi_dma_device_t), GFP_KERNEL);
-        devices[num_devices-1].node = node;
-    }
-
-    //initialize the device structures
-    for (size_t devno = 0; devno < num_devices; devno++)
-    {
-        pothos_axi_dma_device_t *device = devices+devno;
-        node = device->node;
-
-        printk(KERN_INFO MODULE_NAME " probe: found %s\n", of_node_full_name(node));
-        init_waitqueue_head(&device->irq_wait);
-
-        //register interrupt handlers
-        for (size_t i = 0; (1); i++)
-        {
-            unsigned int irq = irq_of_parse_and_map(node, i);
-            if (irq == 0) break;
-            printk(KERN_INFO MODULE_NAME " probe: register IRQ %u\n", irq);
-            int ret = pothos_axis_dma_register_irq(irq, device);
-            if (ret != 0) printk(KERN_INFO MODULE_NAME " probe: register IRQ FAIL %d\n", ret);
-        }
-
-        //determine register space
-        u32 addr = 0, size = 0;
-        of_property_read_u32_index(node, "reg", 0, &addr);
-        of_property_read_u32_index(node, "reg", 1, &size);
-        printk(KERN_INFO MODULE_NAME " probe: found registers - addr: 0x%x, size: 0x%x\n", addr, size);
-
-        //map the register space
-        device->reg_phys_addr = addr;
-        device->reg_phys_size = size;
-        device->reg_virt_addr = ioremap_nocache(addr, size);
-    }
-}
-
-void pothos_axis_dma_unprobe(void)
-{
-    for (size_t devno = 0; devno < num_devices; devno++)
-    {
-        pothos_axi_dma_device_t *device = devices+devno;
-
-        //unregister irq
-        for (size_t i = 0; (1); i++)
-        {
-            unsigned int irq = irq_of_parse_and_map(device->node, i);
-            if (irq == 0) break;
-            pothos_axis_dma_register_irq(irq, device);
-        }
-
-        //unmap registers
-        iounmap(device->reg_virt_addr);
-    }
-
-    //zero out devices array
-    kfree(devices);
-    devices = NULL;
-    num_devices = 0;
-}
-
-*/
+MODULE_LICENSE("Dual BSD/GPL");
+MODULE_AUTHOR("Josh Blum");
+MODULE_DESCRIPTION("Pothos AXI Stream DMA");

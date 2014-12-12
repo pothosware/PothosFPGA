@@ -9,8 +9,7 @@ endif
 ## sources for pothos_axis_dma module
 ########################################################################
 POTHOS_AXIS_DMA_SOURCES = \
-	pothos_axis_dma_interrupts.c \
-	pothos_axis_dma_module.c \
+	pothos_axis_dma_irq.c \
 	pothos_axis_dma_probe.c \
 	pothos_axis_dma_mmap.c
 

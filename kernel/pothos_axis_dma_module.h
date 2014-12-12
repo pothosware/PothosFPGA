@@ -19,20 +19,18 @@ typedef struct
     struct cdev c_dev;
     struct class *cl;
 
-
-    struct device_node *node;
+    //wait queue for implementing interrupt waits
     wait_queue_head_t irq_wait;
-    phys_addr_t reg_phys_addr; //!< hardware address of the registers from device tree
-    size_t reg_phys_size; //!< size in bytes of the registers from device tree
-    void *reg_virt_addr; //!< virtual mapping of register space from ioremap
+
+    //the platform device from probe
+    struct platform_device *pdev;
+
+    //dma engine register space
+    phys_addr_t regs_phys_addr; //!< hardware address of the registers from device tree
+    size_t regs_phys_size; //!< size in bytes of the registers from device tree
+    void __iomem *regs_virt_addr; //!< virtual mapping of register space from ioremap
 
 } pothos_axi_dma_device_t;
-
-//! Probe the device tree for available hw
-void pothos_axis_dma_probe(void);
-
-//! Cleanup from probe when module unloaded
-void pothos_axis_dma_unprobe(void);
 
 //! Register an interrupt handler -- called by probe
 int pothos_axis_dma_register_irq(unsigned int irq, pothos_axi_dma_device_t *dev);
