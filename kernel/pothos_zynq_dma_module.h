@@ -18,6 +18,7 @@ typedef struct
 
     //wait queue for implementing interrupt waits
     wait_queue_head_t irq_wait;
+    unsigned long long irq_count;
 
     //the platform device from probe
     struct platform_device *pdev;

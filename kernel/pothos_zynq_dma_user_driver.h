@@ -400,6 +400,9 @@ static inline void __pzdud_init(pzdud_chan_t *chan)
 
     //start the engine
     __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | XILINX_DMA_CR_RUNSTOP_MASK);
+
+    //enable interrupt on complete
+    __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | XILINX_DMA_XR_IRQ_IOC_MASK);
 }
 
 static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir)
@@ -458,7 +461,7 @@ static inline int pzdud_wait(pzdud_t *self, const pzdud_dir_t dir, const long ti
         pothos_zynq_dma_wait_t wait_args;
         wait_args.sentinel = POTHOS_ZYNQ_DMA_SENTINEL;
         wait_args.timeout_us = timeout_us;
-        wait_args.sgtable = (xilinx_dma_desc_t *)__pzdud_virt_to_kern(desc, chan->sgbuff);
+        wait_args.ksgtable = (xilinx_dma_desc_t *)__pzdud_virt_to_kern(desc, chan->sgbuff);
         int ret = ioctl(self->fd, POTHOS_ZYNQ_DMA_WAIT, (void *)&wait_args);
         if (ret != 0)
         {

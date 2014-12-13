@@ -72,6 +72,7 @@ int pothos_zynq_dma_open(struct inode *inode, struct file *filp)
     dev_info(&pdev->dev, "Open %s\n", of_node_full_name(node));
 
     init_waitqueue_head(&data->irq_wait);
+    data->irq_count = 0;
 
     //register interrupt handlers
     for (size_t i = 0; (1); i++)
@@ -121,6 +122,7 @@ int pothos_zynq_dma_release(struct inode *inode, struct file *filp)
         dev_info(&pdev->dev, "Unregister IRQ %d.\n", irq);
         pothos_zynq_dma_register_irq(irq, data);
     }
+    dev_info(&pdev->dev, "IRQ count = %llu\n", data->irq_count);
 
     //unmap registers
     iounmap(data->regs_virt_addr);

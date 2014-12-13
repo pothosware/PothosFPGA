@@ -7,10 +7,12 @@
 #include <linux/wait.h> //wait_queue_head_t
 #include <linux/sched.h> //interruptible
 #include <linux/io.h> //iowrite32
+#include <linux/platform_device.h>
 
 static irqreturn_t pothos_zynq_dma_irq_handler(int irq, void *data_)
 {
     pothos_zynq_dma_device_t *data = (pothos_zynq_dma_device_t *)data_;
+    data->irq_count++;
 
     //ack the interrupts from both channels regardless of which IRQ caused this interrupt
     iowrite32(XILINX_DMA_XR_IRQ_ALL_MASK, ((char *)data->regs_virt_addr) + XILINX_DMA_S2MM_DMASR_OFFSET);
@@ -35,7 +37,7 @@ long pothos_zynq_dma_wait(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_
     if (wait_args.sentinel != POTHOS_ZYNQ_DMA_SENTINEL) return -EINVAL;
 
     //wait on the condition
-    xilinx_dma_desc_t *desc = wait_args.sgtable;
+    xilinx_dma_desc_t *desc = wait_args.ksgtable; //already kernel memory
     const unsigned long timeout = usecs_to_jiffies(wait_args.timeout_us);
     wait_event_interruptible_timeout(data->irq_wait, ((desc->status & (1 << 31)) != 0), timeout);
     return 0;
@@ -43,11 +45,12 @@ long pothos_zynq_dma_wait(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_
 
 int pothos_zynq_dma_register_irq(unsigned int irq, pothos_zynq_dma_device_t *data)
 {
-    return 0;
-    //return request_irq(irq, pothos_zynq_dma_irq_handler, IRQF_SHARED, "xilinx-dma-controller", data);
+    struct platform_device *pdev = data->pdev;
+    return devm_request_irq(&pdev->dev, irq, pothos_zynq_dma_irq_handler, IRQF_SHARED, "xilinx-dma-controller", data);
 }
 
 void pothos_zynq_dma_unregister_irq(unsigned int irq, pothos_zynq_dma_device_t *data)
 {
-    //return free_irq(irq, data);
+    struct platform_device *pdev = data->pdev;
+    return devm_free_irq(&pdev->dev, irq, data);
 }

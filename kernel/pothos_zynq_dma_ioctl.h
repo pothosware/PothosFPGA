@@ -45,7 +45,7 @@ typedef struct
 typedef struct
 {
     unsigned int sentinel; //!< A expected word for ABI compatibility checks
-    struct xilinx_dma_desc_sg *sgtable; //!< SG table for DMA completion check (kernel mapped memory)
+    struct xilinx_dma_desc_sg *ksgtable; //!< SG table for DMA completion check (kernel mapped memory)
     long timeout_us; //!< the timeout to wait for completion in microseconds
 } pothos_zynq_dma_wait_t;
 

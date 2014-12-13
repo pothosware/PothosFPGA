@@ -4,13 +4,13 @@
 #include <stdio.h>
 #include "pothos_zynq_dma_user_driver.h"
 
-int main(int argc, const char* argv[])
+int test(const int index)
 {
     int ret = 0;
-    printf("Begin pothos axi stream userspace test\n");
+    printf("Begin pothos axi stream userspace test %d\n", index);
 
     ////////////////// init /////////////////
-    pzdud_t *dma = pzdud_create(0);
+    pzdud_t *dma = pzdud_create(index);
     if (dma == NULL)
     {
         printf("Fail pzdud_create\n");
@@ -115,5 +115,12 @@ int main(int argc, const char* argv[])
     pzdud_destroy(dma);
     printf("Done!\n");
 
+    return EXIT_SUCCESS;
+}
+
+int main(int argc, const char* argv[])
+{
+    if (test(0) != 0) return EXIT_FAILURE;
+    if (test(1) != 0) return EXIT_FAILURE;
     return EXIT_SUCCESS;
 }
