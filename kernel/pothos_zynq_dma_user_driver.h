@@ -197,28 +197,62 @@ typedef struct xilinx_dma_desc_sg
 /***********************************************************************
  * Definition for instance data
  **********************************************************************/
+
+/*!
+ * Data for a given channel (direction independent)
+ */
+typedef struct
+{
+    //! mapped registers
+    void *ctrl_reg;
+    void *stat_reg;
+    void *head_reg;
+    void *tail_reg;
+
+    //! allocation array
+    pothos_zynq_dma_alloc_t allocs;
+
+    //! allocation settings
+    size_t num_buffs;
+    size_t buff_size;
+
+    //! buffer tracking
+    size_t head_index;
+    size_t tail_index;
+    size_t num_acquired;
+    xilinx_dma_desc_t *sgtable;
+
+} pzdud_chan_t;
+
 struct pzdud
 {
     int fd; //!< file descriptor for device node
     void *regs; //!< mapped register space
 
-    pothos_zynq_dma_alloc_t s2mm_allocs;
-    pothos_zynq_dma_alloc_t mm2s_allocs;
+    //! per channel state
+    pzdud_chan_t s2mm_chan;
+    pzdud_chan_t mm2s_chan;
 };
 
 /***********************************************************************
  * Helper functions
  **********************************************************************/
-static inline void __pzdud_write32(char *base, int offset, uint32_t val)
+static inline void __pzdud_write32(void *addr, uint32_t val)
 {
-    volatile uint32_t *p = (volatile uint32_t *)(base + offset);
+    volatile uint32_t *p = (volatile uint32_t *)(addr);
     *p = val;
 }
 
-static inline uint32_t __pzdud_read32(char *base, int offset)
+static inline uint32_t __pzdud_read32(void *addr)
 {
-    volatile uint32_t *p = (volatile uint32_t *)(base + offset);
+    volatile uint32_t *p = (volatile uint32_t *)(addr);
     return *p;
+}
+
+static inline size_t __pzdud_virt_to_phys(void *virt, const pothos_zynq_dma_buff_t *buff)
+{
+    size_t offset = (size_t)virt - (size_t)buff->uaddr;
+    return offset + buff->paddr;
 }
 
 /***********************************************************************
@@ -251,13 +285,18 @@ static inline pzdud_t *pzdud_create(const size_t index)
     }
 
     //initialize the object structure
-    pzdud_t *self = (pzdud_t *)malloc(sizeof(pzdud_t));
+    pzdud_t *self = (pzdud_t *)calloc(1, sizeof(pzdud_t));
     self->fd = fd;
     self->regs = regs;
-    self->s2mm_allocs.buffs = NULL;
-    self->s2mm_allocs.num_buffs = 0;
-    self->mm2s_allocs.buffs = NULL;
-    self->mm2s_allocs.num_buffs = 0;
+    self->s2mm_chan.ctrl_reg = ((char *)regs) + XILINX_DMA_S2MM_DMACR_OFFSET;
+    self->s2mm_chan.stat_reg = ((char *)regs) + XILINX_DMA_S2MM_DMASR_OFFSET;
+    self->s2mm_chan.head_reg = ((char *)regs) + XILINX_DMA_S2MM_CURDESC_OFFSET;
+    self->s2mm_chan.tail_reg = ((char *)regs) + XILINX_DMA_S2MM_TAILDESC_OFFSET;
+    self->mm2s_chan.ctrl_reg = ((char *)regs) + XILINX_DMA_MM2S_DMACR_OFFSET;
+    self->mm2s_chan.stat_reg = ((char *)regs) + XILINX_DMA_MM2S_DMASR_OFFSET;
+    self->mm2s_chan.head_reg = ((char *)regs) + XILINX_DMA_MM2S_CURDESC_OFFSET;
+    self->mm2s_chan.tail_reg = ((char *)regs) + XILINX_DMA_MM2S_TAILDESC_OFFSET;
+
     return self;
 }
 
@@ -272,18 +311,17 @@ static inline int pzdud_destroy(pzdud_t *self)
 /***********************************************************************
  * reset implementation
  **********************************************************************/
-static inline int __pzdud_reset(pzdud_t *self, const size_t dmacr_offset)
+static inline int __pzdud_reset(pzdud_chan_t *chan)
 {
     int loop = 0;
 
     //a simple test to check for an expected bit in the first register
-    if ((__pzdud_read32(self->regs, dmacr_offset) & 0x2) == 0) return PZDUD_ERROR_COMMS;
+    if ((__pzdud_read32(chan->ctrl_reg) & 0x2) == 0) return PZDUD_ERROR_COMMS;
 
     //perform a soft reset and wait for done
-    const uint32_t reg = __pzdud_read32(self->regs, dmacr_offset);
-    __pzdud_write32(self->regs, dmacr_offset, reg | XILINX_DMA_CR_RESET_MASK);
+    __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | XILINX_DMA_CR_RESET_MASK);
     loop = XILINX_DMA_RESET_LOOP;
-    while ((__pzdud_read32(self->regs, dmacr_offset) & XILINX_DMA_CR_RESET_MASK) != 0)
+    while ((__pzdud_read32(chan->ctrl_reg) & XILINX_DMA_CR_RESET_MASK) != 0)
     {
         if (--loop == 0) return PZDUD_ERROR_TIMEOUT;
     }
@@ -295,10 +333,10 @@ static inline int pzdud_reset(pzdud_t *self)
 {
     int ret = PZDUD_OK;
 
-    ret = __pzdud_reset(self, XILINX_DMA_S2MM_DMACR_OFFSET);
+    ret = __pzdud_reset(&self->s2mm_chan);
     if (ret != PZDUD_OK) return ret;
 
-    ret = __pzdud_reset(self, XILINX_DMA_MM2S_DMACR_OFFSET);
+    ret = __pzdud_reset(&self->mm2s_chan);
     if (ret != PZDUD_OK) return ret;
 
     return ret;
@@ -309,7 +347,10 @@ static inline int pzdud_reset(pzdud_t *self)
  **********************************************************************/
 static inline int pzdud_alloc(pzdud_t *self, const pzdud_dir_t dir, const size_t num_buffs, const size_t buff_size)
 {
-    pothos_zynq_dma_alloc_t *allocs = (dir == PZDUD_S2MM)?&self->s2mm_allocs:&self->mm2s_allocs;
+    pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
+    pothos_zynq_dma_alloc_t *allocs = &chan->allocs;
+    chan->num_buffs = num_buffs;
+    chan->buff_size = buff_size;
 
     //load up the allocation request
     allocs->sentinel = POTHOS_ZYNQ_DMA_SENTINEL;
@@ -351,7 +392,8 @@ static inline int pzdud_alloc(pzdud_t *self, const pzdud_dir_t dir, const size_t
 
 static inline int pzdud_free(pzdud_t *self, const pzdud_dir_t dir)
 {
-    pothos_zynq_dma_alloc_t *allocs = (dir == PZDUD_S2MM)?&self->s2mm_allocs:&self->mm2s_allocs;
+    pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
+    pothos_zynq_dma_alloc_t *allocs = &chan->allocs;
 
     //unmap all the buffers
     for (size_t i = 0; i < allocs->num_buffs; i++)
@@ -379,14 +421,144 @@ static inline int pzdud_free(pzdud_t *self, const pzdud_dir_t dir)
 /***********************************************************************
  * init/halt implementation
  **********************************************************************/
+static inline void __pzdud_init(pzdud_chan_t *chan)
+{
+    //the last buffer is used for the sg table
+    pothos_zynq_dma_buff_t *sgbuff = chan->allocs.buffs + chan->num_buffs;
+    chan->sgtable = (xilinx_dma_desc_t *)sgbuff->uaddr;
+
+    //load the scatter gather table
+    for (size_t i = 0; i < chan->num_buffs; i++)
+    {
+        xilinx_dma_desc_t *desc = chan->sgtable + i;
+        size_t next_index = (i+1) % chan->num_buffs;
+        xilinx_dma_desc_t *next = chan->sgtable + next_index;
+        desc->next_desc = __pzdud_virt_to_phys(next, sgbuff);
+        desc->buf_addr = chan->allocs.buffs[i].paddr;
+        desc->control = 0;
+        desc->status = 0;
+    }
+
+    //initialize buffer tracking
+    chan->head_index = 0;
+    chan->tail_index = 0;
+    chan->num_acquired = 0;
+
+    //load desc pointers
+    xilinx_dma_desc_t *head = chan->sgtable + chan->head_index;
+    __pzdud_write32(chan->head_reg, __pzdud_virt_to_phys(head, sgbuff));
+    xilinx_dma_desc_t *tail = chan->sgtable + chan->tail_index;
+    __pzdud_write32(chan->tail_reg, __pzdud_virt_to_phys(tail, sgbuff));
+
+    //start the engine
+    __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | XILINX_DMA_CR_RUNSTOP_MASK);
+}
+
 static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir)
 {
-    
+    __pzdud_init((dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan);
+
+    //release all the buffers into the engine
+    if (dir == PZDUD_S2MM) for (size_t i = 0; i < self->s2mm_chan.num_buffs; i++)
+    {
+        self->s2mm_chan.num_acquired++;
+        pzdud_release(self, dir, i, 0);
+    }
+
+    //mark all buffers completed
+    if (dir == PZDUD_MM2S) for (size_t i = 0; i < self->mm2s_chan.num_buffs; i++)
+    {
+        self->mm2s_chan.sgtable[i].status |= (1 << 31);
+    }
+
+    return PZDUD_OK;
+}
+
+static inline int __pzdud_halt(pzdud_chan_t *chan)
+{
+    //perform a halt and wait for done
+    __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | ~XILINX_DMA_CR_RUNSTOP_MASK);
+    int loop = XILINX_DMA_HALT_LOOP;
+    while ((__pzdud_read32(chan->ctrl_reg) & XILINX_DMA_CR_RUNSTOP_MASK) != 0)
+    {
+        if (--loop == 0) return PZDUD_ERROR_TIMEOUT;
+    }
     return PZDUD_OK;
 }
 
 static inline int pzdud_halt(pzdud_t *self, const pzdud_dir_t dir)
 {
-    
-    return PZDUD_OK;
+    return __pzdud_halt((dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan);
+}
+
+/***********************************************************************
+ * acquire/release implementation
+ **********************************************************************/
+static inline int __pzdud_acquire(pzdud_t *self, pzdud_chan_t *chan, void **buffer, size_t *length)
+{
+    if (chan->num_acquired == chan->num_buffs) return PZDUD_ERROR_CLAIMED;
+
+    xilinx_dma_desc_t *desc = chan->sgtable+chan->head_index;
+
+    //check completion status of the buffer
+    if ((desc->status & (1 << 31)) == 0) return PZDUD_ERROR_COMPLETE;
+
+    //fill in the buffer structure
+    int handle = chan->head_index;
+    *buffer = chan->allocs.buffs[handle].uaddr;
+    *length = desc->status & 0x7fffff;
+
+    //increment to next
+    chan->head_index = (chan->head_index + 1) % chan->num_buffs;
+    chan->num_acquired++;
+
+    return handle;
+}
+
+static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, void **buffer, size_t *length)
+{
+    int ret = -1;
+    switch (dir)
+    {
+    case PZDUD_S2MM:
+        ret = __pzdud_acquire(self, &self->s2mm_chan, buffer, length);
+        break;
+    case PZDUD_MM2S:
+        ret = __pzdud_acquire(self, &self->mm2s_chan, buffer, length);
+        *length = self->mm2s_chan.buff_size;
+        break;
+    }
+    return ret;
+}
+
+static inline void __pzdud_release(pzdud_t *self, pzdud_chan_t *chan, size_t handle, size_t length, uint32_t ctrl_word)
+{
+    xilinx_dma_desc_t *desc = chan->sgtable+chan->head_index;
+
+    desc->control = ctrl_word; //new control flags
+    desc->status = 0; //clear status
+
+    //determine the new tail (buffers may not be released in order)
+    while (chan->num_acquired != 0)
+    {
+        xilinx_dma_desc_t *tail = chan->sgtable + chan->tail_index;
+        if (tail->status != 0) break;
+        __pzdud_write32(chan->tail_reg, chan->allocs.buffs[chan->tail_index].paddr);
+
+        chan->tail_index = (chan->tail_index + 1) % chan->num_buffs;
+        chan->num_acquired--;
+    }
+}
+
+static inline void pzdud_release(pzdud_t *self, const pzdud_dir_t dir, size_t handle, size_t length)
+{
+    switch (dir)
+    {
+    case PZDUD_S2MM:
+        __pzdud_release(self, &self->s2mm_chan, handle, length, self->s2mm_chan.buff_size);
+        break;
+    case PZDUD_MM2S:
+        __pzdud_release(self, &self->mm2s_chan, handle, length, length | XILINX_DMA_BD_SOP | XILINX_DMA_BD_EOP);
+        break;
+    }
 }
