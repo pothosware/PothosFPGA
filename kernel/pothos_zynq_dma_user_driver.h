@@ -220,6 +220,8 @@ typedef struct
     size_t head_index;
     size_t tail_index;
     size_t num_acquired;
+
+    pothos_zynq_dma_buff_t *sgbuff;
     xilinx_dma_desc_t *sgtable;
 
 } pzdud_chan_t;
@@ -387,6 +389,10 @@ static inline int pzdud_alloc(pzdud_t *self, const pzdud_dir_t dir, const size_t
         }
     }
 
+    //the last buffer is used for the sg table
+    chan->sgbuff = allocs->buffs + num_buffs;
+    chan->sgtable = (xilinx_dma_desc_t *)chan->sgbuff->uaddr;
+
     return PZDUD_OK;
 }
 
@@ -423,17 +429,13 @@ static inline int pzdud_free(pzdud_t *self, const pzdud_dir_t dir)
  **********************************************************************/
 static inline void __pzdud_init(pzdud_chan_t *chan)
 {
-    //the last buffer is used for the sg table
-    pothos_zynq_dma_buff_t *sgbuff = chan->allocs.buffs + chan->num_buffs;
-    chan->sgtable = (xilinx_dma_desc_t *)sgbuff->uaddr;
-
     //load the scatter gather table
     for (size_t i = 0; i < chan->num_buffs; i++)
     {
         xilinx_dma_desc_t *desc = chan->sgtable + i;
         size_t next_index = (i+1) % chan->num_buffs;
         xilinx_dma_desc_t *next = chan->sgtable + next_index;
-        desc->next_desc = __pzdud_virt_to_phys(next, sgbuff);
+        desc->next_desc = __pzdud_virt_to_phys(next, chan->sgbuff);
         desc->buf_addr = chan->allocs.buffs[i].paddr;
         desc->control = 0;
         desc->status = 0;
@@ -446,9 +448,9 @@ static inline void __pzdud_init(pzdud_chan_t *chan)
 
     //load desc pointers
     xilinx_dma_desc_t *head = chan->sgtable + chan->head_index;
-    __pzdud_write32(chan->head_reg, __pzdud_virt_to_phys(head, sgbuff));
+    __pzdud_write32(chan->head_reg, __pzdud_virt_to_phys(head, chan->sgbuff));
     xilinx_dma_desc_t *tail = chan->sgtable + chan->tail_index;
-    __pzdud_write32(chan->tail_reg, __pzdud_virt_to_phys(tail, sgbuff));
+    __pzdud_write32(chan->tail_reg, __pzdud_virt_to_phys(tail, chan->sgbuff));
 
     //start the engine
     __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | XILINX_DMA_CR_RUNSTOP_MASK);
@@ -533,7 +535,7 @@ static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, void **buf
 
 static inline void __pzdud_release(pzdud_t *self, pzdud_chan_t *chan, size_t handle, size_t length, uint32_t ctrl_word)
 {
-    xilinx_dma_desc_t *desc = chan->sgtable+chan->head_index;
+    xilinx_dma_desc_t *desc = chan->sgtable+handle;
 
     desc->control = ctrl_word; //new control flags
     desc->status = 0; //clear status
@@ -543,7 +545,7 @@ static inline void __pzdud_release(pzdud_t *self, pzdud_chan_t *chan, size_t han
     {
         xilinx_dma_desc_t *tail = chan->sgtable + chan->tail_index;
         if (tail->status != 0) break;
-        __pzdud_write32(chan->tail_reg, chan->allocs.buffs[chan->tail_index].paddr);
+        __pzdud_write32(chan->tail_reg, __pzdud_virt_to_phys(tail, chan->sgbuff));
 
         chan->tail_index = (chan->tail_index + 1) % chan->num_buffs;
         chan->num_acquired--;

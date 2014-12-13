@@ -6,7 +6,6 @@
 #include <linux/mm.h> //mmap
 #include <linux/of_irq.h> //irq_of_parse_and_map
 #include <linux/platform_device.h>
-#include <linux/dma-mapping.h>
 
 //! A known point where the axi dma registers alias
 #define REG_ALIAS_OFFSET (data->regs_phys_size/2)
@@ -31,6 +30,7 @@ int pothos_zynq_dma_mmap(struct file *filp, struct vm_area_struct *vma)
     pothos_zynq_dma_device_t *data = filp->private_data;
     const size_t size = vma->vm_end - vma->vm_start;
     const size_t offset = vma->vm_pgoff << PAGE_SHIFT;
+    vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
 
     //The user passes in the physical address as the offset.
     //Use vma->vm_pgoff to indicate which DMA allocation.
@@ -53,7 +53,6 @@ int pothos_zynq_dma_mmap(struct file *filp, struct vm_area_struct *vma)
     //as the kernel has already iomapped the registers at offset 0.
     if (offset == POTHOS_ZYNQ_DMA_REGS_OFF)
     {
-        vma->vm_page_prot = pgprot_noncached(vma->vm_page_prot);
         const size_t register_alias = data->regs_phys_addr + REG_ALIAS_OFFSET;
         return io_remap_pfn_range(vma, vma->vm_start, register_alias >> PAGE_SHIFT, size, vma->vm_page_prot);
     }
@@ -102,13 +101,6 @@ int pothos_zynq_dma_open(struct inode *inode, struct file *filp)
     data->mm2s_allocs.num_buffs = 0;
     data->mm2s_allocs.buffs = NULL;
 
-    data->test_dma_virt_mem = dma_zalloc_coherent(&pdev->dev, 1024, &data->test_dma_phys_mem, GFP_KERNEL);
-    if (data->test_dma_virt_mem == NULL)
-    {
-        dev_err(&pdev->dev, "Error mapping DMA resource.\n");
-        return -EIO;
-    }
-
     return 0;
 }
 
@@ -134,8 +126,6 @@ int pothos_zynq_dma_release(struct inode *inode, struct file *filp)
     //free DMA buffers if not freed by the user
     pothos_zynq_dma_buffs_free(data, &data->s2mm_allocs);
     pothos_zynq_dma_buffs_free(data, &data->mm2s_allocs);
-
-    dma_free_coherent(&pdev->dev, 1024, data->test_dma_virt_mem, data->test_dma_phys_mem);
 
     return 0;
 }

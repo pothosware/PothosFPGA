@@ -23,9 +23,6 @@ typedef struct
     //the platform device from probe
     struct platform_device *pdev;
 
-    dma_addr_t test_dma_phys_mem;
-    void *test_dma_virt_mem;
-
     //dma engine register space
     phys_addr_t regs_phys_addr; //!< hardware address of the registers from device tree
     size_t regs_phys_size; //!< size in bytes of the registers from device tree
