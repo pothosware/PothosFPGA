@@ -11,9 +11,8 @@
 
 //! Return error codes
 #define PZDUD_OK 0
-#define PZDUD_ERROR_COMMS -1 //!< cant communicate with engine
+#define PZDUD_ERROR_NOSG -1 //!< scatter/gather feature not detected
 #define PZDUD_ERROR_TIMEOUT -2 //!< wait timeout or loop timeout
-#define PZDUD_ERROR_MAP -4 //!< error calling mmap()/munmap()
 #define PZDUD_ERROR_ALLOC -5 //!< error allocating DMA buffers
 #define PZDUD_ERROR_CLAIMED -6 //!< all buffers claimed by the user
 #define PZDUD_ERROR_COMPLETE -7 //!< no completed buffer transactions
@@ -126,7 +125,7 @@ static inline void pzdud_release(pzdud_t *self, const pzdud_dir_t dir, size_t ha
  * implementation
  **********************************************************************/
 #include <stdlib.h>
-#include "pothos_zynq_dma_ioctl.h"
+#include "pothos_zynq_dma_common.h"
 #include <sys/ioctl.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -263,9 +262,6 @@ static inline int __pzdud_reset(pzdud_chan_t *chan)
 {
     int loop = 0;
 
-    //a simple test to check for an expected bit in the first register
-    if ((__pzdud_read32(chan->ctrl_reg) & 0x2) == 0) return PZDUD_ERROR_COMMS;
-
     //perform a soft reset and wait for done
     __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | XILINX_DMA_CR_RESET_MASK);
     loop = XILINX_DMA_RESET_LOOP;
@@ -322,17 +318,9 @@ static inline int pzdud_alloc(pzdud_t *self, const pzdud_dir_t dir, const size_t
     for (size_t i = 0; i < allocs->num_buffs; i++)
     {
         pothos_zynq_dma_buff_t *buff = allocs->buffs + i;
-        if (buff->paddr == 0 || buff->kaddr == NULL)
-        {
-            ioctl(self->fd, (dir == PZDUD_S2MM)?POTHOS_ZYNQ_DMA_FREE_S2MM:POTHOS_ZYNQ_DMA_FREE_MM2S);
-            return PZDUD_ERROR_ALLOC;
-        }
+        if (buff->paddr == 0 || buff->kaddr == NULL) goto fail;
         buff->uaddr = mmap(NULL, buff->bytes, PROT_READ | PROT_WRITE, MAP_SHARED, self->fd, buff->paddr);
-        if (buff->uaddr == MAP_FAILED)
-        {
-            ioctl(self->fd, (dir == PZDUD_S2MM)?POTHOS_ZYNQ_DMA_FREE_S2MM:POTHOS_ZYNQ_DMA_FREE_MM2S);
-            return PZDUD_ERROR_MAP;
-        }
+        if (buff->uaddr == MAP_FAILED) goto fail;
     }
 
     //the last buffer is used for the sg table
@@ -340,6 +328,10 @@ static inline int pzdud_alloc(pzdud_t *self, const pzdud_dir_t dir, const size_t
     chan->sgtable = (xilinx_dma_desc_t *)chan->sgbuff->uaddr;
 
     return PZDUD_OK;
+
+    fail:
+        ioctl(self->fd, (dir == PZDUD_S2MM)?POTHOS_ZYNQ_DMA_FREE_S2MM:POTHOS_ZYNQ_DMA_FREE_MM2S);
+        return PZDUD_ERROR_ALLOC;
 }
 
 static inline int pzdud_free(pzdud_t *self, const pzdud_dir_t dir)
@@ -373,8 +365,11 @@ static inline int pzdud_free(pzdud_t *self, const pzdud_dir_t dir)
 /***********************************************************************
  * init/halt implementation
  **********************************************************************/
-static inline void __pzdud_init(pzdud_chan_t *chan)
+static inline int __pzdud_init(pzdud_chan_t *chan)
 {
+    //check for scatter/gather support
+    if ((__pzdud_read32(chan->stat_reg) & 0x8) == 0) return PZDUD_ERROR_NOSG;
+
     //load the scatter gather table
     for (size_t i = 0; i < chan->num_buffs; i++)
     {
@@ -403,11 +398,14 @@ static inline void __pzdud_init(pzdud_chan_t *chan)
 
     //enable interrupt on complete
     __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | XILINX_DMA_XR_IRQ_IOC_MASK);
+
+    return PZDUD_OK;
 }
 
 static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir)
 {
-    __pzdud_init((dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan);
+    int ret = __pzdud_init((dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan);
+    if (ret != PZDUD_OK) return ret;
 
     //release all the buffers into the engine
     if (dir == PZDUD_S2MM) for (size_t i = 0; i < self->s2mm_chan.num_buffs; i++)

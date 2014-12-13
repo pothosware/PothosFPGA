@@ -11,6 +11,9 @@
 //! The size in bytes of the register space of interest
 #define POTHOS_ZYNQ_DMA_REGS_SIZE 1024
 
+//! Change this when the structure changes
+#define POTHOS_ZYNQ_DMA_SENTINEL 0x1d89ab0d
+
 /*!
  * A descriptor for a single DMA buffer.
  */
@@ -21,9 +24,6 @@ typedef struct
     void *kaddr; //!< the kernel address of the memory
     void *uaddr; //!< the userspace address of the memory
 } pothos_zynq_dma_buff_t;
-
-//! Change this when the structure changes
-#define POTHOS_ZYNQ_DMA_SENTINEL 0x1d89ab0d
 
 /*!
  * The IOCTL structured used to request allocations.

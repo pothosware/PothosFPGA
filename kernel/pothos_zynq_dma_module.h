@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #pragma once
-#include "pothos_zynq_dma_ioctl.h"
+#include "pothos_zynq_dma_common.h"
 #include <linux/wait.h> //wait_queue_head_t
 #include <linux/cdev.h> //character device
 
