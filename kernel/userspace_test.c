@@ -2,17 +2,6 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #include <stdio.h>
-/*
-#include <stdlib.h>
-#include <sys/types.h> //open
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <sys/mman.h> //mmap
-#include <unistd.h> //close
-#include <stdint.h>
-#include "pothos_zynq_dma_ioctl.h"
-#include <sys/ioctl.h>
-*/
 #include "pothos_zynq_dma_user_driver.h"
 
 int main(int argc, const char* argv[])
@@ -32,6 +21,34 @@ int main(int argc, const char* argv[])
     if (ret != PZDUD_OK)
     {
         printf("Fail pzdud_reset %d\n", ret);
+        return EXIT_FAILURE;
+    }
+
+    ////////////////// alloc /////////////////
+    ret = pzdud_alloc(dma, PZDUD_S2MM, 4, 4096);
+    if (ret != PZDUD_OK)
+    {
+        printf("Fail pzdud_alloc %d\n", ret);
+        return EXIT_FAILURE;
+    }
+    ret = pzdud_alloc(dma, PZDUD_MM2S, 4, 4096);
+    if (ret != PZDUD_OK)
+    {
+        printf("Fail pzdud_alloc %d\n", ret);
+        return EXIT_FAILURE;
+    }
+
+    ////////////////// free /////////////////
+    ret = pzdud_free(dma, PZDUD_S2MM);
+    if (ret != PZDUD_OK)
+    {
+        printf("Fail pzdud_free %d\n", ret);
+        return EXIT_FAILURE;
+    }
+    ret = pzdud_free(dma, PZDUD_MM2S);
+    if (ret != PZDUD_OK)
+    {
+        printf("Fail pzdud_free %d\n", ret);
         return EXIT_FAILURE;
     }
 
