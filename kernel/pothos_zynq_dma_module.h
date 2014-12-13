@@ -3,7 +3,6 @@
 
 #pragma once
 #include "pothos_zynq_dma_ioctl.h"
-#include <linux/poll.h> //poll arguments
 #include <linux/wait.h> //wait_queue_head_t
 #include <linux/cdev.h> //character device
 
@@ -35,13 +34,10 @@ typedef struct
 } pothos_zynq_dma_device_t;
 
 //! Register an interrupt handler -- called by probe
-int pothos_zynq_dma_register_irq(unsigned int irq, pothos_zynq_dma_device_t *dev);
+int pothos_zynq_dma_register_irq(unsigned int irq, pothos_zynq_dma_device_t *data);
 
 //! Remove an interrupt handler -- called by unprobe
-void pothos_zynq_dma_unregister_irq(unsigned int irq, pothos_zynq_dma_device_t *dev);
-
-//! The poll implementation used to wait on interrupts
-unsigned int pothos_zynq_dma_poll(struct file *filp, struct poll_table_struct *wait);
+void pothos_zynq_dma_unregister_irq(unsigned int irq, pothos_zynq_dma_device_t *data);
 
 //! IOCTL access for user to control allocations
 long pothos_zynq_dma_ioctl(struct file *filp, unsigned int cmd, unsigned long arg);
@@ -60,3 +56,6 @@ long pothos_zynq_dma_buffs_alloc(pothos_zynq_dma_device_t *data, const pothos_zy
 
 //! Free DMA buffers allocated from buffs alloc
 long pothos_zynq_dma_buffs_free(pothos_zynq_dma_device_t *data, pothos_zynq_dma_alloc_t *allocs);
+
+//! Wait on DMA completion from IOCTL configuration struct
+long pothos_zynq_dma_wait(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_wait_t *user_config);

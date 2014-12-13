@@ -4,6 +4,7 @@
 #include "pothos_zynq_dma_module.h"
 #include <linux/slab.h> //kmalloc, kfree
 #include <linux/module.h>
+#include <linux/fs.h>
 #include <linux/of.h>
 #include <linux/of_irq.h>
 #include <linux/of_platform.h>
@@ -11,7 +12,6 @@
 #include <linux/string.h> //strcmp
 
 static struct file_operations pothos_zynq_dma_fops = {
-    poll: pothos_zynq_dma_poll,
     unlocked_ioctl: pothos_zynq_dma_ioctl,
     mmap: pothos_zynq_dma_mmap,
     open: pothos_zynq_dma_open,

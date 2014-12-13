@@ -53,6 +53,15 @@ int main(int argc, const char* argv[])
     }
 
     /////////////// test loopback ////////////////
+
+    //expect a timeout here
+    ret = pzdud_wait(dma, PZDUD_S2MM, 100);
+    if (ret != PZDUD_ERROR_TIMEOUT)
+    {
+        printf("Fail pzdud_wait(s2mm) %d\n", ret);
+        return EXIT_FAILURE;
+    }
+
     void *buff;
     size_t len;
     int handle = pzdud_acquire(dma, PZDUD_MM2S, &buff, &len);

@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #include "pothos_zynq_dma_module.h"
+#include <linux/uaccess.h> //copy_to/from_user
 #include <linux/dma-mapping.h>
 #include <linux/platform_device.h>
 

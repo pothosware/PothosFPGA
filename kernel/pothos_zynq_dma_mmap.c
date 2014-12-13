@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #include "pothos_zynq_dma_module.h"
+#include <linux/fs.h>
 #include <linux/io.h> //ioctl
 #include <linux/mm.h> //mmap
 #include <linux/of_irq.h> //irq_of_parse_and_map
@@ -20,6 +21,7 @@ long pothos_zynq_dma_ioctl(struct file *filp, unsigned int cmd, unsigned long ar
     case POTHOS_ZYNQ_DMA_ALLOC_MM2S: return pothos_zynq_dma_buffs_alloc(data, (pothos_zynq_dma_alloc_t *)arg, &data->mm2s_allocs);
     case POTHOS_ZYNQ_DMA_FREE_S2MM: return pothos_zynq_dma_buffs_free(data, &data->s2mm_allocs);
     case POTHOS_ZYNQ_DMA_FREE_MM2S: return pothos_zynq_dma_buffs_free(data, &data->mm2s_allocs);
+    case POTHOS_ZYNQ_DMA_WAIT: return pothos_zynq_dma_wait(data, (pothos_zynq_dma_wait_t *)arg);
     }
 
     return -EINVAL;
