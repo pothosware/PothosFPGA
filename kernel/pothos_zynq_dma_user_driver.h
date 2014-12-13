@@ -365,8 +365,10 @@ static inline int pzdud_free(pzdud_t *self, const pzdud_dir_t dir)
 /***********************************************************************
  * init/halt implementation
  **********************************************************************/
-static inline int __pzdud_init(pzdud_chan_t *chan)
+static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir)
 {
+    pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
+
     //check for scatter/gather support
     if ((__pzdud_read32(chan->stat_reg) & 0x8) == 0) return PZDUD_ERROR_NOSG;
 
@@ -399,14 +401,6 @@ static inline int __pzdud_init(pzdud_chan_t *chan)
     //enable interrupt on complete
     __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | XILINX_DMA_XR_IRQ_IOC_MASK);
 
-    return PZDUD_OK;
-}
-
-static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir)
-{
-    int ret = __pzdud_init((dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan);
-    if (ret != PZDUD_OK) return ret;
-
     //release all the buffers into the engine
     if (dir == PZDUD_S2MM) for (size_t i = 0; i < self->s2mm_chan.num_buffs; i++)
     {
@@ -423,8 +417,10 @@ static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir)
     return PZDUD_OK;
 }
 
-static inline int __pzdud_halt(pzdud_chan_t *chan)
+static inline int pzdud_halt(pzdud_t *self, const pzdud_dir_t dir)
 {
+    pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
+
     //perform a halt and wait for done
     __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | ~XILINX_DMA_CR_RUNSTOP_MASK);
     int loop = XILINX_DMA_HALT_LOOP;
@@ -432,12 +428,8 @@ static inline int __pzdud_halt(pzdud_chan_t *chan)
     {
         if (--loop == 0) return PZDUD_ERROR_TIMEOUT;
     }
-    return PZDUD_OK;
-}
 
-static inline int pzdud_halt(pzdud_t *self, const pzdud_dir_t dir)
-{
-    return __pzdud_halt((dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan);
+    return PZDUD_OK;
 }
 
 /***********************************************************************
@@ -473,8 +465,10 @@ static inline int pzdud_wait(pzdud_t *self, const pzdud_dir_t dir, const long ti
     return PZDUD_ERROR_TIMEOUT;
 }
 
-static inline int __pzdud_acquire(pzdud_t *self, pzdud_chan_t *chan, void **buffer, size_t *length)
+static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, void **buffer, size_t *length)
 {
+    pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
+
     if (chan->num_acquired == chan->num_buffs) return PZDUD_ERROR_CLAIMED;
 
     xilinx_dma_desc_t *desc = chan->sgtable+chan->head_index;
@@ -485,7 +479,7 @@ static inline int __pzdud_acquire(pzdud_t *self, pzdud_chan_t *chan, void **buff
     //fill in the buffer structure
     int handle = chan->head_index;
     *buffer = chan->allocs.buffs[handle].uaddr;
-    *length = desc->status & 0x7fffff;
+    *length = (dir == PZDUD_S2MM)?(desc->status & 0x7fffff):(self->mm2s_chan.buff_size);
 
     //increment to next
     chan->head_index = (chan->head_index + 1) % chan->num_buffs;
@@ -494,24 +488,11 @@ static inline int __pzdud_acquire(pzdud_t *self, pzdud_chan_t *chan, void **buff
     return handle;
 }
 
-static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, void **buffer, size_t *length)
+static inline void pzdud_release(pzdud_t *self, const pzdud_dir_t dir, size_t handle, size_t length)
 {
-    int ret = -1;
-    switch (dir)
-    {
-    case PZDUD_S2MM:
-        ret = __pzdud_acquire(self, &self->s2mm_chan, buffer, length);
-        break;
-    case PZDUD_MM2S:
-        ret = __pzdud_acquire(self, &self->mm2s_chan, buffer, length);
-        *length = self->mm2s_chan.buff_size;
-        break;
-    }
-    return ret;
-}
+    pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
+    uint32_t ctrl_word = (dir == PZDUD_S2MM)?(self->s2mm_chan.buff_size):(length | XILINX_DMA_BD_SOP | XILINX_DMA_BD_EOP);
 
-static inline void __pzdud_release(pzdud_t *self, pzdud_chan_t *chan, size_t handle, size_t length, uint32_t ctrl_word)
-{
     xilinx_dma_desc_t *desc = chan->sgtable+handle;
 
     desc->control = ctrl_word; //new control flags
@@ -526,18 +507,5 @@ static inline void __pzdud_release(pzdud_t *self, pzdud_chan_t *chan, size_t han
 
         chan->tail_index = (chan->tail_index + 1) % chan->num_buffs;
         chan->num_acquired--;
-    }
-}
-
-static inline void pzdud_release(pzdud_t *self, const pzdud_dir_t dir, size_t handle, size_t length)
-{
-    switch (dir)
-    {
-    case PZDUD_S2MM:
-        __pzdud_release(self, &self->s2mm_chan, handle, length, self->s2mm_chan.buff_size);
-        break;
-    case PZDUD_MM2S:
-        __pzdud_release(self, &self->mm2s_chan, handle, length, length | XILINX_DMA_BD_SOP | XILINX_DMA_BD_EOP);
-        break;
     }
 }
