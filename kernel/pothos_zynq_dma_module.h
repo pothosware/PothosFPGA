@@ -59,4 +59,4 @@ long pothos_zynq_dma_buffs_alloc(pothos_zynq_dma_device_t *data, const pothos_zy
 long pothos_zynq_dma_buffs_free(pothos_zynq_dma_device_t *data, pothos_zynq_dma_alloc_t *allocs);
 
 //! Wait on DMA completion from IOCTL configuration struct
-long pothos_zynq_dma_wait(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_wait_t *user_config);
+long pothos_zynq_dma_wait(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_wait_t *user_config, pothos_zynq_dma_alloc_t *allocs);

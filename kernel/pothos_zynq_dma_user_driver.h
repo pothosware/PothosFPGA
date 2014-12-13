@@ -148,6 +148,11 @@ typedef struct
     void *head_reg;
     void *tail_reg;
 
+    //! ioctl request ids
+    unsigned long ioctl_alloc;
+    unsigned long ioctl_free;
+    unsigned long ioctl_wait;
+
     //! allocation array
     pothos_zynq_dma_alloc_t allocs;
 
@@ -196,12 +201,6 @@ static inline size_t __pzdud_virt_to_phys(void *virt, const pothos_zynq_dma_buff
     return offset + buff->paddr;
 }
 
-static inline void *__pzdud_virt_to_kern(void *virt, const pothos_zynq_dma_buff_t *buff)
-{
-    size_t offset = (size_t)virt - (size_t)buff->uaddr;
-    return (void *)(offset + (size_t)buff->kaddr);
-}
-
 /***********************************************************************
  * create/destroy implementation
  **********************************************************************/
@@ -235,14 +234,24 @@ static inline pzdud_t *pzdud_create(const size_t index)
     pzdud_t *self = (pzdud_t *)calloc(1, sizeof(pzdud_t));
     self->fd = fd;
     self->regs = regs;
+
     self->s2mm_chan.ctrl_reg = ((char *)regs) + XILINX_DMA_S2MM_DMACR_OFFSET;
     self->s2mm_chan.stat_reg = ((char *)regs) + XILINX_DMA_S2MM_DMASR_OFFSET;
     self->s2mm_chan.head_reg = ((char *)regs) + XILINX_DMA_S2MM_CURDESC_OFFSET;
     self->s2mm_chan.tail_reg = ((char *)regs) + XILINX_DMA_S2MM_TAILDESC_OFFSET;
+
+    self->s2mm_chan.ioctl_alloc = POTHOS_ZYNQ_DMA_ALLOC_S2MM;
+    self->s2mm_chan.ioctl_free = POTHOS_ZYNQ_DMA_FREE_S2MM;
+    self->s2mm_chan.ioctl_wait = POTHOS_ZYNQ_DMA_WAIT_S2MM;
+
     self->mm2s_chan.ctrl_reg = ((char *)regs) + XILINX_DMA_MM2S_DMACR_OFFSET;
     self->mm2s_chan.stat_reg = ((char *)regs) + XILINX_DMA_MM2S_DMASR_OFFSET;
     self->mm2s_chan.head_reg = ((char *)regs) + XILINX_DMA_MM2S_CURDESC_OFFSET;
     self->mm2s_chan.tail_reg = ((char *)regs) + XILINX_DMA_MM2S_TAILDESC_OFFSET;
+
+    self->mm2s_chan.ioctl_alloc = POTHOS_ZYNQ_DMA_ALLOC_MM2S;
+    self->mm2s_chan.ioctl_free = POTHOS_ZYNQ_DMA_FREE_MM2S;
+    self->mm2s_chan.ioctl_wait = POTHOS_ZYNQ_DMA_WAIT_MM2S;
 
     return self;
 }
@@ -307,7 +316,7 @@ static inline int pzdud_alloc(pzdud_t *self, const pzdud_dir_t dir, const size_t
     allocs->buffs[num_buffs].bytes = num_buffs*sizeof(xilinx_dma_desc_t);
 
     //perform the allocation ioctl
-    int ret = ioctl(self->fd, (dir == PZDUD_S2MM)?POTHOS_ZYNQ_DMA_ALLOC_S2MM:POTHOS_ZYNQ_DMA_ALLOC_MM2S, (void *)allocs);
+    int ret = ioctl(self->fd, chan->ioctl_alloc, (void *)allocs);
     if (ret != 0)
     {
         perror("pzdud_alloc::ioctl(POTHOS_ZYNQ_DMA_ALLOC)");
@@ -330,7 +339,7 @@ static inline int pzdud_alloc(pzdud_t *self, const pzdud_dir_t dir, const size_t
     return PZDUD_OK;
 
     fail:
-        ioctl(self->fd, (dir == PZDUD_S2MM)?POTHOS_ZYNQ_DMA_FREE_S2MM:POTHOS_ZYNQ_DMA_FREE_MM2S);
+        ioctl(self->fd, chan->ioctl_free);
         return PZDUD_ERROR_ALLOC;
 }
 
@@ -347,7 +356,7 @@ static inline int pzdud_free(pzdud_t *self, const pzdud_dir_t dir)
     }
 
     //free all the buffers
-    int ret = ioctl(self->fd, (dir == PZDUD_S2MM)?POTHOS_ZYNQ_DMA_FREE_S2MM:POTHOS_ZYNQ_DMA_FREE_MM2S);
+    int ret = ioctl(self->fd, chan->ioctl_free);
     if (ret != 0)
     {
         perror("pzdud_free::ioctl(POTHOS_ZYNQ_DMA_FREE)");
@@ -451,8 +460,8 @@ static inline int pzdud_wait(pzdud_t *self, const pzdud_dir_t dir, const long ti
         pothos_zynq_dma_wait_t wait_args;
         wait_args.sentinel = POTHOS_ZYNQ_DMA_SENTINEL;
         wait_args.timeout_us = timeout_us;
-        wait_args.ksgtable = (xilinx_dma_desc_t *)__pzdud_virt_to_kern(desc, chan->sgbuff);
-        int ret = ioctl(self->fd, POTHOS_ZYNQ_DMA_WAIT, (void *)&wait_args);
+        wait_args.index = chan->head_index;
+        int ret = ioctl(self->fd, chan->ioctl_wait, (void *)&wait_args);
         if (ret != 0)
         {
             perror("pzdud_free::ioctl(POTHOS_ZYNQ_DMA_WAIT)");

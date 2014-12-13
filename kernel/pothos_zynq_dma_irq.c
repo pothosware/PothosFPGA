@@ -24,20 +24,23 @@ static irqreturn_t pothos_zynq_dma_irq_handler(int irq, void *data_)
     return IRQ_HANDLED;
 }
 
-long pothos_zynq_dma_wait(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_wait_t *user_config)
+long pothos_zynq_dma_wait(pothos_zynq_dma_device_t *data, const pothos_zynq_dma_wait_t *user_config, pothos_zynq_dma_alloc_t *allocs)
 {
     //convert the args into kernel memory
     pothos_zynq_dma_wait_t wait_args;
-    if (copy_from_user(&wait_args, user_config, sizeof(pothos_zynq_dma_wait_t)) != 0)
-    {
-        return -EACCES;
-    }
+    if (copy_from_user(&wait_args, user_config, sizeof(pothos_zynq_dma_wait_t)) != 0) return -EACCES;
 
     //check the sentinel
     if (wait_args.sentinel != POTHOS_ZYNQ_DMA_SENTINEL) return -EINVAL;
 
+    //check that the index is in range
+    if ((wait_args.index + 1) >= allocs->num_buffs) return -EINVAL;
+
+    //offset to the scatter/gather entry (last buff is sg)
+    pothos_zynq_dma_buff_t *sgbuff = allocs->buffs + allocs->num_buffs - 1;
+    xilinx_dma_desc_t *desc = ((xilinx_dma_desc_t *)sgbuff->kaddr) + wait_args.index;
+
     //wait on the condition
-    xilinx_dma_desc_t *desc = wait_args.ksgtable; //already kernel memory
     const unsigned long timeout = usecs_to_jiffies(wait_args.timeout_us);
     wait_event_interruptible_timeout(data->irq_wait, ((desc->status & (1 << 31)) != 0), timeout);
     return 0;

@@ -21,7 +21,8 @@ long pothos_zynq_dma_ioctl(struct file *filp, unsigned int cmd, unsigned long ar
     case POTHOS_ZYNQ_DMA_ALLOC_MM2S: return pothos_zynq_dma_buffs_alloc(data, (pothos_zynq_dma_alloc_t *)arg, &data->mm2s_allocs);
     case POTHOS_ZYNQ_DMA_FREE_S2MM: return pothos_zynq_dma_buffs_free(data, &data->s2mm_allocs);
     case POTHOS_ZYNQ_DMA_FREE_MM2S: return pothos_zynq_dma_buffs_free(data, &data->mm2s_allocs);
-    case POTHOS_ZYNQ_DMA_WAIT: return pothos_zynq_dma_wait(data, (pothos_zynq_dma_wait_t *)arg);
+    case POTHOS_ZYNQ_DMA_WAIT_S2MM: return pothos_zynq_dma_wait(data, (pothos_zynq_dma_wait_t *)arg, &data->s2mm_allocs);
+    case POTHOS_ZYNQ_DMA_WAIT_MM2S: return pothos_zynq_dma_wait(data, (pothos_zynq_dma_wait_t *)arg, &data->mm2s_allocs);
     }
 
     return -EINVAL;

@@ -12,7 +12,7 @@
 #define POTHOS_ZYNQ_DMA_REGS_SIZE 1024
 
 //! Change this when the structure changes
-#define POTHOS_ZYNQ_DMA_SENTINEL 0x1d89ab0d
+#define POTHOS_ZYNQ_DMA_SENTINEL 0x1d87ab0d
 
 /*!
  * A descriptor for a single DMA buffer.
@@ -40,12 +40,12 @@ typedef struct
 
 /*!
  * The IOCTL structured used for wait completions (direction-independent).
- * The status pointer should point into the current entry of a SG table.
+ * The index should indicate the head entry in a scatter/gather table.
  */
 typedef struct
 {
     unsigned int sentinel; //!< A expected word for ABI compatibility checks
-    struct xilinx_dma_desc_sg *ksgtable; //!< SG table for DMA completion check (kernel mapped memory)
+    size_t index; //!< The index into the scatter/gather table to check
     long timeout_us; //!< the timeout to wait for completion in microseconds
 } pothos_zynq_dma_wait_t;
 
@@ -67,8 +67,11 @@ typedef struct
 //! Free all allocations performed by POTHOS_ZYNQ_DMA_ALLOC_MM2S
 #define POTHOS_ZYNQ_DMA_FREE_MM2S _IO('p', 4)
 
-//! Wait (with timeout) for a status word to indicate complete
-#define POTHOS_ZYNQ_DMA_WAIT _IOW('p', 5, pothos_zynq_dma_wait_t *)
+//! Wait with a timeout for the stream to memory map desc to complete
+#define POTHOS_ZYNQ_DMA_WAIT_S2MM _IOW('p', 5, pothos_zynq_dma_wait_t *)
+
+//! Wait with a timeout for the memory map to stream desc to complete
+#define POTHOS_ZYNQ_DMA_WAIT_MM2S _IOW('p', 6, pothos_zynq_dma_wait_t *)
 
 /***********************************************************************
  * Register constants for AXI DMA v7.1
