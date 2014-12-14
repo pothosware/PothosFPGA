@@ -62,25 +62,24 @@ int test(const int index)
         return EXIT_FAILURE;
     }
 
-    void *buff;
     size_t len;
-    int handle = pzdud_acquire(dma, PZDUD_MM2S, &buff, &len);
+    int handle = pzdud_acquire(dma, PZDUD_MM2S, &len);
     if (handle < 0)
     {
         printf("Fail pzdud_acquire(mm2s) %d\n", handle);
         return EXIT_FAILURE;
     }
-    printf("available %d bytes\n", len);
+    printf("available %zu bytes\n", len);
     pzdud_release(dma, PZDUD_MM2S, handle, 64);
 
     sleep(1);
-    handle = pzdud_acquire(dma, PZDUD_S2MM, &buff, &len);
+    handle = pzdud_acquire(dma, PZDUD_S2MM, &len);
     if (handle < 0)
     {
         printf("Fail pzdud_acquire(s2mm) %d\n", handle);
         return EXIT_FAILURE;
     }
-    printf("recv %d bytes\n", len);
+    printf("recv %zu bytes\n", len);
     pzdud_release(dma, PZDUD_S2MM, handle, 0);
 
     /////////////// halt engine /////////////

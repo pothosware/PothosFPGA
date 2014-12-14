@@ -70,6 +70,22 @@ static inline int pzdud_alloc(pzdud_t *self, const pzdud_dir_t dir, const size_t
 static inline int pzdud_free(pzdud_t *self, const pzdud_dir_t dir);
 
 /*!
+ * Get the address of a buffer for the given handle.
+ * This is a virtual userspace address that can be read/written.
+ *
+ * The handles range from 0 to num_buffs - 1.
+ * This is the same handle returned by pzdud_acquire().
+ * The addresses for a given handle are available after pzdud_alloc(),
+ * and will not change value unless free() and alloc() are called again.
+ *
+ * \param self the user dma instance structure
+ * \param dir the direction to/from stream
+ * \param handle the handle value/buffer index
+ * \return the address of the DMA buffer (NULL if index out of range)
+ */
+static inline void *pzdud_addr(pzdud_t *self, const pzdud_dir_t dir, size_t handle);
+
+/*!
  * Initialize the DMA engine for streaming.
  * The engine will be ready to receive streams.
  * \param self the user dma instance structure
@@ -105,11 +121,10 @@ static inline int pzdud_wait(pzdud_t *self, const pzdud_dir_t dir, const long ti
  *
  * \param self the user dma instance structure
  * \param dir the direction to/from stream
- * \param [out] buffer the buffer pointer
  * \param [out] length the buffer length in bytes
  * \return the handle or negative error code
  */
-static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, void **buffer, size_t *length);
+static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, size_t *length);
 
 /*!
  * Release a DMA buffer back the engine.
@@ -371,6 +386,15 @@ static inline int pzdud_free(pzdud_t *self, const pzdud_dir_t dir)
     return PZDUD_OK;
 }
 
+static inline void *pzdud_addr(pzdud_t *self, const pzdud_dir_t dir, size_t handle)
+{
+    pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
+
+    if (handle >= chan->num_buffs) return NULL;
+
+    return chan->allocs.buffs[handle].uaddr;
+}
+
 /***********************************************************************
  * init/halt implementation
  **********************************************************************/
@@ -474,7 +498,7 @@ static inline int pzdud_wait(pzdud_t *self, const pzdud_dir_t dir, const long ti
     return PZDUD_ERROR_TIMEOUT;
 }
 
-static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, void **buffer, size_t *length)
+static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, size_t *length)
 {
     pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
 
@@ -487,7 +511,6 @@ static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, void **buf
 
     //fill in the buffer structure
     int handle = chan->head_index;
-    *buffer = chan->allocs.buffs[handle].uaddr;
     *length = (dir == PZDUD_S2MM)?(desc->status & 0x7fffff):(self->mm2s_chan.buff_size);
 
     //increment to next
