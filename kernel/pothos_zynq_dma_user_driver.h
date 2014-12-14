@@ -208,7 +208,7 @@ static inline pzdud_t *pzdud_create(const size_t index)
 {
     //format the expected device name
     char device_name[1024];
-    if (snprintf(device_name, sizeof(device_name), "/dev/pothos_zynq_dma%d", index) <= 0)
+    if (snprintf(device_name, sizeof(device_name), "/dev/pothos_zynq_dma%zu", index) <= 0)
     {
         printf("Failed to format a device name\n");
         return NULL;
