@@ -2,7 +2,7 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #include "ZynqDMASupport.hpp"
-#include <Pothos/Util/RingDeque.hpp>
+#include <Pothos/Util/OrderedQueue.hpp>
 #include "pothos_zynq_dma_user_driver.h"
 #include <memory>
 
@@ -29,7 +29,7 @@ public:
     void init(const Pothos::BufferManagerArgs &args)
     {
         Pothos::BufferManager::init(args);
-        _readyBuffs.set_capacity(args.numBuffers);
+        _readyBuffs = Pothos::Util::OrderedQueue<Pothos::ManagedBuffer>(args.numBuffers);
         int ret = pzdud_alloc(_engine, dir, args.numBuffers, args.bufferSize);
         if (ret != PZDUD_OK) throw Pothos::Exception("ZynqBufferManager::pzdud_alloc()", std::to_string(ret));
 
@@ -40,7 +40,7 @@ public:
             void *addr = pzdud_addr(_engine, dir, handle);
             auto sharedBuff = Pothos::SharedBuffer(size_t(addr), args.bufferSize, container);
             Pothos::ManagedBuffer buffer;
-            buffer.reset(this->shared_from_this(), sharedBuff);
+            buffer.reset(this->shared_from_this(), sharedBuff, handle);
         }
 
         //FIXME for PZDUD_S2MM, this causes a second release call on all buffers...
@@ -56,11 +56,12 @@ public:
         //boiler-plate to pop from the queue and set the front buffer
         assert(not _readyBuffs.empty());
         auto buff = _readyBuffs.front();
-        _readyBuffs.pop_front();
+        _readyBuffs.pop();
         if (_readyBuffs.empty()) this->setFrontBuffer(Pothos::BufferChunk::null());
         else this->setFrontBuffer(_readyBuffs.front());
 
         //pop == release in the dma to stream direction
+        //this manager in an output port upstream of dma sink
         if (dir == PZDUD_MM2S)
         {
             pzdud_release(_engine, dir, buff.getSlabIndex(), numBytes);
@@ -69,20 +70,22 @@ public:
 
     void push(const Pothos::ManagedBuffer &buff)
     {
-        //boiler-plate to push into the queue and set the front buffer
-        if (_readyBuffs.empty()) this->setFrontBuffer(buff);
-        assert(not _readyBuffs.full());
-        _readyBuffs.push_back(buff);
+        assert(buff.getSlabIndex() < _readyBuffs.capacity());
+        _readyBuffs.push(buff, buff.getSlabIndex());
+
+        //prepare the next buffer in the queue
+        if (not _readyBuffs.empty()) this->setFrontBuffer(_readyBuffs.front());
 
         //push == release in the stream to DMA direction
+        //this manager in the output port on the dma source
         if (dir == PZDUD_S2MM)
         {
-            pzdud_release(_engine, dir, buff.getSlabIndex(), 0/*used param for s2mm*/);
+            pzdud_release(_engine, dir, buff.getSlabIndex(), 0/*unused*/);
         }
     }
 
 private:
-    Pothos::Util::RingDeque<Pothos::ManagedBuffer> _readyBuffs;
+    Pothos::Util::OrderedQueue<Pothos::ManagedBuffer> _readyBuffs;
     pzdud_t *_engine;
 };
 

@@ -60,10 +60,6 @@ public:
         //check if a buffer is available
         if (outPort->elements() == 0) return;
 
-        //
-        //TODO this *below* isnt going to work for out of order buffers arriving here...
-        //
-
         //wait for completion on the head buffer
         const long timeout_us = this->workInfo().maxTimeoutNs/1000;
         const int ret = pzdud_wait(_engine, PZDUD_S2MM, timeout_us);
@@ -82,7 +78,14 @@ public:
         //acquire the head buffer and release its handle
         size_t length = 0;
         const int handle = pzdud_acquire(_engine, PZDUD_S2MM, &length);
-        if (handle >= 0) outPort->produce(length);
+        if (handle < 0) throw Pothos::Exception("ZyncDMASource::pzdud_acquire()", std::to_string(handle));
+        if (size_t(handle) != outPort->buffer().getManagedBuffer().getSlabIndex())
+        {
+            throw Pothos::Exception("ZyncDMASource::pzdud_acquire()", "out of order handle");
+        }
+
+        //produce the buffer to the output port
+        outPort->produce(length);
     }
 
 private:

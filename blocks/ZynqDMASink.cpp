@@ -57,19 +57,8 @@ public:
     {
         auto inPort = this->input(0);
 
-        //we have an input buffer:
-        //stash it to perform wait for completion
-        //consume it from the input port
-        if (inPort->elements() != 0)
-        {
-            auto buff = inPort->buffer().getManagedBuffer();
-            _buffsToWaitOn[buff.getSlabIndex()] = buff;
-            inPort->consume(inPort->elements());
-        }
-
-        //
-        //TODO this *below* isnt going to work for out of order buffers arriving here...
-        //
+        //check if a buffer is available
+        if (inPort->elements() == 0) return;
 
         //wait for completion on the head buffer
         const long timeout_us = this->workInfo().maxTimeoutNs/1000;
@@ -89,10 +78,15 @@ public:
         //acquire the head buffer and release its handle
         size_t length = 0; //length not used for MM2S
         const int handle = pzdud_acquire(_engine, PZDUD_MM2S, &length);
-        if (handle >= 0) _buffsToWaitOn[handle] = Pothos::ManagedBuffer();
+        if (handle < 0) throw Pothos::Exception("ZyncDMASource::pzdud_acquire()", std::to_string(handle));
+        //the handle could be out of order, so we dont check its value
+        //we assume that out of order buffers means that we waited on
+        //more xfers, not less xfers, including this handle's xfers
+
+        //consume the buffer from the input port
+        inPort->consume(inPort->elements());
     }
 
 private:
     pzdud_t *_engine;
-    std::vector<Pothos::ManagedBuffer> _buffsToWaitOn;
 };
