@@ -11,6 +11,9 @@
  */
 typedef struct
 {
+    // track opens to share this structure
+    atomic_long_t use_count;
+
     //devfs registration
     dev_t dev_num;
     struct cdev c_dev;

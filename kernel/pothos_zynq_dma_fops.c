@@ -68,6 +68,9 @@ int pothos_zynq_dma_open(struct inode *inode, struct file *filp)
     pothos_zynq_dma_device_t *data = container_of(inode->i_cdev, pothos_zynq_dma_device_t, c_dev);
     filp->private_data = data; /* now store it to private data for other methods */
 
+    //only allow the open to run when this is the first
+    if (atomic_long_inc_return(&data->use_count) != 1) return 0;
+
     struct platform_device *pdev = data->pdev;
     struct device_node *node = pdev->dev.of_node;
     dev_info(&pdev->dev, "Open %s\n", of_node_full_name(node));
@@ -111,8 +114,13 @@ int pothos_zynq_dma_open(struct inode *inode, struct file *filp)
 int pothos_zynq_dma_release(struct inode *inode, struct file *filp)
 {
     pothos_zynq_dma_device_t *data = filp->private_data;
+
+    //only allow the release to run when this is the last
+    if (atomic_long_dec_return(&data->use_count) != 0) return 0;
+
     struct platform_device *pdev = data->pdev;
     struct device_node *node = pdev->dev.of_node;
+
     dev_info(&pdev->dev, "Release %s\n", of_node_full_name(node));
 
     //unregister irq

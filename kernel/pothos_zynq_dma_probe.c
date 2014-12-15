@@ -82,6 +82,7 @@ static int pothos_zynq_dma_probe(struct platform_device *pdev)
     //allocate data structure for this device
     pothos_zynq_dma_device_t *data = devm_kzalloc(&pdev->dev, sizeof(pothos_zynq_dma_device_t), GFP_KERNEL);
     if (data == NULL) return -ENOMEM;
+    atomic_long_set(&data->use_count, 0);
     data->pdev = pdev;
     dev_set_drvdata(&pdev->dev, data);
 

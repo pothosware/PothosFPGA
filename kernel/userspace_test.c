@@ -25,13 +25,13 @@ int test(const int index)
     }
 
     ////////////////// alloc /////////////////
-    ret = pzdud_alloc(dma, PZDUD_S2MM, 4, 4096);
+    ret = pzdud_alloc(dma, PZDUD_S2MM, 4, 8192);
     if (ret != PZDUD_OK)
     {
         printf("Fail pzdud_alloc %d\n", ret);
         return EXIT_FAILURE;
     }
-    ret = pzdud_alloc(dma, PZDUD_MM2S, 4, 4096);
+    ret = pzdud_alloc(dma, PZDUD_MM2S, 4, 8192);
     if (ret != PZDUD_OK)
     {
         printf("Fail pzdud_alloc %d\n", ret);
@@ -59,6 +59,14 @@ int test(const int index)
     if (ret != PZDUD_ERROR_TIMEOUT)
     {
         printf("Fail pzdud_wait(s2mm) %d\n", ret);
+        return EXIT_FAILURE;
+    }
+
+    //dont expect a timeout here
+    ret = pzdud_wait(dma, PZDUD_MM2S, 100);
+    if (ret != PZDUD_OK)
+    {
+        printf("Fail pzdud_wait(mm2s) %d\n", ret);
         return EXIT_FAILURE;
     }
 
