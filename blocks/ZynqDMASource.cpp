@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #include "ZynqDMASupport.hpp"
+#include <iostream>
 
 /***********************************************************************
  * |PothosDoc Zynq DMA Source

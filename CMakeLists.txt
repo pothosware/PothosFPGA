@@ -15,14 +15,16 @@ list(APPEND CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 include(GHDLUtil)
 
 if (NOT GHDL_EXECUTABLE)
-    message(FATAL_ERROR "cant find ghdl executable")
+    message(WARNING "cant find ghdl executable")
+    message(STATUS "GHDL used for rtl check and sim tests")
 endif ()
 
-########################################################################
-## build subdirectories
-########################################################################
 if (GHDL_EXECUTABLE)
     add_subdirectory(rtl)
     add_subdirectory(sim)
 endif (GHDL_EXECUTABLE)
+
+########################################################################
+## build subdirectories
+########################################################################
 add_subdirectory(blocks)

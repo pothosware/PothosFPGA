@@ -5,6 +5,7 @@
 #include <Pothos/Util/OrderedQueue.hpp>
 #include "pothos_zynq_dma_user_driver.h"
 #include <memory>
+#include <iostream>
 
 template <pzdud_dir_t dir>
 class ZynqDMABufferManager :
@@ -28,10 +29,12 @@ public:
 
     void init(const Pothos::BufferManagerArgs &args)
     {
-        Pothos::BufferManager::init(args);
         _readyBuffs = Pothos::Util::OrderedQueue<Pothos::ManagedBuffer>(args.numBuffers);
         int ret = pzdud_alloc(_engine, dir, args.numBuffers, args.bufferSize);
         if (ret != PZDUD_OK) throw Pothos::Exception("ZynqBufferManager::pzdud_alloc()", std::to_string(ret));
+
+        //this will flag the manager as initialized after the allocation above
+        Pothos::BufferManager::init(args);
 
         //create all the buffer containers...
         for (size_t handle = 0; handle < args.numBuffers; handle++)
@@ -41,9 +44,10 @@ public:
             auto sharedBuff = Pothos::SharedBuffer(size_t(addr), args.bufferSize, container);
             Pothos::ManagedBuffer buffer;
             buffer.reset(this->shared_from_this(), sharedBuff, handle);
+            _readyBuffs.push(buffer, buffer.getSlabIndex());
         }
 
-        //FIXME for PZDUD_S2MM, this causes a second release call on all buffers...
+        this->setFrontBuffer(_readyBuffs.front());
     }
 
     bool empty(void) const

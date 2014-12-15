@@ -2,6 +2,7 @@
 // SPDX-License-Identifier: BSL-1.0
 
 #include "ZynqDMASupport.hpp"
+#include <iostream>
 
 /***********************************************************************
  * |PothosDoc Zynq DMA Sink
@@ -50,6 +51,11 @@ public:
     {
         int ret = pzdud_init(_engine, PZDUD_MM2S);
         if (ret != PZDUD_OK) throw Pothos::Exception("ZyncDMASink::pzdud_init()", std::to_string(ret));
+
+        //acquire all buffers that will be released back by the upstream block
+        //the first call to pzdud_acquire for each buffer should be immediate
+        size_t length = 0; //length not used for MM2S
+        while (pzdud_acquire(_engine, PZDUD_MM2S, &length) >= 0){}
     }
 
     void deactivate(void)
@@ -83,7 +89,7 @@ public:
         //acquire the head buffer and release its handle
         size_t length = 0; //length not used for MM2S
         const int handle = pzdud_acquire(_engine, PZDUD_MM2S, &length);
-        if (handle < 0) throw Pothos::Exception("ZyncDMASource::pzdud_acquire()", std::to_string(handle));
+        if (handle < 0) throw Pothos::Exception("ZyncDMASink::pzdud_acquire()", std::to_string(handle));
         //the handle could be out of order, so we dont check its value
         //we assume that out of order buffers means that we waited on
         //more xfers, not less xfers, including this handle's xfers
