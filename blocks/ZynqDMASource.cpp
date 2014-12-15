@@ -12,19 +12,24 @@
  * |category /Sources
  * |keywords zynq dma
  *
- * |param axiDMAIndex The index of an AXI DMA on the system
+ * |param index[Engine Index] The index of an AXI DMA on the system
  * |default 0
  *
- * |factory /zynq/dma_source(axiDMAIndex)
+ * |factory /zynq/dma_source(index)
  **********************************************************************/
 class ZyncDMASource : public Pothos::Block
 {
 public:
-    ZyncDMASource(const size_t axiDMAIndex):
-        _engine(pzdud_create(axiDMAIndex))
+    static Block *make(const size_t index)
+    {
+        return new ZyncDMASource(index);
+    }
+
+    ZyncDMASource(const size_t index):
+        _engine(pzdud_create(index))
     {
         if (_engine == nullptr) throw Pothos::Exception("ZyncDMASource::pzdud_create()");
-        this->setupOutput(0, "", "ZyncDMASource"+std::to_string(axiDMAIndex));
+        this->setupOutput(0, "", "ZyncDMASource"+std::to_string(index));
     }
 
     ~ZyncDMASource(void)
@@ -91,3 +96,6 @@ public:
 private:
     pzdud_t *_engine;
 };
+
+static Pothos::BlockRegistry registerZyncDMASource(
+    "/zynq/dma_source", &ZyncDMASource::make);

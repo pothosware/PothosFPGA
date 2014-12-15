@@ -8,6 +8,7 @@ set(SOURCES
     ZynqDMASource.cpp
     ZynqDMASink.cpp
     ZynqBufferManager.cpp
+    TestZynqDMALoopback.cpp
 )
 
 POTHOS_MODULE_UTIL(

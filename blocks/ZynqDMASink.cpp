@@ -12,19 +12,24 @@
  * |category /Sinks
  * |keywords zynq dma
  *
- * |param axiDMAIndex The index of an AXI DMA on the system
+ * |param index[Engine Index] The index of an AXI DMA on the system
  * |default 0
  *
- * |factory /zynq/dma_sink(axiDMAIndex)
+ * |factory /zynq/dma_sink(index)
  **********************************************************************/
 class ZyncDMASink : public Pothos::Block
 {
 public:
-    ZyncDMASink(const size_t axiDMAIndex):
-        _engine(pzdud_create(axiDMAIndex))
+    static Block *make(const size_t index)
+    {
+        return new ZyncDMASink(index);
+    }
+
+    ZyncDMASink(const size_t index):
+        _engine(pzdud_create(index))
     {
         if (_engine == nullptr) throw Pothos::Exception("ZyncDMASink::pzdud_create()");
-        this->setupInput(0, "", "ZyncDMASink"+std::to_string(axiDMAIndex));
+        this->setupInput(0, "", "ZyncDMASink"+std::to_string(index));
     }
 
     ~ZyncDMASink(void)
@@ -90,3 +95,6 @@ public:
 private:
     pzdud_t *_engine;
 };
+
+static Pothos::BlockRegistry registerZyncDMASink(
+    "/zynq/dma_sink", &ZyncDMASink::make);
