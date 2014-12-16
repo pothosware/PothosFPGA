@@ -42,18 +42,6 @@ public:
         throw Pothos::PortDomainError();
     }
 
-    void activate(void)
-    {
-        int ret = pzdud_init(_engine.get(), PZDUD_S2MM);
-        if (ret != PZDUD_OK) throw Pothos::Exception("ZyncDMASource::pzdud_init()", std::to_string(ret));
-    }
-
-    void deactivate(void)
-    {
-        int ret = pzdud_halt(_engine.get(), PZDUD_S2MM);
-        if (ret != PZDUD_OK) throw Pothos::Exception("ZyncDMASource::pzdud_halt()", std::to_string(ret));
-    }
-
     void work(void)
     {
         auto outPort = this->output(0);

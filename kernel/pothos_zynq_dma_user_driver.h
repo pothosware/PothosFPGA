@@ -8,6 +8,7 @@
 #pragma once
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 //! Return error codes
 #define PZDUD_OK 0
@@ -88,11 +89,16 @@ static inline void *pzdud_addr(pzdud_t *self, const pzdud_dir_t dir, size_t hand
 /*!
  * Initialize the DMA engine for streaming.
  * The engine will be ready to receive streams.
+ *
+ * In a typical use case, release is true, meaning the
+ * fist user call after init should be wait or acquire.
+ *
  * \param self the user dma instance structure
  * \param dir the direction to/from stream
+ * \param release true to initialize buffers with engine ownership
  * \return the error code or 0 for success
  */
-static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir);
+static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir, const bool release);
 
 /*!
  * Halt/stop all ongoing transfer activity.
@@ -398,7 +404,7 @@ static inline void *pzdud_addr(pzdud_t *self, const pzdud_dir_t dir, size_t hand
 /***********************************************************************
  * init/halt implementation
  **********************************************************************/
-static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir)
+static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir, const bool release)
 {
     pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
 
@@ -414,13 +420,13 @@ static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir)
         desc->next_desc = __pzdud_virt_to_phys(next, chan->sgbuff);
         desc->buf_addr = chan->allocs.buffs[i].paddr;
         desc->control = 0;
-        desc->status = 0;
+        desc->status = (1 << 31); //mark completed (ownership to caller)
     }
 
     //initialize buffer tracking
     chan->head_index = 0;
     chan->tail_index = 0;
-    chan->num_acquired = 0;
+    chan->num_acquired = chan->num_buffs;
 
     //load desc pointers
     xilinx_dma_desc_t *head = chan->sgtable + chan->head_index;
@@ -435,16 +441,10 @@ static inline int pzdud_init(pzdud_t *self, const pzdud_dir_t dir)
     __pzdud_write32(chan->ctrl_reg, __pzdud_read32(chan->ctrl_reg) | XILINX_DMA_XR_IRQ_IOC_MASK);
 
     //release all the buffers into the engine
-    if (dir == PZDUD_S2MM) for (size_t i = 0; i < self->s2mm_chan.num_buffs; i++)
+    if (release) for (size_t i = 0; i < chan->num_buffs; i++)
     {
-        self->s2mm_chan.num_acquired++;
-        pzdud_release(self, dir, i, 0);
-    }
-
-    //mark all buffers completed
-    if (dir == PZDUD_MM2S) for (size_t i = 0; i < self->mm2s_chan.num_buffs; i++)
-    {
-        self->mm2s_chan.sgtable[i].status |= (1 << 31);
+        if (dir == PZDUD_S2MM) pzdud_release(self, dir, i, 0);
+        else chan->num_acquired--;
     }
 
     return PZDUD_OK;
@@ -471,7 +471,7 @@ static inline int pzdud_halt(pzdud_t *self, const pzdud_dir_t dir)
 static inline int pzdud_wait(pzdud_t *self, const pzdud_dir_t dir, const long timeout_us)
 {
     pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
-    if (chan->num_acquired == chan->num_buffs) return PZDUD_ERROR_CLAIMED;
+    if (__sync_fetch_and_add(&chan->num_acquired, 0) == chan->num_buffs) return PZDUD_ERROR_CLAIMED;
 
     xilinx_dma_desc_t *desc = chan->sgtable+chan->head_index;
 
@@ -501,8 +501,7 @@ static inline int pzdud_wait(pzdud_t *self, const pzdud_dir_t dir, const long ti
 static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, size_t *length)
 {
     pzdud_chan_t *chan = (dir == PZDUD_S2MM)?&self->s2mm_chan:&self->mm2s_chan;
-
-    if (chan->num_acquired == chan->num_buffs) return PZDUD_ERROR_CLAIMED;
+    if (__sync_fetch_and_add(&chan->num_acquired, 0) == chan->num_buffs) return PZDUD_ERROR_CLAIMED;
 
     xilinx_dma_desc_t *desc = chan->sgtable+chan->head_index;
 
@@ -515,7 +514,7 @@ static inline int pzdud_acquire(pzdud_t *self, const pzdud_dir_t dir, size_t *le
 
     //increment to next
     chan->head_index = (chan->head_index + 1) % chan->num_buffs;
-    chan->num_acquired++;
+    __sync_fetch_and_add(&chan->num_acquired, 1);
 
     return handle;
 }
@@ -531,13 +530,12 @@ static inline void pzdud_release(pzdud_t *self, const pzdud_dir_t dir, size_t ha
     desc->status = 0; //clear status
 
     //determine the new tail (buffers may not be released in order)
-    while (chan->num_acquired != 0)
+    do
     {
         xilinx_dma_desc_t *tail = chan->sgtable + chan->tail_index;
         if (tail->status != 0) break;
         __pzdud_write32(chan->tail_reg, __pzdud_virt_to_phys(tail, chan->sgbuff));
-
         chan->tail_index = (chan->tail_index + 1) % chan->num_buffs;
-        chan->num_acquired--;
     }
+    while (__sync_sub_and_fetch(&chan->num_acquired, 1) != 0);
 }

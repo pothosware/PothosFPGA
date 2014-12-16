@@ -42,23 +42,6 @@ public:
         throw Pothos::PortDomainError();
     }
 
-    void activate(void)
-    {
-        int ret = pzdud_init(_engine.get(), PZDUD_MM2S);
-        if (ret != PZDUD_OK) throw Pothos::Exception("ZyncDMASink::pzdud_init()", std::to_string(ret));
-
-        //acquire all buffers that will be released back by the upstream block
-        //the first call to pzdud_acquire for each buffer should be immediate
-        size_t length = 0; //length not used for MM2S
-        while (pzdud_acquire(_engine.get(), PZDUD_MM2S, &length) >= 0){}
-    }
-
-    void deactivate(void)
-    {
-        int ret = pzdud_halt(_engine.get(), PZDUD_MM2S);
-        if (ret != PZDUD_OK) throw Pothos::Exception("ZyncDMASink::pzdud_halt()", std::to_string(ret));
-    }
-
     void work(void)
     {
         auto inPort = this->input(0);

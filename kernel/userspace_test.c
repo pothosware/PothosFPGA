@@ -39,13 +39,13 @@ int test(const int index)
     }
 
     ////////////// init engine ///////////////
-    ret = pzdud_init(dma, PZDUD_S2MM);
+    ret = pzdud_init(dma, PZDUD_S2MM, true);
     if (ret != PZDUD_OK)
     {
         printf("Fail pzdud_init %d\n", ret);
         return EXIT_FAILURE;
     }
-    ret = pzdud_init(dma, PZDUD_MM2S);
+    ret = pzdud_init(dma, PZDUD_MM2S, true);
     if (ret != PZDUD_OK)
     {
         printf("Fail pzdud_init %d\n", ret);

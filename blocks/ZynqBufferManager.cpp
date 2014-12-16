@@ -23,6 +23,7 @@ public:
     {
         if (this->isInitialized())
         {
+            pzdud_halt(_engine.get(), dir);
             pzdud_free(_engine.get(), dir);
         }
     }
@@ -30,8 +31,12 @@ public:
     void init(const Pothos::BufferManagerArgs &args)
     {
         _readyBuffs = Pothos::Util::OrderedQueue<Pothos::ManagedBuffer>(args.numBuffers);
+
         int ret = pzdud_alloc(_engine.get(), dir, args.numBuffers, args.bufferSize);
         if (ret != PZDUD_OK) throw Pothos::Exception("ZynqBufferManager::pzdud_alloc()", std::to_string(ret));
+
+        ret = pzdud_init(_engine.get(), dir, false/*no initial release*/);
+        if (ret != PZDUD_OK) throw Pothos::Exception("ZynqBufferManager::pzdud_init()", std::to_string(ret));
 
         //this will flag the manager as initialized after the allocation above
         Pothos::BufferManager::init(args);
@@ -44,10 +49,7 @@ public:
             auto sharedBuff = Pothos::SharedBuffer(size_t(addr), args.bufferSize, container);
             Pothos::ManagedBuffer buffer;
             buffer.reset(this->shared_from_this(), sharedBuff, handle);
-            _readyBuffs.push(buffer, buffer.getSlabIndex());
         }
-
-        this->setFrontBuffer(_readyBuffs.front());
     }
 
     bool empty(void) const
