@@ -23,8 +23,3 @@ if (GHDL_EXECUTABLE)
     add_subdirectory(rtl)
     add_subdirectory(sim)
 endif (GHDL_EXECUTABLE)
-
-########################################################################
-## build subdirectories
-########################################################################
-add_subdirectory(blocks)
