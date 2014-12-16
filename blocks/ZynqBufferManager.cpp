@@ -13,7 +13,7 @@ class ZynqDMABufferManager :
     public std::enable_shared_from_this<ZynqDMABufferManager<dir>>
 {
 public:
-    ZynqDMABufferManager(pzdud_t *engine):
+    ZynqDMABufferManager(std::shared_ptr<pzdud_t> engine):
         _engine(engine)
     {
         return;
@@ -23,14 +23,14 @@ public:
     {
         if (this->isInitialized())
         {
-            pzdud_free(_engine, dir);
+            pzdud_free(_engine.get(), dir);
         }
     }
 
     void init(const Pothos::BufferManagerArgs &args)
     {
         _readyBuffs = Pothos::Util::OrderedQueue<Pothos::ManagedBuffer>(args.numBuffers);
-        int ret = pzdud_alloc(_engine, dir, args.numBuffers, args.bufferSize);
+        int ret = pzdud_alloc(_engine.get(), dir, args.numBuffers, args.bufferSize);
         if (ret != PZDUD_OK) throw Pothos::Exception("ZynqBufferManager::pzdud_alloc()", std::to_string(ret));
 
         //this will flag the manager as initialized after the allocation above
@@ -40,7 +40,7 @@ public:
         for (size_t handle = 0; handle < args.numBuffers; handle++)
         {
             auto container = std::make_shared<int>(0);
-            void *addr = pzdud_addr(_engine, dir, handle);
+            void *addr = pzdud_addr(_engine.get(), dir, handle);
             auto sharedBuff = Pothos::SharedBuffer(size_t(addr), args.bufferSize, container);
             Pothos::ManagedBuffer buffer;
             buffer.reset(this->shared_from_this(), sharedBuff, handle);
@@ -61,6 +61,8 @@ public:
         assert(not _readyBuffs.empty());
         auto buff = _readyBuffs.front();
         _readyBuffs.pop();
+
+        //prepare the next buffer in the queue
         if (_readyBuffs.empty()) this->setFrontBuffer(Pothos::BufferChunk::null());
         else this->setFrontBuffer(_readyBuffs.front());
 
@@ -68,7 +70,7 @@ public:
         //this manager in an output port upstream of dma sink
         if (dir == PZDUD_MM2S)
         {
-            pzdud_release(_engine, dir, buff.getSlabIndex(), numBytes);
+            pzdud_release(_engine.get(), dir, buff.getSlabIndex(), numBytes);
         }
     }
 
@@ -84,17 +86,17 @@ public:
         //this manager in the output port on the dma source
         if (dir == PZDUD_S2MM)
         {
-            pzdud_release(_engine, dir, buff.getSlabIndex(), 0/*unused*/);
+            pzdud_release(_engine.get(), dir, buff.getSlabIndex(), 0/*unused*/);
         }
     }
 
 private:
     Pothos::Util::OrderedQueue<Pothos::ManagedBuffer> _readyBuffs;
-    pzdud_t *_engine;
+    std::shared_ptr<pzdud_t> _engine;
 };
 
 
-Pothos::BufferManager::Sptr makeZynqDMABufferManager(pzdud_t *engine, const pzdud_dir_t dir)
+Pothos::BufferManager::Sptr makeZynqDMABufferManager(std::shared_ptr<pzdud_t> engine, const pzdud_dir_t dir)
 {
     if (dir == PZDUD_S2MM) return Pothos::BufferManager::Sptr(new ZynqDMABufferManager<PZDUD_S2MM>(engine));
     if (dir == PZDUD_MM2S) return Pothos::BufferManager::Sptr(new ZynqDMABufferManager<PZDUD_MM2S>(engine));

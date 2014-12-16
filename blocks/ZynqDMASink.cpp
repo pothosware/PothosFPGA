@@ -27,15 +27,10 @@ public:
     }
 
     ZyncDMASink(const size_t index):
-        _engine(pzdud_create(index))
+        _engine(std::shared_ptr<pzdud_t>(pzdud_create(index), &pzdud_destroy))
     {
-        if (_engine == nullptr) throw Pothos::Exception("ZyncDMASink::pzdud_create()");
+        if (not _engine) throw Pothos::Exception("ZyncDMASink::pzdud_create()");
         this->setupInput(0, "", "ZyncDMASink"+std::to_string(index));
-    }
-
-    ~ZyncDMASink(void)
-    {
-        pzdud_destroy(_engine);
     }
 
     Pothos::BufferManager::Sptr getInputBufferManager(const std::string &, const std::string &domain)
@@ -49,18 +44,18 @@ public:
 
     void activate(void)
     {
-        int ret = pzdud_init(_engine, PZDUD_MM2S);
+        int ret = pzdud_init(_engine.get(), PZDUD_MM2S);
         if (ret != PZDUD_OK) throw Pothos::Exception("ZyncDMASink::pzdud_init()", std::to_string(ret));
 
         //acquire all buffers that will be released back by the upstream block
         //the first call to pzdud_acquire for each buffer should be immediate
         size_t length = 0; //length not used for MM2S
-        while (pzdud_acquire(_engine, PZDUD_MM2S, &length) >= 0){}
+        while (pzdud_acquire(_engine.get(), PZDUD_MM2S, &length) >= 0){}
     }
 
     void deactivate(void)
     {
-        int ret = pzdud_halt(_engine, PZDUD_MM2S);
+        int ret = pzdud_halt(_engine.get(), PZDUD_MM2S);
         if (ret != PZDUD_OK) throw Pothos::Exception("ZyncDMASink::pzdud_halt()", std::to_string(ret));
     }
 
@@ -73,7 +68,7 @@ public:
 
         //wait for completion on the head buffer
         const long timeout_us = this->workInfo().maxTimeoutNs/1000;
-        const int ret = pzdud_wait(_engine, PZDUD_MM2S, timeout_us);
+        const int ret = pzdud_wait(_engine.get(), PZDUD_MM2S, timeout_us);
         if (ret == PZDUD_ERROR_TIMEOUT)
         {
             //got a timeout, yield so we can get called again
@@ -88,7 +83,7 @@ public:
 
         //acquire the head buffer and release its handle
         size_t length = 0; //length not used for MM2S
-        const int handle = pzdud_acquire(_engine, PZDUD_MM2S, &length);
+        const int handle = pzdud_acquire(_engine.get(), PZDUD_MM2S, &length);
         if (handle < 0) throw Pothos::Exception("ZyncDMASink::pzdud_acquire()", std::to_string(handle));
         //the handle could be out of order, so we dont check its value
         //we assume that out of order buffers means that we waited on
@@ -99,7 +94,7 @@ public:
     }
 
 private:
-    pzdud_t *_engine;
+    std::shared_ptr<pzdud_t> _engine;
 };
 
 static Pothos::BlockRegistry registerZyncDMASink(

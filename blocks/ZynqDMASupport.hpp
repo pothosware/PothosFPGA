@@ -4,6 +4,7 @@
 #pragma once
 #include <Pothos/Framework.hpp>
 #include "pothos_zynq_dma_user_driver.h"
+#include <memory>
 
 //! Factory for Zynq DMA buffer manager
-Pothos::BufferManager::Sptr makeZynqDMABufferManager(pzdud_t *engine, const pzdud_dir_t dir);
+Pothos::BufferManager::Sptr makeZynqDMABufferManager(std::shared_ptr<pzdud_t> engine, const pzdud_dir_t dir);

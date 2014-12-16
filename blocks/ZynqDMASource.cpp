@@ -27,15 +27,10 @@ public:
     }
 
     ZyncDMASource(const size_t index):
-        _engine(pzdud_create(index))
+        _engine(std::shared_ptr<pzdud_t>(pzdud_create(index), &pzdud_destroy))
     {
-        if (_engine == nullptr) throw Pothos::Exception("ZyncDMASource::pzdud_create()");
+        if (not _engine) throw Pothos::Exception("ZyncDMASource::pzdud_create()");
         this->setupOutput(0, "", "ZyncDMASource"+std::to_string(index));
-    }
-
-    ~ZyncDMASource(void)
-    {
-        pzdud_destroy(_engine);
     }
 
     Pothos::BufferManager::Sptr getOutputBufferManager(const std::string &, const std::string &domain)
@@ -49,13 +44,13 @@ public:
 
     void activate(void)
     {
-        int ret = pzdud_init(_engine, PZDUD_S2MM);
+        int ret = pzdud_init(_engine.get(), PZDUD_S2MM);
         if (ret != PZDUD_OK) throw Pothos::Exception("ZyncDMASource::pzdud_init()", std::to_string(ret));
     }
 
     void deactivate(void)
     {
-        int ret = pzdud_halt(_engine, PZDUD_S2MM);
+        int ret = pzdud_halt(_engine.get(), PZDUD_S2MM);
         if (ret != PZDUD_OK) throw Pothos::Exception("ZyncDMASource::pzdud_halt()", std::to_string(ret));
     }
 
@@ -68,7 +63,7 @@ public:
 
         //wait for completion on the head buffer
         const long timeout_us = this->workInfo().maxTimeoutNs/1000;
-        const int ret = pzdud_wait(_engine, PZDUD_S2MM, timeout_us);
+        const int ret = pzdud_wait(_engine.get(), PZDUD_S2MM, timeout_us);
         if (ret == PZDUD_ERROR_TIMEOUT)
         {
             //got a timeout, yield so we can get called again
@@ -83,7 +78,7 @@ public:
 
         //acquire the head buffer and release its handle
         size_t length = 0;
-        const int handle = pzdud_acquire(_engine, PZDUD_S2MM, &length);
+        const int handle = pzdud_acquire(_engine.get(), PZDUD_S2MM, &length);
         if (handle < 0) throw Pothos::Exception("ZyncDMASource::pzdud_acquire()", std::to_string(handle));
         if (size_t(handle) != outPort->buffer().getManagedBuffer().getSlabIndex())
         {
@@ -95,7 +90,7 @@ public:
     }
 
 private:
-    pzdud_t *_engine;
+    std::shared_ptr<pzdud_t> _engine;
 };
 
 static Pothos::BlockRegistry registerZyncDMASource(
