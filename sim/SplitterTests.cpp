@@ -34,7 +34,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_1x)
         topology.connect(feeder, 0, sink0, 0);
         topology.connect(source0, 0, collector, 0);
         topology.commit();
-        POTHOS_TEST_TRUE(topology.waitInactive());
+        POTHOS_TEST_TRUE(topology.waitInactive(1.0, 0.0));
     }
 
     collector.callVoid("verifyTestPlan", expected);
@@ -75,7 +75,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_packet_splitter_1x)
         topology.connect(source0, 0, packetsOut, 0);
         topology.connect(p2s, 0, collector, 0);
         topology.commit();
-        POTHOS_TEST_TRUE(topology.waitInactive());
+        POTHOS_TEST_TRUE(topology.waitInactive(1.0, 0.0));
     }
 
     collector.callVoid("verifyTestPlan", expected);
@@ -122,7 +122,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_splitter_2x)
             topology.connect(source1, 0, collector0, 0);
             topology.connect(source2, 0, collector1, 0);
             topology.commit();
-            POTHOS_TEST_TRUE(topology.waitInactive());
+            POTHOS_TEST_TRUE(topology.waitInactive(1.0, 0.0));
         }
 
         if ((enables & 0x1) != 0) collector0.callVoid("verifyTestPlan", expected);
@@ -185,7 +185,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_packet_splitter_2x)
             topology.connect(p2s1, 0, collector1, 0);
 
             topology.commit();
-            POTHOS_TEST_TRUE(topology.waitInactive());
+            POTHOS_TEST_TRUE(topology.waitInactive(1.0, 0.0));
         }
 
         if ((enables & 0x1) != 0) collector0.callVoid("verifyTestPlan", expected);

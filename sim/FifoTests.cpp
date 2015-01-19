@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2014 Josh Blum
+// Copyright (c) 2014-2015 Josh Blum
 // SPDX-License-Identifier: BSL-1.0
 
 #include "SimulationClient.hpp"
@@ -39,7 +39,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_fifo_bram)
         topology.connect(feeder, 0, sink0, 0);
         topology.connect(source0, 0, collector, 0);
         topology.commit();
-        POTHOS_TEST_TRUE(topology.waitInactive());
+        POTHOS_TEST_TRUE(topology.waitInactive(1.0, 0.0));
     }
 
     collector.callVoid("verifyTestPlan", expected);
@@ -76,7 +76,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_fifo_dram)
         topology.connect(feeder, 0, sink1, 0);
         topology.connect(source1, 0, collector, 0);
         topology.commit();
-        POTHOS_TEST_TRUE(topology.waitInactive());
+        POTHOS_TEST_TRUE(topology.waitInactive(1.0, 0.0));
     }
 
     collector.callVoid("verifyTestPlan", expected);

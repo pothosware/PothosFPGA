@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2014 Josh Blum
+// Copyright (c) 2014-2015 Josh Blum
 // SPDX-License-Identifier: BSL-1.0
 
 #include "SimulationClient.hpp"
@@ -96,7 +96,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_interconnect_121)
         }
 
         topology.commit();
-        POTHOS_TEST_TRUE(topology.waitInactive(0.5, 5.0));
+        POTHOS_TEST_TRUE(topology.waitInactive(1.0, 0.0));
 
         //check the collectors, the rest should be empty
         for (size_t progOutput_i = 0; progOutput_i < numOutputs; progOutput_i++)
@@ -180,7 +180,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_interconnect_m2m)
     }
 
     topology.commit();
-    POTHOS_TEST_TRUE(topology.waitInactive(0.5, 5.0));
+    POTHOS_TEST_TRUE(topology.waitInactive(1.0, 0.0));
 
     for (size_t i = 0; i < numOutputs; i++)
     {
@@ -288,7 +288,7 @@ POTHOS_TEST_BLOCK("/fpga/tests", test_packet_interconnect_m2m)
     }
 
     topology.commit();
-    POTHOS_TEST_TRUE(topology.waitInactive(0.5, 5.0));
+    POTHOS_TEST_TRUE(topology.waitInactive(1.0, 0.0));
 
     for (size_t i = 0; i < numOutputs; i++)
     {
