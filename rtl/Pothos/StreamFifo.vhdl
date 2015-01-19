@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------
 -- StreamFifo
 --
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 --
 -- Configurable buffering between an input and output stream.
@@ -21,42 +21,46 @@ entity StreamFifo is
         SYNC_READ          : boolean    := true
     );
     port(
-        clk : in std_ulogic;
-        rst : in std_ulogic;
+        clk : in std_logic;
+        rst : in std_logic;
 
         -- input bus
-        in_data : in std_ulogic_vector;
-        in_valid : in std_ulogic;
-        in_ready : out std_ulogic;
+        in_data : in std_logic_vector;
+        in_valid : in std_logic;
+        in_ready : out std_logic;
 
         -- output bus
-        out_data : out std_ulogic_vector;
-        out_valid : out std_ulogic;
-        out_ready : in std_ulogic;
+        out_data : out std_logic_vector;
+        out_valid : out std_logic;
+        out_ready : in std_logic;
 
         --space and availability
         almost_empty_thresh : in  natural range 0 to MEM_SIZE-1 := 1;
         almost_full_thresh  : in  natural range 0 to MEM_SIZE-1 := 1;
-        almost_empty        : out std_ulogic;
-        almost_full         : out std_ulogic
+        almost_empty        : out std_logic;
+        almost_full         : out std_logic
     );
 end entity StreamFifo;
 
 architecture rtl of StreamFifo is
 
-    signal Empty : std_ulogic;
-    signal Full : std_ulogic;
-    signal We : std_ulogic;
-    signal Re : std_ulogic;
+    signal Empty : std_logic;
+    signal Full : std_logic;
+    signal We : std_logic;
+    signal Re : std_logic;
+    signal Wr_data : std_ulogic_vector(in_data'range);
+    signal Rd_data : std_ulogic_vector(out_data'range);
 
 begin
 
     in_ready <= not Full;
     We <= in_valid and not Full;
     Re <= out_ready and not Empty;
+    Wr_data <= std_ulogic_vector(in_data);
+    out_data <= std_logic_vector(Rd_data);
 
     process (clk, Empty)
-        variable syncValid : std_ulogic := '0';
+        variable syncValid : std_logic := '0';
     begin
         if (rising_edge(clk)) then
             if (rst = '1') then
@@ -82,10 +86,10 @@ begin
         Reset => rst,
 
         We => We,
-        Wr_data => in_data,
+        Wr_data => Wr_data,
 
         Re => Re,
-        Rd_data => out_data,
+        Rd_data => Rd_data,
 
         Empty => Empty,
         Full => Full,

@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
 -- Tests for the interconnect module.
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 library ieee;
@@ -17,35 +17,35 @@ end entity InterconnectTb;
 
 architecture test of InterconnectTb is
 
-    signal clk : std_ulogic := '0';
-    signal rst : std_ulogic := '1';
+    signal clk : std_logic := '0';
+    signal rst : std_logic := '1';
 
     constant NUM_INPUTS : positive := 2;
     constant NUM_OUTPUTS : positive := 2;
     constant NUM_LANES : positive := 2;
 
     --input port signals
-    signal in_data : std_ulogic_vector((NUM_INPUTS*32)-1 downto 0);
-    signal in_meta : std_ulogic_vector(NUM_INPUTS-1 downto 0);
-    signal in_last : std_ulogic_vector(NUM_INPUTS-1 downto 0);
-    signal in_valid : std_ulogic_vector(NUM_INPUTS-1 downto 0);
-    signal in_ready : std_ulogic_vector(NUM_INPUTS-1 downto 0);
+    signal in_data : std_logic_vector((NUM_INPUTS*32)-1 downto 0);
+    signal in_meta : std_logic_vector(NUM_INPUTS-1 downto 0);
+    signal in_last : std_logic_vector(NUM_INPUTS-1 downto 0);
+    signal in_valid : std_logic_vector(NUM_INPUTS-1 downto 0);
+    signal in_ready : std_logic_vector(NUM_INPUTS-1 downto 0);
 
     --output port signals
-    signal out_data : std_ulogic_vector((NUM_OUTPUTS*32)-1 downto 0);
-    signal out_meta : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal out_last : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal out_valid : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal out_ready : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_data : std_logic_vector((NUM_OUTPUTS*32)-1 downto 0);
+    signal out_meta : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_last : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_valid : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_ready : std_logic_vector(NUM_OUTPUTS-1 downto 0);
 
     --control signals
-    signal paddr : std_ulogic_vector(31 downto 0);
-    signal pwrite : std_ulogic;
-    signal psel : std_ulogic;
-    signal penable : std_ulogic;
-    signal pwdata : std_ulogic_vector(31 downto 0);
-    signal pready : std_ulogic;
-    signal prdata : std_ulogic_vector(31 downto 0);
+    signal paddr : std_logic_vector(31 downto 0);
+    signal pwrite : std_logic;
+    signal psel : std_logic;
+    signal penable : std_logic;
+    signal pwdata : std_logic_vector(31 downto 0);
+    signal pready : std_logic;
+    signal prdata : std_logic_vector(31 downto 0);
 
 begin
 

@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------
 -- StreamCombiner - Combine multiple input streams into one stream.
 --
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 
@@ -17,20 +17,20 @@ entity StreamCombiner is
         FIFO_SIZE : positive := 4
     );
     port(
-        clk : in std_ulogic;
-        rst : in std_ulogic;
+        clk : in std_logic;
+        rst : in std_logic;
 
         -- input buses x NUM_INPUTS
-        in_data : in std_ulogic_vector;
-        in_last : in std_ulogic_vector(NUM_INPUTS-1 downto 0) := (others => '1');
-        in_valid : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
-        in_ready : out std_ulogic_vector(NUM_INPUTS-1 downto 0);
+        in_data : in std_logic_vector;
+        in_last : in std_logic_vector(NUM_INPUTS-1 downto 0) := (others => '1');
+        in_valid : in std_logic_vector(NUM_INPUTS-1 downto 0);
+        in_ready : out std_logic_vector(NUM_INPUTS-1 downto 0);
 
         -- output bus
-        out_data : out std_ulogic_vector;
-        out_last : out std_ulogic;
-        out_valid : out std_ulogic;
-        out_ready : in std_ulogic
+        out_data : out std_logic_vector;
+        out_last : out std_logic;
+        out_valid : out std_logic;
+        out_ready : in std_logic
     );
 end entity StreamCombiner;
 
@@ -38,14 +38,14 @@ architecture rtl of StreamCombiner is
     constant DATA_WIDTH : positive := in_data'length/NUM_INPUTS;
 
     --one-hot enables used to determine the input mux
-    signal inputEnables : std_ulogic_vector(NUM_INPUTS-1 downto 0);
+    signal inputEnables : std_logic_vector(NUM_INPUTS-1 downto 0);
 
     --fifo iogress bus signals
-    signal out_fifo_data : std_ulogic_vector(DATA_WIDTH downto 0);
-    signal in_fifo_data : std_ulogic_vector(DATA_WIDTH downto 0);
-    signal in_fifo_valid : std_ulogic;
-    signal in_fifo_ready : std_ulogic;
-    signal in_fifo_busy : std_ulogic;
+    signal out_fifo_data : std_logic_vector(DATA_WIDTH downto 0);
+    signal in_fifo_data : std_logic_vector(DATA_WIDTH downto 0);
+    signal in_fifo_valid : std_logic;
+    signal in_fifo_ready : std_logic;
+    signal in_fifo_busy : std_logic;
 begin
 
     assert (DATA_WIDTH = out_data'length) report "StreamCombiner: out data width" severity failure;
@@ -83,7 +83,7 @@ begin
     );
 
     process (clk)
-        variable inputEnablesNext : std_ulogic_vector(NUM_INPUTS downto 0);
+        variable inputEnablesNext : std_logic_vector(NUM_INPUTS downto 0);
     begin
 
         inputEnablesNext(NUM_INPUTS downto 1) := inputEnables(NUM_INPUTS-1 downto 0);

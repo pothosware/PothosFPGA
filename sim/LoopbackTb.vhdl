@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
 -- Simple loopback test bench for trying out external port interfaces
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 library ieee;
@@ -17,27 +17,31 @@ end entity LoopbackTb;
 
 architecture test of LoopbackTb is
 
-    signal clk : std_ulogic := '0';
-    signal rst : std_ulogic := '1';
+    signal clk : std_logic := '0';
+    signal rst : std_logic := '1';
 
     -- loopback test signals
-    signal data : std_ulogic_vector(31 downto 0);
-    signal meta : std_ulogic;
-    signal last : std_ulogic;
-    signal valid : std_ulogic;
-    signal ready : std_ulogic;
+    signal data : std_logic_vector(31 downto 0);
+    signal meta : std_logic;
+    signal last : std_logic;
+    signal valid : std_logic;
+    signal ready : std_logic;
 
     -- control test signals
-    signal paddr : std_ulogic_vector(31 downto 0);
-    signal pwrite : std_ulogic;
-    signal psel : std_ulogic;
-    signal penable : std_ulogic;
-    signal pwdata : std_ulogic_vector(31 downto 0);
-    signal pready : std_ulogic;
-    signal prdata : std_ulogic_vector(31 downto 0);
+    signal paddr : std_logic_vector(31 downto 0);
+    signal pwrite : std_logic;
+    signal psel : std_logic;
+    signal penable : std_logic;
+    signal pwdata : std_logic_vector(31 downto 0);
+    signal pready : std_logic;
+    signal prdata : std_logic_vector(31 downto 0);
     signal ctrl_addr_num : natural;
-    signal ctrl_wr : std_ulogic;
-    signal ctrl_rd : std_ulogic;
+    signal ctrl_wr : std_logic;
+    signal ctrl_rd : std_logic;
+
+    -- bram signals
+    signal Wr_data : std_ulogic_vector(31 downto 0);
+    signal Rd_data : std_ulogic_vector(31 downto 0);
 
 begin
 
@@ -114,12 +118,15 @@ begin
         Wr_clock => clk,
         We => ctrl_wr,
         Wr_addr => ctrl_addr_num,
-        Wr_data => pwdata,
+        Wr_data => Wr_data,
         Rd_clock => clk,
         Re => ctrl_rd,
         Rd_addr => ctrl_addr_num,
-        Rd_data => prdata
+        Rd_data => Rd_data
     );
+
+    prdata <= std_logic_vector(Rd_data);
+    Wr_data <= std_ulogic_vector(pwdata);
 
     process begin
         initProxyServer(0);

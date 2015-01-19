@@ -2,7 +2,7 @@
 -- External output implementation
 -- Write stream data to an output bus.
 --
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 
@@ -19,15 +19,15 @@ entity ExternalSource is
         PORT_NUMBER : natural
     );
     port(
-        clk : in std_ulogic;
-        rst : in std_ulogic;
+        clk : in std_logic;
+        rst : in std_logic;
 
         -- output bus
-        out_data : out std_ulogic_vector;
-        out_meta : out std_ulogic;
-        out_last : out std_ulogic;
-        out_valid : out std_ulogic;
-        out_ready : in std_ulogic
+        out_data : out std_logic_vector;
+        out_meta : out std_logic;
+        out_last : out std_logic;
+        out_valid : out std_logic;
+        out_ready : in std_logic
     );
 end entity ExternalSource;
 
@@ -42,7 +42,7 @@ architecture sim of ExternalSource is begin
             thisValid := sourceHasData(handle);
             if (thisValid) then
                 out_valid <= '1';
-                out_data <= std_ulogic_vector(to_signed(sourceFrontData(handle), out_data'length));
+                out_data <= std_logic_vector(to_signed(sourceFrontData(handle), out_data'length));
                 if (sourceMetaData(handle)) then
                     out_meta <= '1';
                 else
@@ -61,7 +61,7 @@ architecture sim of ExternalSource is begin
         if (rising_edge(clk)) then
             if (rst = '1') then
                 out_valid <= '0';
-                out_data <= std_ulogic_vector(to_signed(0, out_data'length));
+                out_data <= std_logic_vector(to_signed(0, out_data'length));
                 out_last <= '0';
             elsif (out_ready = '1' and thisValid) then
                 sourcePopData(handle);

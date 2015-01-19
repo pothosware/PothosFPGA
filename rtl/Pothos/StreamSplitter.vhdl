@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------
 -- StreamSplitter - Split an input stream to multiple output streams.
 --
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 
@@ -17,23 +17,23 @@ entity StreamSplitter is
         FIFO_SIZE : positive := 4
     );
     port(
-        clk : in std_ulogic;
-        rst : in std_ulogic;
+        clk : in std_logic;
+        rst : in std_logic;
 
         -- output enables (which outputs get the input)
-        enables : in std_ulogic_vector(NUM_OUTPUTS-1 downto 0) := (others => '1');
+        enables : in std_logic_vector(NUM_OUTPUTS-1 downto 0) := (others => '1');
 
         -- input buses
-        in_data : in std_ulogic_vector;
-        in_last : in std_ulogic := '1';
-        in_valid : in std_ulogic;
-        in_ready : out std_ulogic;
+        in_data : in std_logic_vector;
+        in_last : in std_logic := '1';
+        in_valid : in std_logic;
+        in_ready : out std_logic;
 
         -- output bus x NUM_OUTPUTS
-        out_data : out std_ulogic_vector;
-        out_last : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-        out_valid : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-        out_ready : in std_ulogic_vector(NUM_OUTPUTS-1 downto 0)
+        out_data : out std_logic_vector;
+        out_last : out std_logic_vector(NUM_OUTPUTS-1 downto 0);
+        out_valid : out std_logic_vector(NUM_OUTPUTS-1 downto 0);
+        out_ready : in std_logic_vector(NUM_OUTPUTS-1 downto 0)
     );
 end entity StreamSplitter;
 
@@ -42,15 +42,15 @@ architecture rtl of StreamSplitter is
     constant DATA_WIDTH : positive := out_data'length/NUM_OUTPUTS;
 
     --all ready signals to fifo input stream buses
-    signal in_fifo_ready : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal in_fifo_begin : std_ulogic;
+    signal in_fifo_ready : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+    signal in_fifo_begin : std_logic;
 
     --enables that are not changed during a packet transfer
-    signal usedEnables : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal cachedEnables : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+    signal usedEnables : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+    signal cachedEnables : std_logic_vector(NUM_OUTPUTS-1 downto 0);
 
     --internal driver for in_ready
-    signal in_ready_i : std_ulogic;
+    signal in_ready_i : std_logic;
 
 begin
 
@@ -92,9 +92,9 @@ begin
     -- Generate small outgress fifos
     --------------------------------------------------------------------
     gen_fifos: for i in 0 to (NUM_OUTPUTS-1) generate
-        signal out_fifo_data : std_ulogic_vector(DATA_WIDTH downto 0);
-        signal in_fifo_data : std_ulogic_vector(DATA_WIDTH downto 0);
-        signal in_fifo_valid : std_ulogic;
+        signal out_fifo_data : std_logic_vector(DATA_WIDTH downto 0);
+        signal in_fifo_data : std_logic_vector(DATA_WIDTH downto 0);
+        signal in_fifo_valid : std_logic;
     begin
 
         --input fifo data comes from input last, data

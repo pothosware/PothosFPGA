@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
 -- Tests for the stream combiner module.
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 library ieee;
@@ -16,28 +16,28 @@ end entity CombinerTb;
 
 architecture test of CombinerTb is
 
-    signal clk : std_ulogic := '0';
-    signal rst : std_ulogic := '1';
+    signal clk : std_logic := '0';
+    signal rst : std_logic := '1';
 
     -- test 0 signals
-    signal src0_data : std_ulogic_vector(32 downto 0); --meta1, data32
-    signal src0_last : std_ulogic_vector(0 downto 0);
-    signal src0_valid : std_ulogic_vector(0 downto 0);
-    signal src0_ready : std_ulogic_vector(0 downto 0);
-    signal dst0_data : std_ulogic_vector(32 downto 0); --meta1, data32
-    signal dst0_last : std_ulogic;
-    signal dst0_valid : std_ulogic;
-    signal dst0_ready : std_ulogic;
+    signal src0_data : std_logic_vector(32 downto 0); --meta1, data32
+    signal src0_last : std_logic_vector(0 downto 0);
+    signal src0_valid : std_logic_vector(0 downto 0);
+    signal src0_ready : std_logic_vector(0 downto 0);
+    signal dst0_data : std_logic_vector(32 downto 0); --meta1, data32
+    signal dst0_last : std_logic;
+    signal dst0_valid : std_logic;
+    signal dst0_ready : std_logic;
 
     -- test 1 signals
-    signal src1_data : std_ulogic_vector(65 downto 0); --(meta1, data32) X2
-    signal src1_last : std_ulogic_vector(1 downto 0);
-    signal src1_valid : std_ulogic_vector(1 downto 0);
-    signal src1_ready : std_ulogic_vector(1 downto 0);
-    signal dst1_data : std_ulogic_vector(32 downto 0); --meta1, data32
-    signal dst1_last : std_ulogic;
-    signal dst1_valid : std_ulogic;
-    signal dst1_ready : std_ulogic;
+    signal src1_data : std_logic_vector(65 downto 0); --(meta1, data32) X2
+    signal src1_last : std_logic_vector(1 downto 0);
+    signal src1_valid : std_logic_vector(1 downto 0);
+    signal src1_ready : std_logic_vector(1 downto 0);
+    signal dst1_data : std_logic_vector(32 downto 0); --meta1, data32
+    signal dst1_last : std_logic;
+    signal dst1_valid : std_logic;
+    signal dst1_ready : std_logic;
 
 begin
 

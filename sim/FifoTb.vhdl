@@ -1,6 +1,6 @@
 ------------------------------------------------------------------------
 -- Simple loopback test bench with the stream fifo in the middle
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 library ieee;
@@ -16,24 +16,24 @@ end entity FifoTb;
 
 architecture test of FifoTb is
 
-    signal clk : std_ulogic := '0';
-    signal rst : std_ulogic := '1';
+    signal clk : std_logic := '0';
+    signal rst : std_logic := '1';
 
-    signal data0 : std_ulogic_vector(31 downto 0);
-    signal valid0 : std_ulogic;
-    signal ready0 : std_ulogic;
+    signal data0 : std_logic_vector(31 downto 0);
+    signal valid0 : std_logic;
+    signal ready0 : std_logic;
 
-    signal data1 : std_ulogic_vector(31 downto 0);
-    signal valid1 : std_ulogic;
-    signal ready1 : std_ulogic;
+    signal data1 : std_logic_vector(31 downto 0);
+    signal valid1 : std_logic;
+    signal ready1 : std_logic;
 
-    signal data2 : std_ulogic_vector(31 downto 0);
-    signal valid2 : std_ulogic;
-    signal ready2 : std_ulogic;
+    signal data2 : std_logic_vector(31 downto 0);
+    signal valid2 : std_logic;
+    signal ready2 : std_logic;
 
-    signal data3 : std_ulogic_vector(31 downto 0);
-    signal valid3 : std_ulogic;
-    signal ready3 : std_ulogic;
+    signal data3 : std_logic_vector(31 downto 0);
+    signal valid3 : std_logic;
+    signal ready3 : std_logic;
 
 begin
 

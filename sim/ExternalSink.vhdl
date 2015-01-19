@@ -2,7 +2,7 @@
 -- External input implementation
 -- Read stream data from an input bus.
 --
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 ------------------------------------------------------------------------
 
@@ -19,15 +19,15 @@ entity ExternalSink is
         PORT_NUMBER : natural
     );
     port(
-        clk : in std_ulogic;
-        rst : in std_ulogic;
+        clk : in std_logic;
+        rst : in std_logic;
 
         -- input bus
-        in_data : in std_ulogic_vector;
-        in_meta : in std_ulogic := '0';
-        in_last : in std_ulogic := '1';
-        in_valid : in std_ulogic;
-        in_ready : out std_ulogic
+        in_data : in std_logic_vector;
+        in_meta : in std_logic := '0';
+        in_last : in std_logic := '1';
+        in_valid : in std_logic;
+        in_ready : out std_logic
     );
 end entity ExternalSink;
 

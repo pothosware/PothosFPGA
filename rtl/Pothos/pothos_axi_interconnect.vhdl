@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------
 -- Pothos Interconnect AXI wrapper
 --
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 --
 -- Xilinx Vivado style wrapper
@@ -505,25 +505,25 @@ entity pothos_axi_interconnect is
 end entity pothos_axi_interconnect;
 
 architecture rtl of pothos_axi_interconnect is
-    signal arst : std_ulogic;
+    signal arst : std_logic;
 
-    signal paddr : std_ulogic_vector(31 downto 0);
-    signal pwdata : std_ulogic_vector(31 downto 0);
-    signal prdata : std_ulogic_vector(31 downto 0);
+    signal paddr : std_logic_vector(31 downto 0);
+    signal pwdata : std_logic_vector(31 downto 0);
+    signal prdata : std_logic_vector(31 downto 0);
 
-    signal in_data : std_ulogic_vector((DATA_WIDTH*NUM_INPUTS)-1 downto 0);
-    signal in_meta : std_ulogic_vector(NUM_INPUTS-1 downto 0);
-    signal in_last : std_ulogic_vector(NUM_INPUTS-1 downto 0);
-    signal in_valid : std_ulogic_vector(NUM_INPUTS-1 downto 0);
-    signal in_ready : std_ulogic_vector(NUM_INPUTS-1 downto 0);
-    signal in_begin : std_ulogic_vector(NUM_INPUTS-1 downto 0);
+    signal in_data : std_logic_vector((DATA_WIDTH*NUM_INPUTS)-1 downto 0);
+    signal in_meta : std_logic_vector(NUM_INPUTS-1 downto 0);
+    signal in_last : std_logic_vector(NUM_INPUTS-1 downto 0);
+    signal in_valid : std_logic_vector(NUM_INPUTS-1 downto 0);
+    signal in_ready : std_logic_vector(NUM_INPUTS-1 downto 0);
+    signal in_begin : std_logic_vector(NUM_INPUTS-1 downto 0);
 
-    signal out_data : std_ulogic_vector((DATA_WIDTH*NUM_OUTPUTS)-1 downto 0);
-    signal out_meta : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal out_last : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal out_valid : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal out_ready : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-    signal out_begin : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_data : std_logic_vector((DATA_WIDTH*NUM_OUTPUTS)-1 downto 0);
+    signal out_meta : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_last : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_valid : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_ready : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+    signal out_begin : std_logic_vector(NUM_OUTPUTS-1 downto 0);
 
 begin
 
@@ -534,19 +534,19 @@ begin
     arst <= not aresetn;
 
     --control bus
-    paddr(9 downto 0) <= std_ulogic_vector(s_apb_paddr);
+    paddr(9 downto 0) <= std_logic_vector(s_apb_paddr);
     paddr(31 downto 10) <= (others => '0');
-    pwdata <= std_ulogic_vector(s_apb_pwdata);
+    pwdata <= std_logic_vector(s_apb_pwdata);
     s_apb_prdata <= std_logic_vector(prdata);
 
     --flow control
-    out_begin <= std_ulogic_vector(s_axis_tbegin);
+    out_begin <= std_logic_vector(s_axis_tbegin);
     m_axis_tbegin <= std_logic_vector(in_begin);
 
     --multi bus signals
     gen_slave_bus00:
     if 0 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(0+1))-1) downto DATA_WIDTH*0) <= std_ulogic_vector(s00_axis_tdata);
+        in_data(((DATA_WIDTH*(0+1))-1) downto DATA_WIDTH*0) <= std_logic_vector(s00_axis_tdata);
         in_meta(0) <= s00_axis_tuser(0);
         in_last(0) <= s00_axis_tlast;
         in_valid(0) <= s00_axis_tvalid;
@@ -564,7 +564,7 @@ begin
 
     gen_slave_bus01:
     if 1 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(1+1))-1) downto DATA_WIDTH*1) <= std_ulogic_vector(s01_axis_tdata);
+        in_data(((DATA_WIDTH*(1+1))-1) downto DATA_WIDTH*1) <= std_logic_vector(s01_axis_tdata);
         in_meta(1) <= s01_axis_tuser(0);
         in_last(1) <= s01_axis_tlast;
         in_valid(1) <= s01_axis_tvalid;
@@ -582,7 +582,7 @@ begin
 
     gen_slave_bus02:
     if 2 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(2+1))-1) downto DATA_WIDTH*2) <= std_ulogic_vector(s02_axis_tdata);
+        in_data(((DATA_WIDTH*(2+1))-1) downto DATA_WIDTH*2) <= std_logic_vector(s02_axis_tdata);
         in_meta(2) <= s02_axis_tuser(0);
         in_last(2) <= s02_axis_tlast;
         in_valid(2) <= s02_axis_tvalid;
@@ -600,7 +600,7 @@ begin
 
     gen_slave_bus03:
     if 3 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(3+1))-1) downto DATA_WIDTH*3) <= std_ulogic_vector(s03_axis_tdata);
+        in_data(((DATA_WIDTH*(3+1))-1) downto DATA_WIDTH*3) <= std_logic_vector(s03_axis_tdata);
         in_meta(3) <= s03_axis_tuser(0);
         in_last(3) <= s03_axis_tlast;
         in_valid(3) <= s03_axis_tvalid;
@@ -618,7 +618,7 @@ begin
 
     gen_slave_bus04:
     if 4 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(4+1))-1) downto DATA_WIDTH*4) <= std_ulogic_vector(s04_axis_tdata);
+        in_data(((DATA_WIDTH*(4+1))-1) downto DATA_WIDTH*4) <= std_logic_vector(s04_axis_tdata);
         in_meta(4) <= s04_axis_tuser(0);
         in_last(4) <= s04_axis_tlast;
         in_valid(4) <= s04_axis_tvalid;
@@ -636,7 +636,7 @@ begin
 
     gen_slave_bus05:
     if 5 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(5+1))-1) downto DATA_WIDTH*5) <= std_ulogic_vector(s05_axis_tdata);
+        in_data(((DATA_WIDTH*(5+1))-1) downto DATA_WIDTH*5) <= std_logic_vector(s05_axis_tdata);
         in_meta(5) <= s05_axis_tuser(0);
         in_last(5) <= s05_axis_tlast;
         in_valid(5) <= s05_axis_tvalid;
@@ -654,7 +654,7 @@ begin
 
     gen_slave_bus06:
     if 6 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(6+1))-1) downto DATA_WIDTH*6) <= std_ulogic_vector(s06_axis_tdata);
+        in_data(((DATA_WIDTH*(6+1))-1) downto DATA_WIDTH*6) <= std_logic_vector(s06_axis_tdata);
         in_meta(6) <= s06_axis_tuser(0);
         in_last(6) <= s06_axis_tlast;
         in_valid(6) <= s06_axis_tvalid;
@@ -672,7 +672,7 @@ begin
 
     gen_slave_bus07:
     if 7 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(7+1))-1) downto DATA_WIDTH*7) <= std_ulogic_vector(s07_axis_tdata);
+        in_data(((DATA_WIDTH*(7+1))-1) downto DATA_WIDTH*7) <= std_logic_vector(s07_axis_tdata);
         in_meta(7) <= s07_axis_tuser(0);
         in_last(7) <= s07_axis_tlast;
         in_valid(7) <= s07_axis_tvalid;
@@ -690,7 +690,7 @@ begin
 
     gen_slave_bus08:
     if 8 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(8+1))-1) downto DATA_WIDTH*8) <= std_ulogic_vector(s08_axis_tdata);
+        in_data(((DATA_WIDTH*(8+1))-1) downto DATA_WIDTH*8) <= std_logic_vector(s08_axis_tdata);
         in_meta(8) <= s08_axis_tuser(0);
         in_last(8) <= s08_axis_tlast;
         in_valid(8) <= s08_axis_tvalid;
@@ -708,7 +708,7 @@ begin
 
     gen_slave_bus09:
     if 9 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(9+1))-1) downto DATA_WIDTH*9) <= std_ulogic_vector(s09_axis_tdata);
+        in_data(((DATA_WIDTH*(9+1))-1) downto DATA_WIDTH*9) <= std_logic_vector(s09_axis_tdata);
         in_meta(9) <= s09_axis_tuser(0);
         in_last(9) <= s09_axis_tlast;
         in_valid(9) <= s09_axis_tvalid;
@@ -726,7 +726,7 @@ begin
 
     gen_slave_bus10:
     if 10 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(10+1))-1) downto DATA_WIDTH*10) <= std_ulogic_vector(s10_axis_tdata);
+        in_data(((DATA_WIDTH*(10+1))-1) downto DATA_WIDTH*10) <= std_logic_vector(s10_axis_tdata);
         in_meta(10) <= s10_axis_tuser(0);
         in_last(10) <= s10_axis_tlast;
         in_valid(10) <= s10_axis_tvalid;
@@ -744,7 +744,7 @@ begin
 
     gen_slave_bus11:
     if 11 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(11+1))-1) downto DATA_WIDTH*11) <= std_ulogic_vector(s11_axis_tdata);
+        in_data(((DATA_WIDTH*(11+1))-1) downto DATA_WIDTH*11) <= std_logic_vector(s11_axis_tdata);
         in_meta(11) <= s11_axis_tuser(0);
         in_last(11) <= s11_axis_tlast;
         in_valid(11) <= s11_axis_tvalid;
@@ -762,7 +762,7 @@ begin
 
     gen_slave_bus12:
     if 12 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(12+1))-1) downto DATA_WIDTH*12) <= std_ulogic_vector(s12_axis_tdata);
+        in_data(((DATA_WIDTH*(12+1))-1) downto DATA_WIDTH*12) <= std_logic_vector(s12_axis_tdata);
         in_meta(12) <= s12_axis_tuser(0);
         in_last(12) <= s12_axis_tlast;
         in_valid(12) <= s12_axis_tvalid;
@@ -780,7 +780,7 @@ begin
 
     gen_slave_bus13:
     if 13 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(13+1))-1) downto DATA_WIDTH*13) <= std_ulogic_vector(s13_axis_tdata);
+        in_data(((DATA_WIDTH*(13+1))-1) downto DATA_WIDTH*13) <= std_logic_vector(s13_axis_tdata);
         in_meta(13) <= s13_axis_tuser(0);
         in_last(13) <= s13_axis_tlast;
         in_valid(13) <= s13_axis_tvalid;
@@ -798,7 +798,7 @@ begin
 
     gen_slave_bus14:
     if 14 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(14+1))-1) downto DATA_WIDTH*14) <= std_ulogic_vector(s14_axis_tdata);
+        in_data(((DATA_WIDTH*(14+1))-1) downto DATA_WIDTH*14) <= std_logic_vector(s14_axis_tdata);
         in_meta(14) <= s14_axis_tuser(0);
         in_last(14) <= s14_axis_tlast;
         in_valid(14) <= s14_axis_tvalid;
@@ -816,7 +816,7 @@ begin
 
     gen_slave_bus15:
     if 15 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(15+1))-1) downto DATA_WIDTH*15) <= std_ulogic_vector(s15_axis_tdata);
+        in_data(((DATA_WIDTH*(15+1))-1) downto DATA_WIDTH*15) <= std_logic_vector(s15_axis_tdata);
         in_meta(15) <= s15_axis_tuser(0);
         in_last(15) <= s15_axis_tlast;
         in_valid(15) <= s15_axis_tvalid;
@@ -834,7 +834,7 @@ begin
 
     gen_slave_bus16:
     if 16 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(16+1))-1) downto DATA_WIDTH*16) <= std_ulogic_vector(s16_axis_tdata);
+        in_data(((DATA_WIDTH*(16+1))-1) downto DATA_WIDTH*16) <= std_logic_vector(s16_axis_tdata);
         in_meta(16) <= s16_axis_tuser(0);
         in_last(16) <= s16_axis_tlast;
         in_valid(16) <= s16_axis_tvalid;
@@ -852,7 +852,7 @@ begin
 
     gen_slave_bus17:
     if 17 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(17+1))-1) downto DATA_WIDTH*17) <= std_ulogic_vector(s17_axis_tdata);
+        in_data(((DATA_WIDTH*(17+1))-1) downto DATA_WIDTH*17) <= std_logic_vector(s17_axis_tdata);
         in_meta(17) <= s17_axis_tuser(0);
         in_last(17) <= s17_axis_tlast;
         in_valid(17) <= s17_axis_tvalid;
@@ -870,7 +870,7 @@ begin
 
     gen_slave_bus18:
     if 18 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(18+1))-1) downto DATA_WIDTH*18) <= std_ulogic_vector(s18_axis_tdata);
+        in_data(((DATA_WIDTH*(18+1))-1) downto DATA_WIDTH*18) <= std_logic_vector(s18_axis_tdata);
         in_meta(18) <= s18_axis_tuser(0);
         in_last(18) <= s18_axis_tlast;
         in_valid(18) <= s18_axis_tvalid;
@@ -888,7 +888,7 @@ begin
 
     gen_slave_bus19:
     if 19 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(19+1))-1) downto DATA_WIDTH*19) <= std_ulogic_vector(s19_axis_tdata);
+        in_data(((DATA_WIDTH*(19+1))-1) downto DATA_WIDTH*19) <= std_logic_vector(s19_axis_tdata);
         in_meta(19) <= s19_axis_tuser(0);
         in_last(19) <= s19_axis_tlast;
         in_valid(19) <= s19_axis_tvalid;
@@ -906,7 +906,7 @@ begin
 
     gen_slave_bus20:
     if 20 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(20+1))-1) downto DATA_WIDTH*20) <= std_ulogic_vector(s20_axis_tdata);
+        in_data(((DATA_WIDTH*(20+1))-1) downto DATA_WIDTH*20) <= std_logic_vector(s20_axis_tdata);
         in_meta(20) <= s20_axis_tuser(0);
         in_last(20) <= s20_axis_tlast;
         in_valid(20) <= s20_axis_tvalid;
@@ -924,7 +924,7 @@ begin
 
     gen_slave_bus21:
     if 21 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(21+1))-1) downto DATA_WIDTH*21) <= std_ulogic_vector(s21_axis_tdata);
+        in_data(((DATA_WIDTH*(21+1))-1) downto DATA_WIDTH*21) <= std_logic_vector(s21_axis_tdata);
         in_meta(21) <= s21_axis_tuser(0);
         in_last(21) <= s21_axis_tlast;
         in_valid(21) <= s21_axis_tvalid;
@@ -942,7 +942,7 @@ begin
 
     gen_slave_bus22:
     if 22 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(22+1))-1) downto DATA_WIDTH*22) <= std_ulogic_vector(s22_axis_tdata);
+        in_data(((DATA_WIDTH*(22+1))-1) downto DATA_WIDTH*22) <= std_logic_vector(s22_axis_tdata);
         in_meta(22) <= s22_axis_tuser(0);
         in_last(22) <= s22_axis_tlast;
         in_valid(22) <= s22_axis_tvalid;
@@ -960,7 +960,7 @@ begin
 
     gen_slave_bus23:
     if 23 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(23+1))-1) downto DATA_WIDTH*23) <= std_ulogic_vector(s23_axis_tdata);
+        in_data(((DATA_WIDTH*(23+1))-1) downto DATA_WIDTH*23) <= std_logic_vector(s23_axis_tdata);
         in_meta(23) <= s23_axis_tuser(0);
         in_last(23) <= s23_axis_tlast;
         in_valid(23) <= s23_axis_tvalid;
@@ -978,7 +978,7 @@ begin
 
     gen_slave_bus24:
     if 24 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(24+1))-1) downto DATA_WIDTH*24) <= std_ulogic_vector(s24_axis_tdata);
+        in_data(((DATA_WIDTH*(24+1))-1) downto DATA_WIDTH*24) <= std_logic_vector(s24_axis_tdata);
         in_meta(24) <= s24_axis_tuser(0);
         in_last(24) <= s24_axis_tlast;
         in_valid(24) <= s24_axis_tvalid;
@@ -996,7 +996,7 @@ begin
 
     gen_slave_bus25:
     if 25 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(25+1))-1) downto DATA_WIDTH*25) <= std_ulogic_vector(s25_axis_tdata);
+        in_data(((DATA_WIDTH*(25+1))-1) downto DATA_WIDTH*25) <= std_logic_vector(s25_axis_tdata);
         in_meta(25) <= s25_axis_tuser(0);
         in_last(25) <= s25_axis_tlast;
         in_valid(25) <= s25_axis_tvalid;
@@ -1014,7 +1014,7 @@ begin
 
     gen_slave_bus26:
     if 26 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(26+1))-1) downto DATA_WIDTH*26) <= std_ulogic_vector(s26_axis_tdata);
+        in_data(((DATA_WIDTH*(26+1))-1) downto DATA_WIDTH*26) <= std_logic_vector(s26_axis_tdata);
         in_meta(26) <= s26_axis_tuser(0);
         in_last(26) <= s26_axis_tlast;
         in_valid(26) <= s26_axis_tvalid;
@@ -1032,7 +1032,7 @@ begin
 
     gen_slave_bus27:
     if 27 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(27+1))-1) downto DATA_WIDTH*27) <= std_ulogic_vector(s27_axis_tdata);
+        in_data(((DATA_WIDTH*(27+1))-1) downto DATA_WIDTH*27) <= std_logic_vector(s27_axis_tdata);
         in_meta(27) <= s27_axis_tuser(0);
         in_last(27) <= s27_axis_tlast;
         in_valid(27) <= s27_axis_tvalid;
@@ -1050,7 +1050,7 @@ begin
 
     gen_slave_bus28:
     if 28 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(28+1))-1) downto DATA_WIDTH*28) <= std_ulogic_vector(s28_axis_tdata);
+        in_data(((DATA_WIDTH*(28+1))-1) downto DATA_WIDTH*28) <= std_logic_vector(s28_axis_tdata);
         in_meta(28) <= s28_axis_tuser(0);
         in_last(28) <= s28_axis_tlast;
         in_valid(28) <= s28_axis_tvalid;
@@ -1068,7 +1068,7 @@ begin
 
     gen_slave_bus29:
     if 29 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(29+1))-1) downto DATA_WIDTH*29) <= std_ulogic_vector(s29_axis_tdata);
+        in_data(((DATA_WIDTH*(29+1))-1) downto DATA_WIDTH*29) <= std_logic_vector(s29_axis_tdata);
         in_meta(29) <= s29_axis_tuser(0);
         in_last(29) <= s29_axis_tlast;
         in_valid(29) <= s29_axis_tvalid;
@@ -1086,7 +1086,7 @@ begin
 
     gen_slave_bus30:
     if 30 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(30+1))-1) downto DATA_WIDTH*30) <= std_ulogic_vector(s30_axis_tdata);
+        in_data(((DATA_WIDTH*(30+1))-1) downto DATA_WIDTH*30) <= std_logic_vector(s30_axis_tdata);
         in_meta(30) <= s30_axis_tuser(0);
         in_last(30) <= s30_axis_tlast;
         in_valid(30) <= s30_axis_tvalid;
@@ -1104,7 +1104,7 @@ begin
 
     gen_slave_bus31:
     if 31 < NUM_INPUTS generate
-        in_data(((DATA_WIDTH*(31+1))-1) downto DATA_WIDTH*31) <= std_ulogic_vector(s31_axis_tdata);
+        in_data(((DATA_WIDTH*(31+1))-1) downto DATA_WIDTH*31) <= std_logic_vector(s31_axis_tdata);
         in_meta(31) <= s31_axis_tuser(0);
         in_last(31) <= s31_axis_tlast;
         in_valid(31) <= s31_axis_tvalid;

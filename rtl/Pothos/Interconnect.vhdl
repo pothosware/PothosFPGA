@@ -1,7 +1,7 @@
 ------------------------------------------------------------------------
 -- Interconnect implementation
 --
--- Copyright (c) 2014-2014 Josh Blum
+-- Copyright (c) 2014-2015 Josh Blum
 -- SPDX-License-Identifier: BSL-1.0
 --
 -- The interconnect is a configurable stream delivery engine.
@@ -87,37 +87,37 @@ entity Interconnect is
         -- high bandwidth ports for performance hints
         -- each bit represents a port by index number
         -- TODO, these will be used to generate muxing with non0 lanes
-        --HIGH_BW_INS : std_ulogic_vector;
-        --HIGH_BW_OUTS : std_ulogic_vector
+        --HIGH_BW_INS : std_logic_vector;
+        --HIGH_BW_OUTS : std_logic_vector
     );
     port(
-        clk : in std_ulogic;
-        rst : in std_ulogic;
+        clk : in std_logic;
+        rst : in std_logic;
 
         -- configuration channel
-        paddr : in std_ulogic_vector(31 downto 0);
-        psel : in std_ulogic;
-        penable : in std_ulogic;
-        pwrite : in std_ulogic;
-        pwdata : in std_ulogic_vector(31 downto 0);
-        pready : out std_ulogic;
-        prdata : out std_ulogic_vector(31 downto 0);
+        paddr : in std_logic_vector(31 downto 0);
+        psel : in std_logic;
+        penable : in std_logic;
+        pwrite : in std_logic;
+        pwdata : in std_logic_vector(31 downto 0);
+        pready : out std_logic;
+        prdata : out std_logic_vector(31 downto 0);
 
         -- all ports into the interconnect
-        in_data : in std_ulogic_vector;
-        in_meta : in std_ulogic_vector(NUM_INPUTS-1 downto 0) := (others => '0');
-        in_last : in std_ulogic_vector(NUM_INPUTS-1 downto 0) := (others => '1');
-        in_valid : in std_ulogic_vector(NUM_INPUTS-1 downto 0);
-        in_ready : out std_ulogic_vector(NUM_INPUTS-1 downto 0);
-        in_begin : out std_ulogic_vector(NUM_INPUTS-1 downto 0);
+        in_data : in std_logic_vector;
+        in_meta : in std_logic_vector(NUM_INPUTS-1 downto 0) := (others => '0');
+        in_last : in std_logic_vector(NUM_INPUTS-1 downto 0) := (others => '1');
+        in_valid : in std_logic_vector(NUM_INPUTS-1 downto 0);
+        in_ready : out std_logic_vector(NUM_INPUTS-1 downto 0);
+        in_begin : out std_logic_vector(NUM_INPUTS-1 downto 0);
 
         -- all ports out from the interconnect
-        out_data : out std_ulogic_vector;
-        out_meta : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-        out_last : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-        out_valid : out std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-        out_ready : in std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-        out_begin : in std_ulogic_vector(NUM_OUTPUTS-1 downto 0) := (others => '1')
+        out_data : out std_logic_vector;
+        out_meta : out std_logic_vector(NUM_OUTPUTS-1 downto 0);
+        out_last : out std_logic_vector(NUM_OUTPUTS-1 downto 0);
+        out_valid : out std_logic_vector(NUM_OUTPUTS-1 downto 0);
+        out_ready : in std_logic_vector(NUM_OUTPUTS-1 downto 0);
+        out_begin : in std_logic_vector(NUM_OUTPUTS-1 downto 0) := (others => '1')
     );
 end entity Interconnect;
 
@@ -128,7 +128,7 @@ architecture rtl of Interconnect is
 
     --selection registers set by the config bus
     signal paddr_num : natural;
-    signal test_loopback_reg : std_ulogic_vector(31 downto 0);
+    signal test_loopback_reg : std_logic_vector(31 downto 0);
     signal lane_select_reg : natural range 0 to NUM_LANES-1;
     signal input_select_reg : natural range 0 to NUM_INPUTS-1;
 
@@ -136,11 +136,11 @@ architecture rtl of Interconnect is
     --Each array element is a streaming bus between iogress blocks.
     --Notice the extra bus (NUM_PORTS + 1) which is for convenience
     --We connect streaming NUM_PORTS to 0 to connect the loop.
-    type lanes_dest_type is array(0 to NUM_PORTS) of std_ulogic_vector((NUM_LANES*NUM_OUTPUTS)-1 downto 0);
-    type lanes_data_type is array(0 to NUM_PORTS) of std_ulogic_vector((NUM_LANES*(DATA_WIDTH+1))-1 downto 0); --(data + meta) x NUM_LANES
-    type lanes_last_type is array(0 to NUM_PORTS) of std_ulogic_vector(NUM_LANES-1 downto 0);
-    type lanes_valid_type is array(0 to NUM_PORTS) of std_ulogic_vector(NUM_LANES-1 downto 0);
-    type lanes_ready_type is array(0 to NUM_PORTS) of std_ulogic_vector(NUM_LANES-1 downto 0);
+    type lanes_dest_type is array(0 to NUM_PORTS) of std_logic_vector((NUM_LANES*NUM_OUTPUTS)-1 downto 0);
+    type lanes_data_type is array(0 to NUM_PORTS) of std_logic_vector((NUM_LANES*(DATA_WIDTH+1))-1 downto 0); --(data + meta) x NUM_LANES
+    type lanes_last_type is array(0 to NUM_PORTS) of std_logic_vector(NUM_LANES-1 downto 0);
+    type lanes_valid_type is array(0 to NUM_PORTS) of std_logic_vector(NUM_LANES-1 downto 0);
+    type lanes_ready_type is array(0 to NUM_PORTS) of std_logic_vector(NUM_LANES-1 downto 0);
 
     --multi lane connections:
     signal lane_dest : lanes_dest_type;
@@ -163,10 +163,10 @@ begin
     --------------------------------------------------------------------
     paddr_num <= to_integer(unsigned(paddr));
     prdata <=
-        std_ulogic_vector(to_unsigned(IC_VERSION, 32)) when (paddr_num = IC_VERSION_ADDR) else
-        std_ulogic_vector(to_unsigned(NUM_LANES, 32)) when (paddr_num = IC_NUM_LANES_ADDR) else
-        std_ulogic_vector(to_unsigned(NUM_INPUTS, 32)) when (paddr_num = IC_NUM_INPUTS_ADDR) else
-        std_ulogic_vector(to_unsigned(NUM_OUTPUTS, 32)) when (paddr_num = IC_NUM_OUTPUTS_ADDR) else
+        std_logic_vector(to_unsigned(IC_VERSION, 32)) when (paddr_num = IC_VERSION_ADDR) else
+        std_logic_vector(to_unsigned(NUM_LANES, 32)) when (paddr_num = IC_NUM_LANES_ADDR) else
+        std_logic_vector(to_unsigned(NUM_INPUTS, 32)) when (paddr_num = IC_NUM_INPUTS_ADDR) else
+        std_logic_vector(to_unsigned(NUM_OUTPUTS, 32)) when (paddr_num = IC_NUM_OUTPUTS_ADDR) else
         test_loopback_reg when (paddr_num = IC_TEST_LOOPBACK_ADDR) else (others => '0');
     pready <= penable;
 
@@ -197,19 +197,19 @@ begin
     gen_lane_ingress: for i in 0 to (NUM_INPUTS-1) generate
 
         --configuration registers
-        signal lane_mask : std_ulogic_vector(NUM_LANES-1 downto 0);
-        signal flow_mask : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
-        signal egress_masks : std_ulogic_vector((NUM_OUTPUTS*NUM_LANES)-1 downto 0);
+        signal lane_mask : std_logic_vector(NUM_LANES-1 downto 0);
+        signal flow_mask : std_logic_vector(NUM_OUTPUTS-1 downto 0);
+        signal egress_masks : std_logic_vector((NUM_OUTPUTS*NUM_LANES)-1 downto 0);
 
         --valve input data
-        signal in_data_i : std_ulogic_vector(DATA_WIDTH downto 0);
-        signal in_begin_i : std_ulogic;
+        signal in_data_i : std_logic_vector(DATA_WIDTH downto 0);
+        signal in_begin_i : std_logic;
 
         --bus inbetween valve and lane ingress
-        signal valve_data : std_ulogic_vector(DATA_WIDTH downto 0);
-        signal valve_last : std_ulogic;
-        signal valve_valid : std_ulogic;
-        signal valve_ready : std_ulogic;
+        signal valve_data : std_logic_vector(DATA_WIDTH downto 0);
+        signal valve_last : std_logic;
+        signal valve_valid : std_logic;
+        signal valve_ready : std_logic;
     begin
 
         --record configuration selections into lane and output masks
@@ -240,7 +240,7 @@ begin
         --to ease combinatorial paths on input and output begin signals.
         --The delay is acceptable because the destination buffers are deeper.
         process (clk)
-            variable out_begin_r : std_ulogic_vector(NUM_OUTPUTS-1 downto 0);
+            variable out_begin_r : std_logic_vector(NUM_OUTPUTS-1 downto 0);
         begin
             if (rising_edge(clk)) then
                 out_begin_r := out_begin;
@@ -312,7 +312,7 @@ begin
     -- generate outgress blocks for each output port
     --------------------------------------------------------------------
     gen_lane_outgress: for i in 0 to (NUM_OUTPUTS-1) generate
-        signal out_data_i : std_ulogic_vector(DATA_WIDTH downto 0);
+        signal out_data_i : std_logic_vector(DATA_WIDTH downto 0);
     begin
 
         outgress: entity work.LaneOutgress
