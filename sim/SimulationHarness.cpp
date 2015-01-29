@@ -1,4 +1,4 @@
-// Copyright (c) 2014-2014 Josh Blum
+// Copyright (c) 2014-2015 Josh Blum
 // SPDX-License-Identifier: BSL-1.0
 
 #include <Pothos/Framework.hpp>
@@ -38,10 +38,15 @@ public:
                 Pothos::Packet pkt;
                 pkt.payload = Pothos::BufferChunk(outputPort->dtype(), _queue.size()-_headerCount);
                 auto buff = pkt.payload.as<int *>();
+                size_t labelIndex = 0;
                 size_t i = 0;
                 while (not _queue.empty())
                 {
-                    if (_headerCount != 0) _headerCount--;
+                    if (_headerCount != 0)
+                    {
+                        _headerCount--;
+                        pkt.labels.push_back(Pothos::Label("metadata", _queue.front(), labelIndex++));
+                    }
                     else buff[i++] = _queue.front();
                     _queue.pop();
                 }
@@ -151,8 +156,17 @@ public:
                 const auto msg = inputPort->popMessage();
                 const auto pkt = msg.convert<Pothos::Packet>();
                 _inPacket = true;
-                _headerCount = 1;
-                _queue.push(0);
+                _headerCount = pkt.labels.size();
+                for (size_t i = 0; i < pkt.labels.size(); i++)
+                {
+                    _queue.push(pkt.labels[i].data.convert<int>());
+                }
+                //force at least one hdr entry
+                if (_headerCount == 0)
+                {
+                    _queue.push(0);
+                    _headerCount++;
+                }
                 _loadBuffer(pkt.payload);
             }
         }
