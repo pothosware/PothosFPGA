@@ -35,6 +35,14 @@ architecture test of FifoTb is
     signal valid3 : std_logic;
     signal ready3 : std_logic;
 
+    signal data4 : std_logic_vector(31 downto 0);
+    signal valid4 : std_logic;
+    signal ready4 : std_logic;
+
+    signal data5 : std_logic_vector(31 downto 0);
+    signal valid5 : std_logic;
+    signal ready5 : std_logic;
+
 begin
 
     -- Generate clock
@@ -125,6 +133,56 @@ begin
         in_data => data3,
         in_valid => valid3,
         in_ready => ready3
+    );
+
+    process begin
+        initProxyServer(0);
+        wait;
+    end process;
+
+    --------------------------------------------------------------------
+    -- test cross clock fifo
+    --------------------------------------------------------------------
+    source2: entity PothosSimulation.ExternalSource
+    generic map (
+        PORT_NUMBER => 2
+    )
+    port map (
+        clk => clk,
+        rst => rst,
+        out_data => data4,
+        out_valid => valid4,
+        out_ready => ready4
+    );
+
+    fifo2: entity PothosInterconnect.TwoClockStreamFifo
+    generic map (
+        MEM_SIZE => 10
+    )
+    port map (
+        in_clk => clk,
+        in_rst => rst,
+        in_data => data4,
+        in_valid => valid4,
+        in_ready => ready4,
+
+        out_clk => clk,
+        out_rst => rst,
+        out_data => data5,
+        out_valid => valid5,
+        out_ready => ready5
+    );
+
+    sink2: entity PothosSimulation.ExternalSink
+    generic map (
+        PORT_NUMBER => 2
+    )
+    port map (
+        clk => clk,
+        rst => rst,
+        in_data => data5,
+        in_valid => valid5,
+        in_ready => ready5
     );
 
     process begin

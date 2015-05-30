@@ -11,6 +11,7 @@ GHDL_ELABORATE(
         extras/fifos.vhdl
         InterconnectPkg.vhdl
         StreamFifo.vhdl
+        TwoClockStreamFifo.vhdl
         StreamInspector.vhdl
         StreamCombiner.vhdl
         StreamSplitter.vhdl
