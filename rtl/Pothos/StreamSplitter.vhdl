@@ -43,7 +43,7 @@ architecture rtl of StreamSplitter is
 
     --all ready signals to fifo input stream buses
     signal in_fifo_ready : std_logic_vector(NUM_OUTPUTS-1 downto 0);
-    signal in_fifo_begin : std_logic;
+    signal packet_xfer : std_logic;
 
     --enables that are not changed during a packet transfer
     signal usedEnables : std_logic_vector(NUM_OUTPUTS-1 downto 0);
@@ -73,16 +73,16 @@ begin
         last => in_last,
         valid => in_valid,
         ready => in_ready_i,
-        packet_begin => in_fifo_begin
+        packet_xfer => packet_xfer
     );
 
-    usedEnables <= enables when (in_fifo_begin = '1') else cachedEnables;
+    usedEnables <= enables when (packet_xfer = '0') else cachedEnables;
 
     process (clk) begin
         if (rising_edge(clk)) then
             if (rst = '1') then
                 cachedEnables <= (others => '0');
-            elsif (in_fifo_begin = '1') then
+            elsif (packet_xfer = '0') then
                 cachedEnables <= enables;
             end if;
         end if;
